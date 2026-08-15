@@ -4,6 +4,8 @@ set -Eeuo pipefail
 
 APP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 APP_URL="http://127.0.0.1:3000/"
+LM_UPSTREAM="${LM_UPSTREAM:-http://127.0.0.1:1234}"
+LM_PROXY_URL="${VITE_LM_ENDPOINT:-http://127.0.0.1:1235/v1/chat/completions}"
 SERVER_LOG="${APP_DIR}/vite.log"
 SERVER_PID=""
 PROXY_PID=""
@@ -57,25 +59,32 @@ if ! command -v open >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v curl >/dev/null 2>&1; then
+  printf 'Error: curl is required but was not found in PATH.\n' >&2
+  exit 1
+fi
+
 cd "${APP_DIR}"
 
 : > "${SERVER_LOG}"
 : > "${APP_DIR}/proxy.log"
-printf 'Starting Dev Doctor AI from %s\n' "${APP_DIR}"
+printf 'Starting Dev Doctor from %s\n' "${APP_DIR}"
 printf 'Vite output is being written to %s\n' "${SERVER_LOG}"
 printf 'LM proxy output is being written to %s\n' "${APP_DIR}/proxy.log"
- 
-# Start LM proxy so the browser can call the local LM Studio without CORS errors
-npm run start-proxy >"${APP_DIR}/proxy.log" 2>&1 &
+printf 'Checking LM Studio at %s\n' "${LM_UPSTREAM}"
+
+if ! curl -fsS --max-time 3 -o /dev/null "${LM_UPSTREAM%/}/v1/models"; then
+  printf 'Error: LM Studio is not reachable at %s/v1/models. Start its local server and load a model before launching Dev Doctor.\n' "${LM_UPSTREAM%/}" >&2
+  exit 1
+fi
+
+# Start the CORS proxy and explicitly point the Vite client at it.
+LM_UPSTREAM="${LM_UPSTREAM}" npm run start-proxy >"${APP_DIR}/proxy.log" 2>&1 &
 PROXY_PID=$!
- 
-# Start local auth server (OAuth flow) for SDK sign-in
-npm run start-auth >"${APP_DIR}/auth.log" 2>&1 &
-AUTH_PID=$!
- 
-# Wait for proxy to be ready
+
+# Wait until the proxy can reach LM Studio, not merely until its port is open.
 for attempt in {1..20}; do
-  if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1235/v1/chat/completions"; then
+  if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1235/v1/models"; then
     printf 'LM proxy is ready.\n'
     break
   fi
@@ -86,22 +95,28 @@ for attempt in {1..20}; do
   fi
   sleep 1
 done
- 
-# Wait for auth server to be ready
-for attempt in {1..20}; do
-  if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1236/health"; then
-    printf 'Auth server is ready.\n'
-    break
-  fi
-  if ! kill -0 "${AUTH_PID}" 2>/dev/null; then
-    printf 'Error: Auth server exited before becoming ready.\n' >&2
-    cat "${APP_DIR}/auth.log" >&2
-    exit 1
-  fi
-  sleep 1
-done
- 
-npm run dev -- --host 127.0.0.1 >"${SERVER_LOG}" 2>&1 &
+
+# OAuth is optional for the standard LM Studio workflow. Enable it only when needed.
+if [[ "${START_AUTH_SERVER:-false}" == "true" ]]; then
+  : > "${APP_DIR}/auth.log"
+  npm run start-auth >"${APP_DIR}/auth.log" 2>&1 &
+  AUTH_PID=$!
+
+  for attempt in {1..20}; do
+    if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1236/health"; then
+      printf 'Optional auth server is ready.\n'
+      break
+    fi
+    if ! kill -0 "${AUTH_PID}" 2>/dev/null; then
+      printf 'Error: auth server exited before becoming ready.\n' >&2
+      cat "${APP_DIR}/auth.log" >&2
+      exit 1
+    fi
+    sleep 1
+  done
+fi
+
+VITE_LM_ENDPOINT="${LM_PROXY_URL}" npm run dev -- --host 127.0.0.1 --port 3000 --strictPort >"${SERVER_LOG}" 2>&1 &
 SERVER_PID=$!
  
 for attempt in {1..30}; do

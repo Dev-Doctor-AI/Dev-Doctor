@@ -62,6 +62,16 @@ Dev Doctor is an AI-assisted game-development planning workspace. It guides a ga
 
 `.env.local` is ignored by Git. The checked-in `.env.production` retains the direct default LM Studio endpoint; use a server-side proxy appropriate to your deployment when hosting beyond local development.
 
+### macOS one-command launcher
+
+After LM Studio is running, this repository's launcher starts the CORS proxy and Vite server, opens Dev Doctor at `http://127.0.0.1:3000/`, and stops the child processes when you press <kbd>Ctrl</kbd>+<kbd>C</kbd>:
+
+```bash
+./start_app.sh
+```
+
+The launcher requires macOS, `npm`, `curl`, and the `open` command. It checks LM Studio at `http://127.0.0.1:1234/v1/models` by default; set `LM_UPSTREAM` to use another upstream URL. It always points the development client at the local proxy. To also start the optional OAuth helper, use `START_AUTH_SERVER=true ./start_app.sh`.
+
 ## AI providers and credentials
 
 - **LM Studio** is the default local provider and does not require a cloud API key.
@@ -82,6 +92,7 @@ Dev Doctor is an AI-assisted game-development planning workspace. It guides a ga
 | `npm run start-proxy` | Start the local LM Studio CORS proxy on port `1235`. |
 | `npm run start-auth` | Start the optional OAuth helper on port `1236`. |
 | `npm run test:e2e` | Run the browser-based, helper-driven LM Studio end-to-end test. |
+| `./start_app.sh` | macOS launcher for LM Studio, the CORS proxy, Vite, and the browser. |
 
 ## Validation
 
