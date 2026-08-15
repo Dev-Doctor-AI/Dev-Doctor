@@ -1,0 +1,6 @@
+{
+  "name": "Remix: Dev Doctor AI - B",
+  "description": "An AI-powered application that guides users through a conversational process to generate a professional Game Design Document (GDD) and a 10-slide funding Pitch Deck, complete with AI-generated concept visuals.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

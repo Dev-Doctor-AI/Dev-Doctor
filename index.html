@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dev Doctor AI: GDD & Pitch Deck Generator</title>
+    
+    <!-- Open Graph Meta Tags for Social Sharing (Twitter Cards & Facebook) -->
+    <meta property="og:title" content="Dev Doctor AI" />
+    <meta property="og:description" content="Your personal AI assistant for crafting professional project documents (GDD/PRD) and compelling Pitch Decks." />
+    <meta property="og:image" content="https://storage.googleapis.com/maker-suite-tool-assets/project-promo-images/dev-doctor-ai-og-image.png" />
+    <meta property="og:type" content="website" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-bg': '#121212',
+              'brand-surface': '#1e1e1e',
+              'brand-primary': '#00A99D',
+              'brand-secondary': '#6A4C93',
+              'brand-text': '#EAEAEA',
+              'brand-text-muted': '#9E9E9E',
+              'brand-border': '#333333',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "jspdf": "https://esm.sh/jspdf@^3.0.1",
+    "pako": "https://esm.sh/pako@^2.1.0",
+    "mammoth": "https://esm.sh/mammoth@^1.8.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-brand-bg text-brand-text w-full">
+    <div id="root"></div>
+    <!-- Load pdf.js library globally to avoid module resolution issues -->
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.js"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

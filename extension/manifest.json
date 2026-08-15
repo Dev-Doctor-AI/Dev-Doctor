@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Dev Doctor OpenAI Session Bridge (dev)",
+  "version": "0.1.0",
+  "description": "Development extension to bridge ChatGPT web session tokens into the local Dev Doctor AI app (for dev only).",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage",
+    "cookies",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://chat.openai.com/*",
+    "https://chatgpt.com/*",
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
+      "js": ["content-chat.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+      "js": ["content-local.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

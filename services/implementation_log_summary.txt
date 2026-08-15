@@ -1,0 +1,20 @@
+## Architecture Review & Multi-Agent Execution Plan (2026-08-16)
+
+- Completed forensic analysis on package export discrepancies vs Example_Dev_Dr_Outputs.
+- Identified that `App.tsx` handled TDD, MVP Feature Specs, Freelance Briefs, Asset Lists, and Scope Reviews as lazy/on-click operations rather than auto-compiling during the main GDD generation pass.
+- Verified dynamic freelance briefs architecture (extracts whatever roles the project needs from GDD, never hardcoding role counts).
+- Prepared ready-to-execute roadmap for tomorrow with 3 agent tasks (App Pipeline, Service & Persona Prompts, Sequential Playwright Automation).
+
+## Previous Milestones Completed
+- Multi-provider support (OpenAI Responses API, LM Studio, Anthropic, Google Gemini, Custom OpenAI-Compatible) with dynamic model listing.
+- Real-time token pricing breakdown ($ cost, tokens in/out, cache rates).
+- Concierge persona re-engineered for non-technical dreamers & young adventurers.
+- Locked project title naming and inline click-to-edit header support.
+- Discovery chat log formatting across package downloads.
+- Playwright E2E testing framework installed and passing.
+
+## Next Steps for Multi-Agent Execution Tomorrow
+
+1. Agent 1 (Pipeline Engineer): Wire unified 8-stage auto-compilation (`gdd` -> `pitchDeck` -> `mvp` -> `mvpFeatureSpecs` -> `tdd` -> `briefs` -> `assets` -> `scopeReview`) into `App.tsx` and ensure all 4 export format generators write every section.
+2. Agent 2 (Prompt & Domain Specialist): Deepen system prompts in `services/lmStudioService.ts` for dynamic role-specific briefs, BDD User Stories & Acceptance Criteria, and comprehensive TDD specs.
+3. Agent 3 (QA & Automation Engineer): Implement `scripts/test-manual-sequential-e2e.mjs` with rotating game titles, AI helper driving discovery turns, automated critique answering, tab switching verification, and full package downloads into `Output Files/`.

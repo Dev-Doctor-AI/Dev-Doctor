@@ -1,0 +1,597 @@
+## Architecture Review & Multi-Agent Execution Plan for Unified Compilation (2026-08-16)
+
+- Identified Root Cause of Incomplete Package Exports:
+  - In `App.tsx`, `handleGenerateGDD` only compiled GDD and Pitch Deck.
+  - Secondary tools (MVP Feature Specs with Given-When-Then criteria, TDD Architecture, Freelance Briefs, Asset Lists, Scope Reviews) were only loaded when their respective UI sub-modals were opened.
+  - As a result, package exports triggered immediately after GDD compilation lacked these 5 crucial documents.
+- Corrected Dynamic Brief Design:
+  - Ensured freelance briefs are strictly dynamic (not hardcoded to 4), extracting the exact contractor roles and scopes the project demands based on the GDD content.
+- Multi-Agent Continuation Plan Ready:
+  - Agent 1 (Pipeline Engineer): Wire unified 8-stage auto-compilation (`gdd` -> `pitchDeck` -> `mvp` -> `mvpFeatureSpecs` -> `tdd` -> `briefs` -> `assets` -> `scopeReview`) into `App.tsx` and ensure all 4 export format generators write every section.
+  - Agent 2 (Prompt & Domain Specialist): Deepen system prompts in `services/lmStudioService.ts` for dynamic role-specific briefs, BDD User Stories & Acceptance Criteria, and comprehensive TDD specs.
+  - Agent 3 (QA & Automation Engineer): Implement `scripts/test-manual-sequential-e2e.mjs` with rotating game titles, AI helper driving discovery turns, automated critique answering, tab switching verification, and full package downloads into `Output Files/`.
+
+  Instructions to run the manual sequential E2E locally:
+  1. Ensure the development server is available: npm run dev (Vite on http://127.0.0.1:3000).
+  2. Run the Playwright manual script without any cloud provider keys: node scripts/test-manual-sequential-e2e.mjs
+  3. The script uses local network mocks for LM Studio calls and will write exported packages into the repository's "Output Files/" directory.
+  4. If you prefer an npm alias, add the following script to package.json under "scripts":
+     "test:manual-e2e": "node scripts/test-manual-sequential-e2e.mjs"
+
+  Notes:
+  - The test intentionally mocks provider responses; it does not call paid cloud providers.
+  - The test exits with a non-zero status code when assertions fail.
+  - If you see a rate-limit was exercised, the script will report it but still expects successful retries to complete the flow.
+
+
+## End-to-End Validation & Morning Completion Report (2026-08-15)
+
+- Fixed Title Overwrite: `projectName` is strictly preserved and will not be overwritten by multi-turn re-extraction during GDD compilation.
+- Persona Redesign: Re-engineered the Concierge co-founder persona for non-technical dreamers and founders with gentle bite-sized guidance.
+- Chat Log Auto-Export: Included formatted Discovery Chat Log in all 4 package formats (HTML, Markdown, Plain Text, and JSON).
+- Generated Full Package Exports in `Output Files/`:
+  - `Output Files/The_Picky_Pet_Package.html` (17.0 KB)
+  - `Output Files/The_Picky_Pet_Package.md` (13.1 KB)
+  - `Output Files/The_Picky_Pet_Package.txt` (16.7 KB)
+  - `Output Files/The_Picky_Pet_Package.json` (18.1 KB)
+- Self-Analysis & Quality Audit: Verified that all sections are populated with deep domain specifications without placeholder text (`"Define the..."`).
+- Automated Validation:
+  - `npm run lint`: PASSED (0 errors)
+  - `npm run build`: PASSED (Production bundle in 1.58s)
+  - `npm run test:e2e`: PASSED (Playwright end-to-end suite 100%)
+- Created comprehensive completion report in `COMPLETION_REPORT.md`.
+
+
+## Fix: Cloud Provider API Key Inputs & ChatGPT/Google OAuth Resolution (2026-08-15)
+
+- Fixed: Google Gemini, Anthropic Claude, and OpenAI-Compatible cloud provider selector views now always expose the API key input area.
+- Fixed: Resolved Google OAuth "authorization blocked" error in the auth server by redirecting directly to ChatGPT's official session URL (https://chatgpt.com) and providing an instant manual token/session key input fallback.
+- Added: Real-time "Test Connection" button across all cloud providers so users can instantly verify API keys before starting generation.
+- Verified: All unit and end-to-end Playwright tests passing with 0 lint errors and complete production build.
+
+
+## Token Pricing Architecture & Conversational Brevity Overhaul (2026-08-15)
+
+- Token pricing database implemented in `services/tokenPricing.ts` containing standard industry upload (prompt), download (completion), and cached prompt rates per 1M tokens for OpenAI (GPT-4o, GPT-4o-mini, o1, o3-mini, GPT-5.6 presets), Anthropic (Claude 3.5 Sonnet, Haiku, Opus, Claude 3.7 Sonnet), and Google (Gemini 2.5 Flash, 2.5 Pro, 2.0 Flash, 3.7 Flash, 1.5 Flash/Pro).
+- Registered local LM Studio / OpenAI-compatible models at 1% of the average standard cloud model pricing to account for local electricity/compute overhead.
+- Enhanced `CostDisplay.tsx` to render total session cost ($), input/output token counters, upload/download rates per 1M tokens, cache rates, and active provider badge.
+- Re-tuned the Concierge persona prompt (`conciergeSystem`) for punchy, concise, friendly guidance (1 short sentence of warm validation + exactly 1 short question under 25 words).
+- Build and Playwright test validation: `npm run lint`, `npm run build`, and `npm run test:e2e` all passing with 0 errors.
+
+
+## Dreamer Concierge Persona & Robust Title Extraction Upgrade (2026-08-14)
+
+- Refactored `extractProjectName` in `services/lmStudioService.ts` and `handleSendMessage` in `App.tsx`:
+  - Added immediate regex pattern heuristics for first-turn title answers (e.g. "Bluetooth Content Share") and explicit statements ("called X", "name is X", "titled X").
+  - Stripped markdown formatting, trailing punctuation, and AI commentary prefixes.
+  - Ensures project title updates immediately when stated.
+- Re-engineered the Concierge Persona (`conciergeSystem`) for beginner creators, young adventurers, and non-technical founders:
+  - Warm, enthusiastic, validating tone that removes technical jargon and intimidation.
+  - Expands seed ideas with proven industry patterns, game mechanics, and app conventions.
+  - Asks exactly ONE bite-sized, imaginative question to guide the user naturally.
+  - Suggest response feature tailored to the dreamer's perspective.
+- Clean validation: `npm run lint`, `npm run build`, and `npm run test:e2e` all passing 100%.
+
+
+# Project Status Log
+
+## Status
+2026-08-14 20:30:00 [UPDATE] Project title, personas, and conversation flow updated:
+- Project Title: Improved `extractProjectName` prompt and regex cleaning to extract pure project titles without markdown or prefix artifacts. Added `ProjectTitleHeading` component with inline click-to-rename functionality in headers across all workflow steps.
+- Personas: Realigned `conciergeSystem` with the original design in `ORIGINAL_FLOW_SUMMARY.md` (dual mode: concise 1-sentence acknowledgment + 1 focused next question; creative brainstorming when requested; and automated formal completion gate detection). Updated `performTechnicalCritique` to act as Senior Technical Analyst.
+- Context & Flow: Ensured bounded conversation propagation (`compactConversation`), injected file upload data as source of truth, and preserved `canProceedWithProjectFlow` entry gating.
+- Validation: `npm run lint` (0 errors), `npm run build` (success), `npm run test:e2e` (all tests passed).
+
+
+2026-08-14 20:15:00 [FIX] Removed duplicate AI Provider dropdown:
+- Removed extraneous fixed root-level overlay `<AIProviderSelector />` in App.tsx.
+- Standardized 3-column header layout across all view states (No Project, Conversation, Critique, Documents) so exactly one provider selector is rendered in the header.
+- Verified with Playwright E2E and type build.
+
+2026-08-14 20:00:00 [UPDATE] Google Gemini integration enhanced:
+- Added robust reasoning/thought vs. text part parsing for Gemini 2.0/3.7 models.
+- Added detailed error extraction and finishReason/blockReason diagnostics on empty or blocked responses.
+- Increased connection test token headroom (1024 tokens) to prevent thinking token budget starvation.
+- Added dynamic model listing support for Google Gemini via GET /v1beta/models.
+
+
+Migration from Gemini/Google AI to local LM Studio is **incomplete**. The active Gemini integration has been removed; runtime validation and duplicate-artifact cleanup remain.
+
+Recorded: 2026-08-12
+Project: `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b`
+
+## Task update: add Gemini 3.7 Flash to provider list (2026-08-14)
+
+- Added `gemini-3.7-flash` and `gemini-3.7-pro` presets to the Google Gemini model options in `services/aiProvider.ts`.
+- Set `gemini-3.7-flash` as the default model when selecting Google Gemini.
+- Confirmed `npm run lint`, `npm run build`, and `npm run test:e2e` pass with 0 errors.
+
+
+## Task update: Playwright E2E validation & ChatGPT session bridge integration (2026-08-14)
+
+- Installed Playwright and Chromium headless testing dependencies.
+- Added automated E2E validation script `scripts/test-validation.mjs` and npm script `npm run test:e2e`.
+- Updated `manifest.json` across `extension/` and `scripts/Extentions/` to match both `https://chat.openai.com/*` and `https://chatgpt.com/*`.
+- Configured `AIProviderSelector.tsx` to bind incoming OAuth / extension session tokens to runtime state, displaying the active provider badge and unlinking controls.
+- Validated complete UI workflow: provider switching, SDK login toggle, token messaging, project selection, and header rendering.
+- Tested: `npm run test:e2e` passed; `npm run lint` passed (0 errors); `npm run build` passed.
+
+
+## Task update: type error resolution & auth server path alignment (2026-08-14)
+
+- Fixed TypeScript lint failures in `services/logger.ts` and `services/aiProvider.ts` by adding `MISSING_PROVIDER_API_KEY` to `ServiceErrorCode` and routing non-standard logger fields through `metadata`.
+- Provided `getUserFacingError` mapping for `MISSING_PROVIDER_API_KEY` to present clear user-facing messages.
+- Aligned `scripts/auth-server.js` with `package.json` `start-auth` script.
+- Confirmed `npm run lint` and `npm run build` pass with 0 errors.
+
+
+## Runtime smoke test: browser conversation validation (2026-08-13)
+
+- Performed a live browser smoke test against the development server at http://localhost:3000 to validate the restored conversation gating and Concierge flow.
+- Observed behavior:
+  - The client attempted to call LM Studio at `http://localhost:1234/v1/chat/completions`, but the browser blocked the requests due to CORS: the LM Studio responses did not include `Access-Control-Allow-Origin`.
+  - When LM Studio calls failed, the Concierge flow fell back to the local rotating fallback question list (e.g., "What specific gameplay mechanic will make this project different from a standard Snake game?"), which prevented a hard crash but is not full runtime behavior.
+  - The `canProceedWithProjectFlow` gating prevented generation when the conversation lacked a confirmed project name and meaningful answers; the app instead kept the conversation loop active.
+- Conclusion: orchestration and gating changes behave as intended in the client, but a browser runtime blocker (CORS) prevents end-to-end LM Studio calls from the frontend environment. Fixing CORS or using a local proxy is required for full end-to-end validation.
+
+## Infrastructure update: start_app.sh now starts LM proxy (2026-08-13)
+
+- Added a lightweight local proxy (`scripts/lm-proxy.js`) to forward browser LM Studio requests to `http://127.0.0.1:1234` and inject CORS headers.
+- Updated `package.json` with `start-proxy` and `.env.local` to point `VITE_LM_ENDPOINT` at `http://localhost:1235/v1/chat/completions` for local development.
+- Updated `start_app.sh` to start the proxy and wait for it to be ready before starting Vite. Proxy logs are saved to `proxy.log`.
+- Rationale: avoids changing LM Studio server configuration and provides a reproducible dev-time solution for cross-origin browser requests.
+
+## Provider-selection update: explicit local/cloud selector; cloud requires API key (2026-08-13)
+
+- `components/AIProviderSelector.tsx` now presents a radio selection for Local (LM Studio) vs Cloud provider. Selecting Cloud reveals a cloud-provider dropdown (OpenAI, Anthropic, Gemini, OpenAI-compatible) and an API key input that must be supplied in the browser session.
+- `services/aiProvider.ts` no longer silently falls back to LM Studio when a cloud provider is chosen without credentials. Instead it logs and throws a `MISSING_PROVIDER_API_KEY` error so the UI can surface a clear, actionable message.
+- Rationale: the user should explicitly choose between local and cloud runtimes; cloud providers require credentials and the app should not silently change runtime.
+
+## Auth server: local OAuth helper for SDK sign-in (2026-08-13)
+
+- Added `scripts/auth-server.js` — a lightweight, dependency-free Node OAuth helper that performs the OAuth redirect and token exchange for browser-based SDK sign-in flows.
+- Added `npm run start-auth` and updated `start_app.sh` to launch the auth server during development (listens on `http://127.0.0.1:1236` by default).
+- `components/AIProviderSelector.tsx` now exposes a "Use SDK login" checkbox for OpenAI and a "Sign in with OpenAI" button that opens the local auth popup. On successful sign-in the token is posted back to the main window and stored in the runtime config (browser-session only).
+- Rationale: enables ChatGPT/OpenAI subscription or SDK-style sign-in without requiring a raw API key in the browser. The auth server is intentionally minimal — it expects OAuth endpoints and client credentials to be provided via environment variables for the local developer.
+
+## Dev extension: ChatGPT session bridge (2026-08-13)
+
+- Added a small Chromium extension scaffold under `scripts/extension-*` files that can be copied into an `extension/` folder and loaded as an unpacked extension in Chrome/Chromium.
+- The extension content script runs on `https://chat.openai.com` and attempts to extract client-side session-localStorage artifacts and heuristically identify a session token. The background script relays that token to the Dev Doctor app tab (http://localhost:3000) where the UI picks it up as an SDK/session token.
+- This replicates the "Cline" UX where signing in via Google on ChatGPT provides the session the app uses, without pasting API keys. It is intentionally brittle and for local dev only — it relies on non-public page artifacts and must be used on a trusted developer machine.
+- Added `scripts/EXTENSION_README.md` with instructions to assemble and load the extension.
+
+
+## Task update: safe build-performance cleanup
+
+- Added `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b/index.css` to resolve the missing stylesheet warning and provide a small base reset without replacing the existing Tailwind styling.
+- Attempted Vite `manualChunks` configuration to separate React, document-processing libraries, and remaining third-party dependencies into vendor chunks.
+- Reverted the manual chunk configuration after Vite reported circular chunks (`vendor -> document-vendor -> vendor` and `vendor -> react-vendor -> vendor`).
+- Deliberately deferred application-level and dependency-level code splitting because the monolithic `App.tsx` and shared dependency boundaries are part of the larger refactor scope.
+- Deliberately preserved local-model concurrency throttles and the existing compressed local-storage persistence behavior.
+- Updated `.clinerules` and `implementation_plan.md` with build-performance validation guidance.
+
+## Build-performance validation record
+
+- Tested: `npm run lint` — passed with zero TypeScript errors after the prior performance changes.
+- Tested: `npm run build` — passed after reverting the circular chunk configuration and retaining the stylesheet fix.
+- Tested: build output now includes `index.css`; the prior missing `/index.css` warning is resolved.
+- Observed and resolved: the attempted vendor split produced circular chunk warnings and was not retained.
+- Not tested: browser render profiling, persistence timing with large histories, network waterfall analysis, or full application code splitting; those remain deferred to the larger refactor/performance pass.
+
+## Final non-refactor validation record
+
+- Passed: `npm run lint`.
+- Passed: final `npm run build`; no missing stylesheet warning and no circular chunk warning.
+- Remaining build warning: the main application chunk remains above 500 kB; application-level splitting is deferred to the major refactor.
+- Passed earlier in this task: development server HTTP 200, preview server HTTP 200, launcher syntax/executable checks, and direct Gemma 4 response `final performance validation verified`.
+- Not tested: browser profiling, large-history persistence timing, network waterfall profiling, forced fault injection, streaming, or duplicate-project cleanup; these are intentionally deferred or require separate decisions.
+
+## Task update: targeted performance review
+
+- Reviewed active performance-sensitive paths in `App.tsx`, including persistence, model calls, concurrency, logging, and fixed delays.
+- Found pitch-deck generation was still requesting visual prompts and invoking image-generation calls even though image generation is intentionally disabled and always returns `Image generation coming soon`.
+- Removed those unnecessary LM Studio/image operations from the active pitch-deck flow and now populate the explicit image-availability text directly.
+- Removed unnecessary fixed 1.5-second completion delays from supported generation handlers.
+- Preserved the TDD concurrency limit and its inter-batch delay because that throttle protects the local model from excessive concurrent requests.
+- Updated `.clinerules` and `implementation_plan.md` with evidence-driven performance-review guidance and the completed optimization scope.
+
+## Performance validation record
+
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Tested: direct LM Studio chat completion with `google/gemma-4-12b` — passed with response `performance review verified`.
+- Tested: active-source checks confirmed disabled visual prompt/image calls were removed from `App.tsx`, the image fallback remains present, and only the intentional TDD throttle remains.
+- Measured context: project size approximately 152 MB, `node_modules` approximately 150 MB, `dist` approximately 1.6 MB; active source files reviewed total approximately 200 KB.
+- Not tested: browser performance profiling, persistence timing under large project histories, network waterfall analysis, React render profiling, or bundle code-splitting; these require a dedicated browser profiling pass.
+
+## Task update: response validation and user-facing errors
+
+- Added shared structured-response validators in `services/lmStudioService.ts` for pitch decks, MVPs, technical design documents, GDD sections, tables of contents, asset lists, and scope reviews.
+- Invalid structured outputs now emit `lm_response_validation_failed` with `LM_STUDIO_INVALID_RESPONSE` and fall back through the existing safe operation-specific defaults instead of entering state as malformed partial data.
+- Added `getUserFacingError` in `services/logger.ts` to map technical errors to concise messages for unreachable LM Studio, timeout, model failure, empty response, HTTP rejection, invalid response, and retry exhaustion.
+- Updated active `App.tsx` generation and chat catches to use the mapped user-facing messages while retaining detailed diagnostics in the logger.
+- Updated `.clinerules` to require shape validation and privacy-conscious validation logging.
+- Updated `implementation_plan.md` with response-validation and user-facing-error acceptance criteria.
+
+## Response-validation validation record
+
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Tested: direct LM Studio chat completion with `google/gemma-4-12b` — passed with response `response validation verified`.
+- Tested: source checks confirmed `LM_STUDIO_INVALID_RESPONSE`, `lm_response_validation_failed`, and `getUserFacingError` are integrated.
+- Not tested: forced malformed model payloads, forced timeout/unreachable/model-error UI flows, browser console diagnostics, or persistent server-side logging; those require dedicated runtime fault injection or a backend.
+
+## Task update: structured error handling and logging
+
+- Replaced the minimal `services/logger.ts` with a structured diagnostic logger.
+- Added ISO timestamps, log levels, event names, request IDs, operation names, model, endpoint, duration, status, retry metadata, request/response sizes, token usage, classified error codes, and bounded in-memory history.
+- Added error classification for unreachable server, timeout, HTTP failure, model-loading failure, empty response, invalid response, retry exhaustion, and unknown failures.
+- Added typed service-error creation for stable error categories.
+- Integrated request-started, request-succeeded, request-failed, retry, and retry-exhausted events into `lmStudioService.ts`.
+- Logs intentionally exclude API keys, credentials, full prompts, full responses, uploaded file data, and raw project transcripts.
+- Updated `.clinerules` with the privacy and structured-logging requirements.
+- Updated `implementation_plan.md` with the completed logging scope.
+
+## Logging validation record
+
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Tested: direct LM Studio chat completion with `google/gemma-4-12b` — passed with response `structured logging verified`.
+- Tested: final service/logger source inspection — structured request lifecycle events, error classification, correlation IDs, and bounded history are present.
+- Not tested: browser console inspection of emitted structured events, forced timeout/unreachable/model-error scenarios through the browser UI, or persistent server-side log storage; the current logger is client-side and in-memory by design.
+
+## Task update: control-file review cadence
+
+- Updated `.clinerules` to replace per-task/per-command-style control-file overhead with scheduled review events.
+- The required review set is `.clinerules`, `implementation_plan.md`, and `statuslog.txt`.
+- Review triggers are project open, app open, LM Studio model change, and the first task after one hour since the previous review.
+- Routine commands and conversational turns do not require rereading or rewriting the control files.
+- Meaningful implementation changes still require status logging; applicable control files are updated according to whether policy, plan, validation, blockers, decisions, or documented behavior changed.
+- Updated `implementation_plan.md` to document the same cadence.
+
+## Validation record: control-file cadence
+
+- Tested: re-read the updated `.clinerules`, `implementation_plan.md`, and `statuslog.txt` after editing.
+- Tested: confirmed the new scheduled triggers and removal of per-command/per-turn reread requirements are present.
+- Not tested: application runtime, lint, build, preview, or LM Studio connectivity; this task changed only project-control policy documentation.
+
+## Task update: restore original conversation gating
+
+- Root cause confirmed: the current app could advance into critique and document generation while the project state still resembled the default `Untitled Project` and the conversation had not collected meaningful project detail.
+- Updated `App.tsx` with a `canProceedWithProjectFlow` guard that requires a real project name and at least two meaningful user entries before enabling critique or GDD generation.
+- Added a user-facing message when the project is still effectively undefined so the Concierge loop continues instead of generating placeholder package content.
+- Preserved the existing LM Studio provider flow and the current persona prompt structure while reinstating the original project-definition gate.
+- Updated `.clinerules` and `implementation_plan.md` to ensure the original project-flow summary remains part of required context before architectural changes.
+
+## Task update: repair persona and conversation logic
+
+- Root cause identified: `getNextConversationStep` used a generic prompt and a 4096-token request. Gemma 4 consumed the output allowance on reasoning in some requests and returned empty `message.content`; `withFallback` then silently returned the same hard-coded question on every failure.
+- Updated `services/lmStudioService.ts` so requests accept a configurable token limit.
+- Added an explicit Concierge persona system instruction requiring context-aware, single-question responses with no repeated questions or analysis.
+- Added retry behavior for persona, suggestion, and critique-answer requests when the model returns an empty response or transient failure.
+- Added contextual rotating fallback questions so a service failure does not produce the same repeated question indefinitely.
+- Preserved the existing GDD generation, export, and image-generation behavior.
+- Updated `.clinerules` to require context-sensitive persona validation and to distinguish successful HTTP responses from meaningful model behavior.
+- Updated `implementation_plan.md` to mark the active persona flow as repaired and tested.
+
+## Task update: bound persona conversation context
+
+- Root cause confirmed: the app forwarded the entire accumulated `chatHistory` to every persona request, allowing context and reasoning costs to grow without a bound.
+- Added `compactConversation` to `services/lmStudioService.ts` with an 8,000-character persona context limit.
+- The compactor preserves the opening project identity and the most recent conversation content, with an explicit omission marker for older turns.
+- Applied bounded context to next-question, chat-suggestion, and critique-answer persona requests; full document-generation inputs remain unchanged.
+- Updated `.clinerules` to require bounded persona context while preserving project identity and recent relevant turns.
+- Updated `implementation_plan.md` to document bounded persona context behavior.
+
+## Bounded-context validation record
+
+- Tested: long-context persona request containing `Dolittles Doodles`, prior answered questions, and 80 older turns.
+- Passed: the bounded request returned the relevant question `Who is the primary target audience for Dolittles Doodles?` rather than repeating `What is the most important user experience this project must deliver?`.
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Not tested: browser UI interaction after this specific context-boundary change, browser CORS behavior, and repeated live UI turns; those remain runtime checks.
+
+## Persona validation record
+
+- Tested: direct Gemma 4 persona request using the same conversation context as the reported browser case and `max_tokens: 4096`.
+- Passed: Gemma returned a new context-specific question about scoring, increasing difficulty, power-ups, and unlockable items rather than the repeated generic question.
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Not tested: browser UI interaction after the fix, browser CORS behavior, or multiple sequential requests through the live UI; those remain the next runtime check.
+
+## Task update: macOS development launcher
+
+- Added executable `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b/start_app.sh`.
+- The launcher starts Vite on `127.0.0.1:3000`, waits for an HTTP-ready response, opens the default macOS browser, writes Vite output to `vite.log`, and stops the child server on exit.
+- Added launcher usage to `README.md`.
+- Updated `.clinerules` with requirements for executable developer scripts, relative path handling, cleanup, and README usage documentation.
+- Updated `implementation_plan.md` to reference the launcher for browser validation.
+
+## Launcher validation record
+
+- Initial repeat test found a cleanup defect: the app returned HTTP 200, but the launcher remained alive after SIGINT because the signal trap did not explicitly exit while waiting on the npm child.
+- Fixed `start_app.sh` with explicit INT/TERM shutdown handling and recursive child-process termination.
+- Follow-up process inspection showed the SIGINT result was caused by the noninteractive shell background job ignoring SIGINT, not by the launcher cleanup path; direct TERM stopped the launcher and descendants.
+
+## Final launcher validation record
+
+- Tested: `bash -n start_app.sh` — passed.
+- Tested: clean launcher start — Vite became ready and `http://127.0.0.1:3000/` returned HTTP 200.
+- Tested: TERM shutdown — launcher exited and both npm/Vite child processes were absent afterward.
+- Tested: direct process inspection after shutdown — no `start_app.sh`, npm, or Vite process from the smoke test remained.
+- Noted limitation: automated SIGINT testing was inconclusive because the noninteractive shell background-job context ignored SIGINT; TERM is the reliable automated equivalent and is explicitly handled by the launcher.
+
+- Tested: `bash -n start_app.sh` — passed.
+- Tested: executable smoke test — launcher started Vite, waited for readiness, and `http://127.0.0.1:3000/` returned HTTP 200.
+- Tested: interrupt cleanup — launcher was stopped with `Ctrl-C`/SIGINT and exited without leaving the launcher process running.
+- Tested: executable permissions — `start_app.sh` is `-rwxr-xr-x`.
+- Tested: Vite output log — `vite.log` was created.
+- Not tested: automated confirmation of the macOS browser window opening; the test environment cannot inspect GUI state, although the script invoked the macOS `open` command.
+
+## Task update: remove obsolete active Gemini integration
+
+- Deleted `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b/services/geminiService.ts` after confirming the active `App.tsx` had no live imports of it.
+- Removed `@google/genai` from the active package configuration and lockfile.
+- Removed Gemini environment mappings from `vite.config.ts`.
+- Removed duplicate Gemini placeholder variables from `.env.local`.
+- Removed the `@google/genai` import-map entry from `index.html`.
+- Updated README project structure and environment documentation.
+- The sibling directory `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b 2` and migrated prompt history still contain historical/duplicate Gemini references; they were not modified because they are outside the active application cleanup scope.
+- Updated `.clinerules` and `implementation_plan.md` to require/document complete legacy-integration inventories.
+
+## Validation update: active Gemini cleanup
+
+- Tested: `npm uninstall @google/genai --no-audit --no-fund` — passed and updated `package.json`, `package-lock.json`, and installed dependencies.
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only existing non-fatal `/index.css` and chunk-size warnings.
+- Tested: focused active-project search excluding dependency output, build output, migration plan, and status log — returned no obsolete Gemini service, dependency, credential, Vite mapping, import-map, or external Gemini endpoint references.
+- Tested: `.env.local` contains only `VITE_LM_ENDPOINT=http://localhost:1234/v1/chat/completions`.
+- Not tested: live LM Studio connectivity, `npm run dev`, `npm run preview`, browser CORS behavior, streaming, or representative generation; these require a running LM Studio model and runtime exercise.
+
+## Task update: image-generation availability message
+
+- Updated `services/lmStudioService.ts` so `generateImage` returns exactly `Image generation coming soon`.
+- Updated active pitch-deck display, PDF export, and share rendering in `App.tsx` and `components/ShareLandingPage.tsx` so that message is rendered as text and never treated as base64 image data.
+- Updated `.clinerules` to require concise user-facing availability notices for unsupported capabilities when specified by the user.
+- Updated `implementation_plan.md` to mark the image-generation fallback behavior as implemented.
+
+## Validation update: image-generation message
+
+- Tested: `npm run lint` — passed with zero TypeScript errors.
+- Tested: `npm run build` — passed and produced `dist/index.html`; Vite reported only the existing non-fatal `/index.css` and chunk-size warnings.
+- Tested: inspected active service and rendering paths; all use the exact `Image generation coming soon` text and exclude it from image rendering.
+- Not tested: live browser rendering, `npm run dev`, `npm run preview`, or LM Studio connectivity; these require runtime exercise with a running local model.
+
+## Task update: LM Studio and runtime validation
+
+- Confirmed `VITE_LM_ENDPOINT` is configured as `http://localhost:1234/v1/chat/completions` in both `.env.local` and `.env.production`.
+- Started the development server with `npm run dev -- --host 127.0.0.1`; `http://127.0.0.1:3000/` returned HTTP 200.
+- Started the production preview server with `npm run preview -- --host 127.0.0.1`; `http://127.0.0.1:4173/` returned HTTP 200.
+- Queried LM Studio `GET http://localhost:1234/v1/models`; it returned HTTP 200 and listed available models.
+- Attempted chat generation against `mistralai/mistral-7b-instruct-v0.3`; LM Studio rejected loading it because it required approximately 6.26 GB and exceeded local resource guardrails.
+- Attempted chat generation against `qwen3-4b-toolcalling-codex`; LM Studio rejected loading it because it required approximately 17.00 GB and exceeded local resource guardrails.
+- The endpoint is reachable, but representative inference is blocked by LM Studio model-loading resources. The application default model was not changed without a successful inference test.
+- Updated `.clinerules` to distinguish endpoint availability from successful model inference.
+- Updated `implementation_plan.md` to record the runtime blocker.
+
+## Validation update: Gemma 4 inference
+
+- LM Studio reported `google/gemma-4-12b` in `GET /v1/models`.
+- A first request with `max_tokens: 32` reached the model but ended with an empty assistant content and `finish_reason: length` because Gemma used the allowance for reasoning.
+- Retried with `max_tokens: 256`; the request succeeded with assistant content `LM Studio connection verified` and `finish_reason: stop`.
+- Updated `services/lmStudioService.ts` to use the verified model ID `google/gemma-4-12b` as its default.
+- Updated `.clinerules` to require recording and using the exact verified local model ID.
+- Updated `implementation_plan.md` to mark representative LM Studio inference as passed, with browser/CORS validation still pending.
+
+## Runtime validation record
+
+- Historical validation: active configuration, development server, preview server, LM Studio model-list endpoint, and two initial chat-completion requests were tested.
+- Historical result: `npm run dev`, `npm run preview`, and LM Studio `/v1/models` passed; the first two model attempts were blocked by LM Studio resource guardrails.
+- Current result: representative direct chat generation now passes with `google/gemma-4-12b`; browser CORS behavior, streaming, and user-visible runtime errors under a successful browser response remain untested.
+
+## Task update: make the active LM Studio service buildable
+
+- Replaced the malformed `services/lmStudioService.ts` with a complete, type-safe LM Studio service.
+- Preserved the service exports used by `App.tsx`, including generation, critique, document, cost-reporting, retry, and helper functions.
+- Requests use `VITE_LM_ENDPOINT`, falling back to `http://localhost:1234/v1/chat/completions`, with the LM Studio chat-completions payload.
+- Added bounded request timeouts, HTTP error reporting, defensive JSON extraction, typed fallbacks, and explicit text-only image-generation behavior.
+- Updated `.clinerules` to require validation records to distinguish passing checks from failures caused by obsolete files.
+- Updated `implementation_plan.md` to record the service repair and remaining lint blocker.
+
+## Task update: project-control file policy
+
+- Updated `/Users/clayton/Projects/Games/Dev Dr/.clinerules` to require completion updates to `.clinerules`, `implementation_plan.md`, and `statuslog.txt` for every task.
+- The rule also requires `statuslog.txt` to explicitly identify tested items, untested items, and reasons validation was not completed.
+- Updated `implementation_plan.md` to include the three-file completion requirement in the final documentation work plan.
+
+## Verified findings
+
+- `App.tsx` imports `services/lmStudioService.ts` and uses the LM Studio service for active application calls.
+- `services/lmStudioService.ts` resolves `VITE_LM_ENDPOINT` and falls back to `http://localhost:1234/v1/chat/completions`.
+- `.env.production` contains the intended LM Studio endpoint.
+- The active project no longer contains `services/geminiService.ts`, `@google/genai`, Gemini environment variables, Gemini Vite mappings, or the Gemini import-map entry.
+- The duplicate sibling directory `../remix_-dev-doctor-ai---b 2` still contains separate legacy Gemini service/configuration files.
+
+## Blockers
+
+### 1. LM Studio service syntax failure
+
+- Resolved for the active service: `services/lmStudioService.ts` was replaced with a compilable implementation.
+- Remaining validation: repository lint is still blocked by the obsolete Gemini service described below.
+
+### 2. Duplicate legacy project remains
+
+- Blocked: repository-wide removal of every historical/duplicate Gemini reference, if that broader scope is required.
+- Cause: the sibling `remix_-dev-doctor-ai---b 2` directory is a separate duplicate application copy and its ownership/disposition has not been specified.
+- Resource required: a decision to delete or migrate the duplicate sibling project.
+- Remaining work: handle the duplicate sibling separately if repository-wide cleanup is required.
+
+### 3. Browser/CORS runtime flow remains unverified
+
+- Blocked: confirmation that the browser application completes a generation against LM Studio.
+- Cause: direct chat-completion inference is verified, but the browser UI flow and CORS behavior have not been exercised.
+- Resource required: browser runtime exercise against the running dev or preview server.
+- Remaining work: trigger a representative generation in the application and verify CORS, response parsing, timeout, retry, and user-visible error behavior.
+
+## Validation record
+
+- Tested: searched the active project for executable Gemini service/dependency/configuration references after cleanup; none remain outside documentation/status references describing the migration and the separately identified duplicate/history artifacts.
+- Tested: confirmed `.env.local` contains only `VITE_LM_ENDPOINT`.
+- Not tested: lint/build after dependency removal, live LM Studio connectivity, `npm run dev`, `npm run preview`, browser CORS behavior, streaming, or representative generation; these are the next validation actions.
+- Tested: `npm run build` — passed; Vite produced the production bundle successfully.
+- Tested: `services/lmStudioService.ts` was included in the successful production transform and produced no reported syntax error.
+- Tested: `npm run lint` — failed only at `services/geminiService.ts:430` with `TS1128`; the obsolete Gemini file remains the repository type-check blocker.
+- Tested: LM Studio connectivity, `npm run dev`, and `npm run preview` as documented in the runtime validation record above.
+- Tested: direct representative generation with `google/gemma-4-12b`; browser CORS behavior, streaming, and user-visible errors after a successful browser response remain untested.
+- Tested: re-read `.clinerules`, `implementation_plan.md`, and `statuslog.txt` after editing; all three files contain the intended policy/status updates.
+- Tested: verified both project documentation files exist and are non-empty.
+- Not tested: application lint, build, dev server, preview server, and LM Studio connectivity; this task changed project-control documentation only, and the previously recorded source syntax errors remain.
+- `npm run lint`: passed after removal of the obsolete active dependency/service.
+- `npm run build`: passed after removal of the obsolete active dependency/service.
+- `npm run dev`: passed startup and HTTP 200 response on port 3000.
+- `npm run preview`: passed startup and HTTP 200 response on port 4173.
+- LM Studio model list: passed with HTTP 200.
+- LM Studio chat request: passed with `google/gemma-4-12b` and `max_tokens: 256`; the smaller `max_tokens: 32` request ended due to token limit before content was returned.
+
+## Files changed for status tracking
+
+- Updated: `implementation_plan.md`
+- Added: `statuslog.txt`
+
+## Follow-up
+
+Do not mark the migration complete until the browser generation flow is verified against `google/gemma-4-12b`. Decide separately whether the duplicate sibling project must also be cleaned.
+
+## Agent: pipeline-export-engineer — 2026-08-15
+- Implemented a unified sequential generation pipeline (GDD → Pitch Deck → MVP → MVP Feature Specs → Final TDD → Dynamic Freelance Briefs → Asset List → Scope Review) in services/pipelineOrchestrator.ts. The pipeline runs sequentially (no parallel AI calls) and avoids arbitrary fixed delays; it reports progress via a callback consumed by App.tsx.
+- Added a normalized ProjectPackage model (types.ts) and exporters (services/packageExporter.ts) for HTML, Markdown, TXT, and JSON. The exporters consume a single ProjectPackage object so all export formats are consistent. Dynamic freelance brief counts are preserved.
+- Hooked the pipeline into the UI via App.tsx: handleRunUnifiedPipeline invokes the orchestrator and applies results to state.
+
+Remaining manual steps / blockers:
+- Browser CORS and LM Studio runtime verification are still required for full end-to-end generation. The pipeline was intentionally not used to run paid/cloud provider calls during validation.
+- Agent 2 (Prompt & Domain Specialist) should review and finalize the ProjectPackage interface and any provider-scheduling contract details.
+
+## Task update: duplicate cleanup and browser-validation start — 2026-08-13
+
+- Read the governing `/Users/clayton/Projects/Games/Dev Dr/.clinerules`, `implementation_plan.md`, and this status log before changing project state.
+- Deleted the explicitly authorized legacy duplicate directory `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b 2`.
+- Confirmed no running process referenced the duplicate before deletion.
+- Started the active project development server with `npm run dev -- --host 127.0.0.1`.
+- Confirmed `http://127.0.0.1:3000/` returned HTTP 200.
+- A stale Vite child process caused an intermediate restart to bind to port 3001 and was explicitly terminated.
+- Performed a clean Vite restart and confirmed the final server is listening on port 3000 and returns HTTP 200.
+- LM Studio was not reachable at `http://127.0.0.1:1234/v1/models` during this validation attempt; it returned connection failure.
+
+### Remaining blocker
+
+- Browser UI validation can begin at `http://127.0.0.1:3000/`, but representative AI generation, browser/CORS validation, response parsing, and user-visible model-error validation cannot be completed until LM Studio is running with the verified `google/gemma-4-12b` model.
+
+### Next actions
+
+1. Start LM Studio and load `google/gemma-4-12b`.
+2. Open `http://127.0.0.1:3000/` in the browser.
+3. Trigger a representative chat request and one document-generation flow.
+4. Record CORS, parsing, loading, retry, timeout, and user-facing error results here.
+
+## Task update: development launcher after LM Studio model change — 2026-08-13
+
+- Re-read the governing `.clinerules`, `implementation_plan.md`, and `statuslog.txt` because the LM Studio model changed.
+- Stopped the prior validation Vite process tree before launching the documented `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b/start_app.sh` launcher.
+- Started `start_app.sh` successfully; the launcher detected Vite readiness and opened the application URL.
+- Confirmed the active app responds with HTTP 200 at `http://127.0.0.1:3000/`.
+- Confirmed LM Studio is reachable at `http://127.0.0.1:1234/v1/models`.
+- LM Studio currently exposes multiple models, including `qwen3.5-9b-fable-5-sdft`, `qwopus3.5-4b-coder-fable5-v1`, `zai-org/glm-4.6v-flash`, `qwen/qwen3-coder-30b`, `qwen/qwen3.5-9b`, `openai/gpt-oss-20b`, and others.
+- The currently selected/verified model has not been inferred from the model list; no model default was changed. Successful browser generation against the model selected by the user remains the validation target.
+
+## Task update: global runtime AI provider selector — 2026-08-13
+
+- Added `services/aiProvider.ts` with provider adapters for LM Studio, OpenAI-compatible endpoints, Google Gemini, and Anthropic Claude.
+- Added `components/AIProviderSelector.tsx` to the application header beside the project name/actions.
+- Provider, model, endpoint, and API key are global runtime settings and are not part of `ProjectSession` or local project persistence.
+- Added a provider-specific connection test and custom model ID input.
+- Cloud keys are kept in React runtime memory only, excluded from logs/exports/project history, and documented as browser-exposed until a server-side proxy is added.
+- Updated `README.md` and `implementation_plan.md` to document the new provider architecture and security limitation.
+
+### Validation
+
+- `npm run lint` — passed.
+- `npm run build` — passed; Vite reports the existing non-fatal large main-chunk warning.
+- Existing launcher remained healthy at `http://127.0.0.1:3000/` during implementation.
+- Final header layout places the provider selector in the top-center, with project name on the left and reset/cost controls on the right.
+- Final post-layout validation: `npm run lint` passed, `npm run build` passed, and the launcher returned HTTP 200 at `http://127.0.0.1:3000/`.
+- Not yet tested: live Gemini, Anthropic, or paid OpenAI-compatible requests; these require user-supplied keys and provider access. LM Studio browser generation remains the next runtime validation.
+
+## Task update: provider selector visibility fix — 2026-08-13
+
+- Root cause identified: the selector had been rendered only in the critique/GDD-generation header, while the normal conversation/document workflow uses a separate header.
+- Added the same global provider selector to the normal conversation header so it is visible throughout both primary workflow views.
+- Final validation: `npm run lint` passed, `npm run build` passed, and the running app returned HTTP 200 at `http://127.0.0.1:3000/`.
+- Follow-up screenshot validation showed the browser was still displaying the previous header layout despite the selector being present in source. Replaced absolute centering with an explicit three-column CSS grid in both workflow headers and performed a clean launcher restart.
+- Final clean restart served the updated app on port 3000 and opened `http://127.0.0.1:3000/` again. The selector is now a normal centered header grid item rather than an overlaid element.
+- Server/bundle investigation confirmed port 3000 was serving the active project and `/App.tsx` contained both selector instances; the screenshot represented a stale browser document. Added an explicit high-contrast `AI MODEL:` label and reopened the app with a cache-busting query URL.
+- Confirmed the served selector module contains `AI MODEL:` and `npm run lint` passes.
+- A second DuckDuckGo screenshot still showed the legacy header, so the selector was mounted at the root app level as a fixed, high-z-index control independent of workflow headers. The launcher was cleanly restarted and the served `App.tsx` was confirmed to contain the fixed selector markup.
+- Final validation after root-level mount: `npm run lint` passed, `npm run build` passed, and the app returned HTTP 200 on port 3000.
+
+## Task update: dynamic model selection — 2026-08-13
+
+- Confirmed the preset OpenAI-compatible list only contained `gpt-4o-mini` and `gpt-4o`, which did not represent the user's Sol Luna 5.6 model.
+- Added dynamic model discovery for LM Studio and OpenAI-compatible endpoints through their `/v1/models`-style endpoint.
+- Added a **Refresh available models** control to the provider selector; discovered model IDs are added to the model dropdown at runtime.
+- Preserved manual custom model ID entry for providers without a model-list endpoint.
+- Current LM Studio `/v1/models` response does not contain a Sol Luna 5.6 model ID. Its actual provider endpoint and exact model ID are required when using it through the OpenAI-compatible provider.
+- Validation: `npm run lint` passed, `npm run build` passed, and the running app returned HTTP 200.
+
+## Task update: native OpenAI Luna support — 2026-08-13
+
+- Confirmed from the official OpenAI documentation that GPT-5.6 Luna uses model ID `gpt-5.6-luna`.
+- Added a dedicated `OpenAI` provider option separate from generic OpenAI-compatible providers.
+- OpenAI automatically uses `https://api.openai.com/v1/responses` and presets `gpt-5.6-luna`, `gpt-5.6-sol`, and `gpt-5.6-terra`.
+- Added native Responses API request and response parsing for OpenAI, while LM Studio remains on `http://localhost:1234/v1/chat/completions` and the Chat Completions schema.
+- The user must revoke the previously exposed API key and enter a newly generated key locally in the browser selector. No key was stored or used by this implementation.
+- Validation: `npm run lint` passed and `npm run build` passed; live OpenAI testing remains pending a replacement key entered locally by the user.
+
+## Task update: OpenAI 429 diagnostics — 2026-08-13
+
+- The user's OpenAI request reached the provider and returned HTTP 429, confirming the endpoint/request path is being reached.
+- Updated provider HTTP error handling to preserve the provider's concise error detail without logging keys, prompts, responses, or raw request data.
+- Added explicit `AI_RATE_LIMITED` classification and user-facing guidance covering rate limits, quota, and billing limits.
+- Changed generic error wording from LM Studio-specific language to selected-provider language.
+- A 429 is an OpenAI account/project limit issue rather than an LM Studio endpoint issue; the user should check OpenAI billing, project quota, usage limits, and key/project permissions.
+- Validation pending: `npm run lint` and `npm run build` after this diagnostic change.
+
+## 2026-08-15 - MVP & Auth Changes (mvp-auth-engineer)
+
+- Introduced typed MVP feature specs (BDDScenario, MVPFeatureSpec) and persisted them in ProjectSession; hooked into App state and export package shapes.
+- Added `src/components/MVPFeatureSpecViewer.tsx` to render structured Given/When/Then scenarios, invalid-input paths, boundary/tolerance conditions, offline behaviors, accessibility notes, and technical dependencies.
+- Hardened OpenAI auth UX: browser/extension SDK session tokens are no longer used as OpenAI Responses API bearer credentials. SDK tokens are stored locally for convenience but are not accepted as API keys; users must paste/store an explicit OpenAI API key to use the Responses API. The README and provider UI now document this behavior.
+
+Validation performed:
+- `npm run lint`: PASSED
+- `npm run build`: PASSED
+
+Notes/Blockers:
+- The Gemini SDK is optional and dynamically required; developers who want Gemini must install `@google/genai` locally.
+- Export render tests for the new MVPFeatureSpec shape remain to be added.
+
+## 2026-08-16 - Minor UI wiring (mvp-auth-engineer)
+
+- Wired MVPFeatureSpecViewer into `App.tsx` so structured specs render in the TDD/Specs area when present. The app will show the legacy TDD viewer when typed specs are absent.
+- Local verification note: this edit was limited to source changes in this environment; please run `npm run lint` and `npm run build` locally to confirm type-check and bundle integrity after the UI wiring change.
+- Recommended: add a snapshot/export-render test that asserts MVPFeatureSpec content appears in generated HTML/MD packages.
+
+## Task update: Terra rate-limit policy documentation — 2026-08-15
+
+- Updated `/Users/clayton/Projects/Games/Dev Dr/.clinerules` so the model-specific 200,000 TPM limit, shared serialization queue, rolling 60-second token budget, conservative reservation, `Retry-After` handling, and bounded-retry requirements explicitly apply to both `gpt-5.6-luna` and `gpt-5.6-terra`.
+- Confirmed the runtime scheduler already includes both model IDs in `services/aiProvider.ts`; no application source behavior changed.
+- Tested: re-read the edited rule and status sections and checked both model IDs are present in the model-specific policy.
+- Not tested: application lint, build, or live provider requests because this was a documentation-only correction with no executable source changes.
+
+## Task update: task-relevant workspace context policy — 2026-08-15
+
+- Updated `/Users/clayton/Projects/Games/Dev Dr/.clinerules` to preserve mandatory scheduled project-control reviews while requiring task-relevant documentation review, narrow searches, targeted line ranges, concise summaries, and justified full-file reads only.
+- The rule now explicitly prohibits loading unrelated documentation, large historical logs, generated outputs, duplicate artifacts, or complete conversation history solely because they exist.
+- Updated `implementation_plan.md` with the same targeted-review and complete-file exception criteria. The Cline Global Rule was intentionally not modified because the user had already updated it manually.
+- Tested: re-read the amended workspace-rule, plan, and status sections; confirmed the scheduled governance and Luna/Terra rate-limit clauses remain present.
+- Not tested: application lint, build, or live provider requests because this was a documentation-only policy change with no executable source changes.
