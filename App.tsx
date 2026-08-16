@@ -6,13 +6,18 @@ import html2canvas from 'html2canvas';
 import * as mammoth from 'mammoth';
 import pako from 'pako';
 import { marked } from 'marked';
-import { WorkflowStep, ChatMessage, GDDSection, PitchDeckSlide, GeneratedImages, ProjectType, TDDFeature, MVPDefinition, TechnicalDesignSection, AttachedFile, AssetList, LensType, FreelanceBrief, ProjectSession, CritiquePoint, ProjectPackage } from './types';
+import { WorkflowStep, ChatMessage, GDDSection, PitchDeckSlide, GeneratedImages, ProjectType, TDDFeature, MVPDefinition, MVPFeatureSpecValidationOutcome, TechnicalDesignSection, AttachedFile, AssetList, LensType, FreelanceBrief, ProjectSession, CritiquePoint, ProjectPackage } from './types';
 import { 
     CREATIVE_PROJECT_PITCH_DECK_SLIDES, CREATIVE_PROJECT_VISUAL_ASSETS
 } from './constants';
 import * as AIService from './services/lmStudioService';
 import { AIProviderConfig } from './services/aiProvider';
-import { runUnifiedPipeline } from './services/pipelineOrchestrator';
+import { MVPFeatureSpecGenerationError, UnifiedPipelineCritiqueGateError, runUnifiedPipeline } from './services/pipelineOrchestrator';
+import { validateCritiqueRecord } from './services/orchestrationContract';
+import { buildPersonaSpecialistContext, createTranscriptRecord, deriveConciergeMode, mergeMemoryEntries } from './services/memoryPersonaContract';
+import { projectAssetMetadataToLegacyList, projectProductionBriefsToLegacy } from './services/productionHandoffContract';
+import { assembleValidatedTDDFeatures } from './services/technicalSpecContract';
+import { validateMVPFeatureSpecs } from './services/bddFeatureValidator';
 import { exportMarkdown, exportText, exportJSON, exportHTML } from './services/packageExporter';
 import { SendIcon, BotIcon, UserIcon, LoaderIcon, DownloadIcon, LightbulbIcon, CheckIcon, FileCodeIcon, GlobeIcon, ChevronDownIcon, TargetIcon, PaperclipIcon, RefreshCwIcon, WandIcon, FileTextIcon, TrashIcon } from './components/icons';
 
@@ -31,6 +36,10 @@ import { ScopeReviewViewer } from './components/ScopeReviewViewer';
 import { RefactorModal, RefactorConfig } from './components/RefactorModal';
 import { DataCorruptionErrorScreen } from './components/DataCorruptionErrorScreen';
 import { AIProviderSelector } from './components/AIProviderSelector';
+import { RichPackagePreview } from './components/RichPackagePreview';
+import { PersonaRecordsViewer } from './components/PersonaRecordsViewer';
+import ShareButton from './components/ShareButton';
+import { ShareLandingPage } from './components/ShareLandingPage';
 
 
 // Inform TypeScript that pdfjsLib will be available on the window object
@@ -49,6 +58,9 @@ const createNewProject = (): ProjectSession => {
         chatHistory: [{ sender: 'ai', text: "Hello! I'm the Concierge for Dev Doctor AI. To get started, what is the official name for this project?" }],
         critiqueData: null,
         critiqueAnswers: [],
+        transcriptRecord: createTranscriptRecord([{ sender: 'ai', text: "Hello! I'm the Concierge for Dev Doctor AI. To get started, what is the official name for this project?" }]),
+        memoryEntries: [],
+        conciergeMode: 'project-name',
         expandedText: '',
         gddContent: [],
         pitchDeckContent: [],
@@ -131,11 +143,31 @@ const App: React.FC = () => {
     // Critique State
     const [critiqueData, setCritiqueData] = useState<{ summary: string; questions: string[] } | null>(null);
     const [critiqueAnswers, setCritiqueAnswers] = useState<string[]>([]);
+    const [critiqueRecord, setCritiqueRecord] = useState<import('./types').CritiqueRecord | undefined>(undefined);
+    const [generationMetadata, setGenerationMetadata] = useState<import('./types').GenerationMetadata | undefined>(undefined);
+    const [transcriptRecord, setTranscriptRecord] = useState<import('./types').TranscriptRecord | undefined>(undefined);
+    const [memoryEntries, setMemoryEntries] = useState<import('./types').MemoryEntry[]>([]);
+    const [conciergeMode, setConciergeMode] = useState<import('./types').ConciergeMode>('information-gatherer');
+    const [userProxy, setUserProxy] = useState<import('./types').UserProxyRecord | undefined>(undefined);
+    const [riskCritique, setRiskCritique] = useState<import('./types').RiskCritiqueRecord | undefined>(undefined);
+    const [synthesis, setSynthesis] = useState<import('./types').SynthesisRecord | undefined>(undefined);
     const [isGeneratingCritique, setIsGeneratingCritique] = useState<boolean>(false);
     const [critiqueHelperLoadingIndex, setCritiqueHelperLoadingIndex] = useState<number | null>(null);
+    const [workflowError, setWorkflowError] = useState<string | null>(null);
 
     // UNIFIED Generation State
-    const [generationStatus, setGenerationStatus] = useState<{ key: string | null; isActive: boolean; progress: number; message: string; title: string; }>({ key: null, isActive: false, progress: 0, message: '', title: '' });
+    const [generationStatus, setGenerationStatus] = useState<{
+        key: string | null;
+        isActive: boolean;
+        progress: number;
+        message: string;
+        title: string;
+        substage?: string;
+        completed?: number;
+        total?: number;
+        currentItem?: string;
+        activitySequence?: number;
+    }>({ key: null, isActive: false, progress: 0, message: '', title: '', activitySequence: 0 });
     
     const [projectName, setProjectName] = useState<string>('Untitled Project');
 
@@ -147,9 +179,16 @@ const App: React.FC = () => {
     const [mvpDefinition, setMvpDefinition] = useState<MVPDefinition | null>(null);
     // Structured MVP feature specifications: typed BDD scenarios and related metadata
     const [mvpFeatureSpecs, setMvpFeatureSpecs] = useState<import('./types').MVPFeatureSpec[] | null>(null);
+    const [mvpFeatureSpecValidation, setMvpFeatureSpecValidation] = useState<MVPFeatureSpecValidationOutcome[]>([]);
+    const [generationDiagnostic, setGenerationDiagnostic] = useState<import('./types').GenerationDiagnostic | undefined>(undefined);
     const [tddContent, setTddContent] = useState<TDDFeature[] | null>(null);
     const [technicalDesignDocument, setTechnicalDesignDocument] = useState<TechnicalDesignSection[] | null>(null);
     const [assetList, setAssetList] = useState<AssetList | null>(null);
+    const [productionBriefs, setProductionBriefs] = useState<import('./types').ProductionBrief[] | null>(null);
+    const [assetMetadata, setAssetMetadata] = useState<import('./types').AssetMetadata[] | null>(null);
+    const [visualPromptContracts, setVisualPromptContracts] = useState<import('./types').VisualPromptContract[] | null>(null);
+    const [scopeReviewValidation, setScopeReviewValidation] = useState<import('./types').ScopePitchValidationRecord | undefined>(undefined);
+    const [pitchDeckValidation, setPitchDeckValidation] = useState<import('./types').ScopePitchValidationRecord | undefined>(undefined);
     const [scopeReviewContent, setScopeReviewContent] = useState<CritiquePoint[] | null>(null);
     const [scopeReviewLens, setScopeReviewLens] = useState<LensType | null>(null);
     const [isScopeReviewModalOpen, setIsScopeReviewModalOpen] = useState(false);
@@ -171,7 +210,7 @@ const App: React.FC = () => {
     const [scopeReviewGenerated, setScopeReviewGenerated] = useState<boolean>(false);
     const [modularBreakdownGenerated, setModularBreakdownGenerated] = useState<boolean>(false);
 
-    const [openSection, setOpenSection] = useState<'gdd' | 'pitch' | 'mvp' | 'tdd_specs' | 'tdd_final' | 'assets' | 'modular_breakdown' | 'scope_review' | null>('gdd');
+    const [openSection, setOpenSection] = useState<'rich' | 'persona' | 'gdd' | 'pitch' | 'mvp' | 'tdd_specs' | 'tdd_final' | 'assets' | 'modular_breakdown' | 'scope_review' | null>('rich');
     const [isStableVersion, setIsStableVersion] = useState<boolean>(true);
 
     // Download and session completion state
@@ -209,6 +248,12 @@ const App: React.FC = () => {
         setChatHistory(project.chatHistory);
         setCritiqueData(project.critiqueData);
         setCritiqueAnswers(project.critiqueAnswers);
+        setCritiqueRecord(project.critiqueRecord);
+        setGenerationMetadata(project.generationMetadata);
+        setTranscriptRecord(project.transcriptRecord || createTranscriptRecord(project.chatHistory || []));
+        setMemoryEntries(project.memoryEntries || []);
+        setConciergeMode(project.conciergeMode || (project.projectName === 'Untitled Project' ? 'project-name' : 'information-gatherer'));
+        setUserProxy(project.userProxy); setRiskCritique(project.riskCritique); setSynthesis(project.synthesis);
         setProjectName(project.projectName);
         setExpandedText(project.expandedText);
         setGddContent(project.gddContent);
@@ -217,9 +262,16 @@ const App: React.FC = () => {
         setMvpDefinition(project.mvpDefinition);
         // Load structured MVP feature specs if present
         setMvpFeatureSpecs((project as any).mvpFeatureSpecs || null);
+        setMvpFeatureSpecValidation(project.mvpFeatureSpecValidation || []);
+        setGenerationDiagnostic(project.generationDiagnostic);
         setTddContent(project.tddContent);
         setTechnicalDesignDocument(project.technicalDesignDocument);
         setAssetList(project.assetList);
+        setProductionBriefs(project.productionBriefs || null);
+        setAssetMetadata(project.assetMetadata || null);
+        setVisualPromptContracts(project.visualPromptContracts || null);
+        setScopeReviewValidation(project.scopeReviewValidation);
+        setPitchDeckValidation(project.pitchDeckValidation);
         setScopeReviewContent(project.scopeReviewContent);
         setScopeReviewLens(project.scopeReviewLens || null);
         setModularBreakdown(project.modularBreakdown);
@@ -326,20 +378,24 @@ const App: React.FC = () => {
     }, [projectHistories, loadingState]);
 
     const activeProjectStateToSave = useMemo(() => ({
-        projectName, workflowState, projectType, chatHistory, critiqueData, critiqueAnswers,
+        projectName, workflowState, projectType, chatHistory, critiqueData, critiqueAnswers, critiqueRecord, generationMetadata, transcriptRecord, memoryEntries, conciergeMode, userProxy, riskCritique, synthesis,
         expandedText, gddContent, pitchDeckContent, generatedImages, mvpDefinition,
         // Persist structured MVP feature specs
         mvpFeatureSpecs,
-        tddContent, technicalDesignDocument, assetList,
+        mvpFeatureSpecValidation,
+        generationDiagnostic,
+        tddContent, technicalDesignDocument, assetList, productionBriefs, assetMetadata, visualPromptContracts, scopeReviewValidation, pitchDeckValidation,
         scopeReviewContent, scopeReviewLens, modularBreakdown, gddGenerated, pitchDeckGenerated,
         mvpGenerated, tddSpecsGenerated, tddDocGenerated, assetListGenerated,
         scopeReviewGenerated, modularBreakdownGenerated,
         costUSD: costReport?.totalCostUSD || 0
     }), [
-        projectName, workflowState, projectType, chatHistory, critiqueData, critiqueAnswers,
+        projectName, workflowState, projectType, chatHistory, critiqueData, critiqueAnswers, critiqueRecord, generationMetadata, transcriptRecord, memoryEntries, conciergeMode, userProxy, riskCritique, synthesis,
         expandedText, gddContent, pitchDeckContent, generatedImages, mvpDefinition,
         mvpFeatureSpecs,
-        tddContent, technicalDesignDocument, assetList,
+        mvpFeatureSpecValidation,
+        generationDiagnostic,
+        tddContent, technicalDesignDocument, assetList, productionBriefs, assetMetadata, visualPromptContracts, scopeReviewValidation, pitchDeckValidation,
         scopeReviewContent, scopeReviewLens, modularBreakdown, gddGenerated, pitchDeckGenerated,
         mvpGenerated, tddSpecsGenerated, tddDocGenerated, assetListGenerated,
         scopeReviewGenerated, modularBreakdownGenerated, costReport
@@ -443,6 +499,7 @@ const App: React.FC = () => {
         if ((generationStatus.isActive && !isRefactoring) || (pitchDeckGenerated && !overrideGdd) || (!gddGenerated && !overrideGdd)) return;
         
         try {
+            setWorkflowError(null);
             if (!isRefactoring) {
                 setGenerationStatus({ key: 'pitch', isActive: true, progress: 0, message: 'Starting...', title: 'Generating Pitch Deck' });
             }
@@ -455,6 +512,7 @@ const App: React.FC = () => {
             setGenerationStatus(prev => ({ ...prev, progress: 25, message: 'Writing slide content...' }));
             const slides = await AIService.generateFullPitchDeck(text, name, activePitchDeckSlides);
             setPitchDeckContent(slides);
+            setPitchDeckValidation({ valid: true, errors: [], warnings: [] });
 
             setGenerationStatus(prev => ({ ...prev, progress: 50, message: 'Generating visual prompts...' }));
             const prompts = await AIService.generateAllVisualPrompts(text, activeVisualAssets);
@@ -525,10 +583,13 @@ const App: React.FC = () => {
         console.log("[App] handleGenerateTddSpecs called");
         const isRefactoring = generationStatus.key === 'refactor';
         if ((generationStatus.isActive && !isRefactoring) || (tddSpecsGenerated && !overrideGdd) || (!mvpGenerated && !overrideMvp)) return null;
+        let attemptValidationOutcomes: MVPFeatureSpecValidationOutcome[] = [];
         
         try {
+            setWorkflowError(null);
+            setGenerationDiagnostic(undefined);
             if (!isRefactoring) {
-                setGenerationStatus({ key: 'tdd_specs', isActive: true, progress: 0, message: 'Starting...', title: 'Generating MVP Feature Specs' });
+                setGenerationStatus({ key: 'tdd_specs', isActive: true, progress: 0, message: 'Starting...', title: 'Generating MVP Feature Specs', substage: 'preparing', completed: 0, total: 0, activitySequence: 0 });
             }
             
             let mvp = overrideMvp || mvpDefinition;
@@ -540,47 +601,96 @@ const App: React.FC = () => {
                  setMvpGenerated(true);
             }
             
-            const resolvedTdd: TDDFeature[] = [];
             const resolvedFeatureSpecs: import('./types').MVPFeatureSpec[] = [];
+            const validationOutcomes: MVPFeatureSpecValidationOutcome[] = [];
+            attemptValidationOutcomes = validationOutcomes;
             const CONCURRENCY_LIMIT = 1;
+            const featureTotal = mvp!.inScope.length;
+            setGenerationStatus(prev => ({ ...prev, progress: 10, substage: 'feature-specs', completed: 0, total: featureTotal, message: `Preparing ${featureTotal} feature specifications...` }));
             
             for (let i = 0; i < mvp!.inScope.length; i += CONCURRENCY_LIMIT) {
                 const batch = mvp!.inScope.slice(i, i + CONCURRENCY_LIMIT);
                 const batchPromises = batch.map(async (feature, batchIndex) => {
                     const globalIndex = i + batchIndex;
-                    const progress = 20 + Math.round(((globalIndex + 1) / mvp!.inScope.length) * 80);
-                    setGenerationStatus(prev => ({ ...prev, progress, message: `Writing specs for ${feature}...` }));
+                    setGenerationStatus(prev => ({ ...prev, currentItem: feature, message: `Writing feature specification ${globalIndex + 1}/${featureTotal}: ${feature}...` }));
                     
-                    const featureSpec = await AIService.generateMVPFeatureSpec(feature, projectName, mvp!);
-                    return featureSpec;
+                    return AIService.generateMVPFeatureSpec(feature, projectName, mvp!);
                 });
                 
                 const batchResults = await Promise.all(batchPromises);
-                resolvedFeatureSpecs.push(...batchResults);
-                resolvedTdd.push(...batchResults.map(featureSpec => ({
-                    feature: featureSpec.feature,
-                    userStories: featureSpec.userStory,
-                    technicalSpecs: featureSpec.technicalNotes!,
-                })));
+                validationOutcomes.push(...batchResults.map(result => result.outcome));
+                resolvedFeatureSpecs.push(...batchResults.flatMap(result => result.featureSpec ? [result.featureSpec] : []));
+                const completed = Math.min(i + batchResults.length, featureTotal);
+                const completedFeature = batch[batchResults.length - 1] || '';
+                setGenerationStatus(prev => ({
+                    ...prev,
+                    progress: 10 + Math.round((completed / Math.max(1, featureTotal)) * 55),
+                    completed,
+                    total: featureTotal,
+                    currentItem: completedFeature,
+                    activitySequence: (prev.activitySequence || 0) + 1,
+                    message: `Completed feature specification ${completed}/${featureTotal}: ${completedFeature}`,
+                }));
                 
                 if (i + CONCURRENCY_LIMIT < mvp!.inScope.length) {
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Safety valve between batches
                 }
             }
+
+            const collectionValidation = validateMVPFeatureSpecs(resolvedFeatureSpecs, { requireStrongContract: true });
+            if (validationOutcomes.some(outcome => !outcome.valid) || !collectionValidation.valid || resolvedFeatureSpecs.length !== mvp!.inScope.length) {
+                setMvpFeatureSpecValidation(validationOutcomes);
+                const diagnostics = [
+                    ...validationOutcomes.filter(outcome => !outcome.valid).flatMap(outcome => [`${outcome.requestedFeature}: ${[...outcome.parseErrors, ...outcome.errors, ...outcome.warnings].join('; ')}`]),
+                    ...collectionValidation.errors,
+                ].filter(Boolean).join(' | ');
+                throw new Error(`Generated MVP feature specifications failed validation. ${diagnostics}`);
+            }
+
+            const technicalSpecifications: Awaited<ReturnType<typeof AIService.generateTechnicalSpecification>>[] = [];
+            const projectText = (overrideGdd || gddContent).map(section => `${section.title}: ${section.content}`).join('\n');
+            setGenerationStatus(prev => ({ ...prev, progress: 65, substage: 'technical-specs', completed: 0, total: resolvedFeatureSpecs.length, currentItem: '', message: `Preparing ${resolvedFeatureSpecs.length} technical specifications...` }));
+            for (let index = 0; index < resolvedFeatureSpecs.length; index += 1) {
+                const featureSpec = resolvedFeatureSpecs[index];
+                setGenerationStatus(prev => ({ ...prev, currentItem: featureSpec.feature, message: `Designing technical specification ${index + 1}/${resolvedFeatureSpecs.length}: ${featureSpec.feature}...` }));
+                technicalSpecifications.push(await AIService.generateTechnicalSpecification(featureSpec, projectText));
+                const completed = index + 1;
+                setGenerationStatus(prev => ({
+                    ...prev,
+                    progress: 65 + Math.round((completed / Math.max(1, resolvedFeatureSpecs.length)) * 30),
+                    completed,
+                    total: resolvedFeatureSpecs.length,
+                    currentItem: featureSpec.feature,
+                    activitySequence: (prev.activitySequence || 0) + 1,
+                    message: `Completed technical specification ${completed}/${resolvedFeatureSpecs.length}: ${featureSpec.feature}`,
+                }));
+            }
+            setGenerationStatus(prev => ({ ...prev, progress: 97, substage: 'collection-validation', completed: resolvedFeatureSpecs.length, total: resolvedFeatureSpecs.length, currentItem: '', message: 'Validating and assembling the feature collection...' }));
+            const tddAssembly = assembleValidatedTDDFeatures(resolvedFeatureSpecs, technicalSpecifications.map(result => result.specification));
+            const technicalErrors = technicalSpecifications.flatMap(result => result.valid ? [] : [...result.parseErrors, ...result.errors]);
+            if (!tddAssembly.valid || technicalErrors.length) {
+                throw new Error(`Generated technical specifications failed validation. ${[...technicalErrors, ...tddAssembly.errors].filter(Boolean).join(' | ')}`);
+            }
+            const resolvedTdd: TDDFeature[] = tddAssembly.tddFeatures;
             
             setTddContent(resolvedTdd);
             setMvpFeatureSpecs(resolvedFeatureSpecs);
+            setMvpFeatureSpecValidation(validationOutcomes);
+            setGenerationDiagnostic(undefined);
             
             setTddSpecsGenerated(true);
             setCostReport(AIService.getLMCostReport());
             if (!isRefactoring) {
-                setGenerationStatus(prev => ({ ...prev, progress: 100, message: 'Complete!' }));
+                setGenerationStatus(prev => ({ ...prev, progress: 100, substage: 'complete', currentItem: '', activitySequence: (prev.activitySequence || 0) + 1, message: 'Complete!' }));
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 setGenerationStatus({ key: null, isActive: false, progress: 0, message: '', title: '' });
             }
             return resolvedTdd;
         } catch (error) {
             console.error("Failed to generate TDD Specs:", error);
+            const message = error instanceof Error ? error.message : 'MVP Feature Specs could not be generated.';
+            setWorkflowError(message);
+            setGenerationDiagnostic({ stage: 'mvp-feature-specs', message, validationOutcomes: attemptValidationOutcomes });
             if (!isRefactoring) {
                 setGenerationStatus({ key: null, isActive: false, progress: 0, message: 'Error generating TDD Specs.', title: 'Error' });
             }
@@ -647,8 +757,11 @@ const App: React.FC = () => {
                 throw new Error("The design document is empty. Please generate the GDD first.");
             }
 
-            const assets = await AIService.generateAssetList(gddText);
-            setAssetList(assets);
+            const structuredAssets = await AIService.generateAssetMetadata(gddText, projectName);
+            const promptContracts = await AIService.generateVisualPromptContracts(gddText, structuredAssets.map(asset => ({ id: asset.id, description: asset.purpose, sourceReferences: asset.sourceReferences })));
+            setAssetMetadata(structuredAssets);
+            setVisualPromptContracts(promptContracts);
+            setAssetList(projectAssetMetadataToLegacyList(structuredAssets));
             if (!isRefactoring) {
                 setGenerationStatus(prev => ({ ...prev, progress: 100, message: 'Complete!' }));
             }
@@ -685,6 +798,7 @@ const App: React.FC = () => {
 
             const review = await AIService.generateScopeReview(gddText, lens);
             setScopeReviewContent(review);
+            setScopeReviewValidation({ valid: true, errors: [], warnings: [] });
             setScopeReviewGenerated(true);
             setCostReport(AIService.getLMCostReport());
             setGenerationStatus(prev => ({ ...prev, progress: 100, message: 'Complete!' }));
@@ -709,8 +823,9 @@ const App: React.FC = () => {
                 setGenerationStatus({ key: 'modular', isActive: true, progress: 20, message: 'Deconstructing project into briefs...', title: 'Generating Freelance Briefs' });
             }
             const gddText = contentToUse.map(s => `## ${s.title}\n${s.content}`).join('\n\n');
-            const breakdown = await AIService.generateModularBreakdown(gddText, projectName);
-            setModularBreakdown(breakdown);
+            const structuredBriefs = await AIService.generateProductionBriefs(gddText, projectName, JSON.stringify({ tddContent, assetMetadata }));
+            setProductionBriefs(structuredBriefs);
+            setModularBreakdown(projectProductionBriefsToLegacy(structuredBriefs));
             setModularBreakdownGenerated(true);
             setCostReport(AIService.getLMCostReport());
             if (!isRefactoring) {
@@ -735,11 +850,11 @@ const App: React.FC = () => {
             
             const resetStates = () => {
                 if (documents.includes('pitch')) { setPitchDeckContent([]); setGeneratedImages({}); setPitchDeckGenerated(false); }
-                if (documents.includes('assets')) { setAssetList(null); setAssetListGenerated(false); }
+                if (documents.includes('assets')) { setAssetList(null); setAssetMetadata(null); setVisualPromptContracts(null); setAssetListGenerated(false); }
                 if (documents.includes('mvp')) { setMvpDefinition(null); setMvpGenerated(false); }
-                if (documents.includes('tdd_specs')) { setTddContent(null); setTddSpecsGenerated(false); }
+                if (documents.includes('tdd_specs')) { setMvpFeatureSpecs(null); setMvpFeatureSpecValidation([]); setTddContent(null); setTddSpecsGenerated(false); }
                 if (documents.includes('tdd_final')) { setTechnicalDesignDocument(null); setTddDocGenerated(false); }
-                if (documents.includes('modular_breakdown')) { setModularBreakdown(null); setModularBreakdownGenerated(false); }
+                if (documents.includes('modular_breakdown')) { setModularBreakdown(null); setProductionBriefs(null); setModularBreakdownGenerated(false); }
                 if (documents.includes('scope')) { setScopeReviewContent(null); setScopeReviewGenerated(false); }
             };
             resetStates();
@@ -807,6 +922,7 @@ const App: React.FC = () => {
                 const critique = await AIService.performTechnicalCritique(conversationText);
                 setCritiqueData(critique);
                 setCritiqueAnswers(new Array(critique.questions.length).fill(''));
+                setCritiqueRecord({ ...critique, answers: [], completed: false, source: 'technical-analyst' });
                 setIsGeneratingCritique(false);
             }
         };
@@ -826,6 +942,7 @@ const App: React.FC = () => {
         
         const newHistory: ChatMessage[] = [...chatHistory, { sender: 'user', text: message, file: file || undefined }];
         setChatHistory(newHistory);
+            setTranscriptRecord(createTranscriptRecord(newHistory));
         setUserInput('');
         setIsLoading(true);
         setIsAiThinking(true);
@@ -835,7 +952,7 @@ const App: React.FC = () => {
         try {
             // Run conversation step and name extraction in parallel if we don't have a name yet
             const [responseText, extractedName] = await Promise.all([
-                AIService.getNextConversationStep(conversationText, file),
+                AIService.getNextConversationStep(conversationText, file, conciergeMode, memoryEntries),
                 projectName === 'Untitled Project' 
                     ? AIService.extractProjectName(conversationText) 
                     : Promise.resolve(projectName)
@@ -848,6 +965,10 @@ const App: React.FC = () => {
             setCostReport(AIService.getLMCostReport());
             setIsAiThinking(false);
             setChatHistory(prev => [...prev, { sender: 'ai', text: responseText }]);
+            const extractedMemory = await AIService.extractStructuredMemory(conversationText, memoryEntries);
+            const mergedMemory = extractedMemory.entries.length ? mergeMemoryEntries(memoryEntries, extractedMemory.entries) : memoryEntries;
+            if (extractedMemory.entries.length) setMemoryEntries(mergedMemory);
+            setConciergeMode(deriveConciergeMode(extractedName || projectName, conversationText, mergedMemory));
         } catch (error) {
             console.error("Chat error:", error);
             setChatHistory(prev => [...prev, { sender: 'ai', text: "I'm sorry, I encountered an error. Please try again." }]);
@@ -942,11 +1063,31 @@ const App: React.FC = () => {
                 text: `Here are my answers to the technical critique questions:\n\n${answersText}`
             }];
             setChatHistory(finalHistory);
-            
-            setWorkflowState(WorkflowStep.GENERATING);
-            setGenerationStatus({ key: 'gdd', isActive: true, progress: 10, message: 'Expanding conversation...', title: 'Generating Core Document' });
-
+            setTranscriptRecord(createTranscriptRecord(finalHistory));
             const conversationText = finalHistory.map(m => `${m.sender}: ${m.text}`).join('\n');
+            const completedCritique = { summary: critiqueData?.summary || '', questions: critiqueData?.questions || [], answers: critiqueAnswers, completed: true, source: 'technical-analyst' as const };
+            if (!validateCritiqueRecord(completedCritique).valid) { alert('Please complete the technical critique before generating.'); return; }
+            setCritiqueRecord(completedCritique);
+
+            const specialistContext = buildPersonaSpecialistContext(conversationText, memoryEntries, completedCritique);
+            let completedRiskCritique = riskCritique;
+            setWorkflowError(null);
+            setWorkflowState(WorkflowStep.GENERATING);
+            setGenerationStatus({ key: 'persona', isActive: true, progress: 5, message: 'Senior Technical Analyst is reviewing completed critique answers...', title: 'Completing Persona Review' });
+            try {
+                const [completedUserProxy, generatedRiskCritique] = await Promise.all([
+                    AIService.generateUserProxy(specialistContext),
+                    AIService.generateRiskCritique(specialistContext),
+                ]);
+                setUserProxy(completedUserProxy);
+                completedRiskCritique = generatedRiskCritique;
+                setRiskCritique(completedRiskCritique);
+            } catch (error) {
+                console.error('Completed-critique persona specialist generation failed:', error);
+                setWorkflowError('User Proxy or Senior Technical Analyst review could not be generated. Core document generation will continue, but retry the critique workflow if those records are required.');
+            }
+
+            setGenerationStatus({ key: 'gdd', isActive: true, progress: 10, message: 'Expanding conversation...', title: 'Generating Core Document' });
 
             const text = await AIService.getExpandedText(conversationText);
             setExpandedText(text);
@@ -963,6 +1104,8 @@ const App: React.FC = () => {
             
             const gdd = await AIService.generateFullGDDV2(text, toc, name);
             setGddContent(gdd);
+            const synthesized = await AIService.generateSynthesis(JSON.stringify({ gdd, memoryEntries, critique: completedCritique, risks: completedRiskCritique }), ['gdd', 'memory', 'critique', 'risks']);
+            setSynthesis(synthesized);
             setGddGenerated(true);
             setGenerationStatus(prev => ({ ...prev, progress: 100, message: 'Complete!' }));
             
@@ -971,6 +1114,7 @@ const App: React.FC = () => {
             setWorkflowState(WorkflowStep.COMPLETE);
         } catch (error) {
             console.error("Failed to generate GDD:", error);
+            setWorkflowError(error instanceof Error ? error.message : 'Core document generation failed.');
             setGenerationStatus({ key: null, isActive: false, progress: 0, message: 'Error generating core document.', title: 'Error' });
         }
     };
@@ -982,15 +1126,27 @@ const App: React.FC = () => {
         try {
             const conversationText = getConversationText();
             const onProgress = (percent: number, message: string) => setGenerationStatus(prev => ({ ...prev, progress: percent, message }));
-            const pkg = await runUnifiedPipeline(conversationText, projectName, scopeReviewLens, activePitchDeckSlides, activeVisualAssets, onProgress);
+            const currentCritique = critiqueRecord || (critiqueData ? { summary: critiqueData.summary, questions: critiqueData.questions, answers: critiqueAnswers, completed: critiqueAnswers.length === critiqueData.questions.length && critiqueAnswers.every(answer => answer.trim()), source: 'technical-analyst' as const } : undefined);
+            const pkg = await runUnifiedPipeline(conversationText, projectName, scopeReviewLens, activePitchDeckSlides, activeVisualAssets, onProgress, currentCritique, chatHistory);
 
             // Apply returned package to local state
             setExpandedText(pkg.expandedText);
             setGddContent(pkg.gddContent || []);
             setPitchDeckContent(pkg.pitchDeckContent || []);
             setGeneratedImages(pkg.generatedImages || {});
+            setScopeReviewValidation(pkg.scopeReviewValidation);
+            setPitchDeckValidation(pkg.pitchDeckValidation);
+            setCritiqueRecord(pkg.critiqueRecord);
+            setGenerationMetadata(pkg.generationMetadata);
+            setTranscriptRecord(pkg.transcriptRecord || createTranscriptRecord(pkg.chatHistory || []));
+            setMemoryEntries(pkg.memoryEntries || []);
+            setConciergeMode(pkg.conciergeMode || 'information-gatherer');
+            setProductionBriefs(pkg.productionBriefs || null);
+            setAssetMetadata(pkg.assetMetadata || null);
+            setVisualPromptContracts(pkg.visualPromptContracts || null);
             setMvpDefinition(pkg.mvpDefinition || null);
             setMvpFeatureSpecs(pkg.mvpFeatureSpecs || null);
+            setMvpFeatureSpecValidation(pkg.mvpFeatureSpecValidation || []);
             setTddContent(pkg.tddContent || null);
             setTechnicalDesignDocument(pkg.technicalDesignDocument || null);
             setModularBreakdown(pkg.modularBreakdown || null);
@@ -1011,6 +1167,10 @@ const App: React.FC = () => {
             setWorkflowState(WorkflowStep.COMPLETE);
         } catch (err) {
             console.error('Pipeline error:', err);
+            if (err instanceof UnifiedPipelineCritiqueGateError) alert(err.message);
+            if (err instanceof MVPFeatureSpecGenerationError) {
+                setMvpFeatureSpecValidation(err.outcomes);
+            }
             setGenerationStatus({ key: null, isActive: false, progress: 0, message: 'Error running pipeline.', title: 'Error' });
         }
     };
@@ -1048,15 +1208,39 @@ const App: React.FC = () => {
             gddContent,
             pitchDeckContent,
             generatedImages,
+            critiqueRecord,
+            generationMetadata,
+            transcriptRecord,
+            memoryEntries,
+            conciergeMode,
+            userProxy,
+            riskCritique,
+            synthesis,
             mvpDefinition,
+            mvpFeatureSpecValidation,
+            generationDiagnostic,
             mvpFeatureSpecs,
             tddContent,
             technicalDesignDocument,
             modularBreakdown,
             assetList,
+            productionBriefs,
+            assetMetadata,
+            visualPromptContracts,
+            scopeReviewValidation,
+            pitchDeckValidation,
             scopeReviewContent,
         };
     };
+
+    const currentProjectPackage = useMemo(() => assembleProjectPackage(), [
+        activeProjectId, projectName, chatHistory, critiqueData, critiqueAnswers, critiqueRecord,
+        generationMetadata, transcriptRecord, memoryEntries, conciergeMode, userProxy, riskCritique,
+        synthesis, expandedText, gddContent, pitchDeckContent, generatedImages, mvpDefinition,
+        mvpFeatureSpecs, mvpFeatureSpecValidation, generationDiagnostic, tddContent, technicalDesignDocument,
+        modularBreakdown, assetList, productionBriefs, assetMetadata, visualPromptContracts,
+        scopeReviewValidation, pitchDeckValidation, scopeReviewContent,
+    ]);
 
     const startDownload = (filename: string) => {
         setIsDownloading(true);
@@ -2331,6 +2515,26 @@ const App: React.FC = () => {
         );
     };
 
+    const ConciergeModeBadge = () => {
+        const labels: Record<import('./types').ConciergeMode, string> = {
+            'project-name': 'Project Name',
+            'information-gatherer': 'Information Gatherer',
+            'creative-brainstormer': 'Creative Brainstormer',
+            'completion-gate': 'Completion Gate',
+        };
+        const label = labels[conciergeMode] || 'Information Gatherer';
+        return (
+            <div
+                className="hidden sm:flex min-w-0 max-w-[24rem] items-center justify-center gap-2 rounded-lg border border-brand-primary/30 bg-brand-primary/10 px-3 py-1.5 text-center"
+                data-testid="concierge-mode-badge"
+                title={`Concierge mode: ${label}`}
+            >
+                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-text-muted">Concierge</span>
+                <span className="truncate text-sm font-semibold text-brand-primary">{label}</span>
+            </div>
+        );
+    };
+
     const renderMainContent = () => {
         if (!activeProjectId) {
             return (
@@ -2351,9 +2555,15 @@ const App: React.FC = () => {
                         progress={generationStatus.progress} 
                         message={generationStatus.message} 
                         title={generationStatus.title}
+                        stageKey={generationStatus.key}
+                        substage={generationStatus.substage}
+                        completed={generationStatus.completed}
+                        total={generationStatus.total}
+                        currentItem={generationStatus.currentItem}
+                        activitySequence={generationStatus.activitySequence}
                     />
                     {isResetModalOpen && <ResetConfirmationModal />}
-                    <header className="p-4 bg-brand-surface border-b border-brand-border flex justify-between items-center z-10 flex-shrink-0">
+                    <header className="p-4 bg-brand-surface border-b border-brand-border grid grid-cols-[1fr_auto_1fr] items-center gap-3 z-10 flex-shrink-0">
                         <div className="flex items-center gap-3 truncate">
                             <h1 className="text-xl font-bold text-brand-primary truncate">{projectName}</h1>
                             {isStableVersion && (
@@ -2362,7 +2572,10 @@ const App: React.FC = () => {
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="justify-self-center">
+                            <ConciergeModeBadge />
+                        </div>
+                        <div className="flex items-center justify-self-end gap-4">
                             <AIProviderSelector config={aiProviderConfig} onChange={handleProviderConfigChange} />
                             <button
                                 onClick={() => setIsResetModalOpen(true)}
@@ -2437,6 +2650,12 @@ const App: React.FC = () => {
                         progress={generationStatus.progress} 
                         message={generationStatus.message} 
                         title={generationStatus.title}
+                        stageKey={generationStatus.key}
+                        substage={generationStatus.substage}
+                        completed={generationStatus.completed}
+                        total={generationStatus.total}
+                        currentItem={generationStatus.currentItem}
+                        activitySequence={generationStatus.activitySequence}
                     />
                     {isScopeReviewModalOpen && <ScopeReviewModal />}
                     {isResetModalOpen && <ResetConfirmationModal />}
@@ -2456,7 +2675,7 @@ const App: React.FC = () => {
                             scopeReviewGenerated={scopeReviewGenerated}
                         />
                     )}
-                    <header className="p-4 bg-brand-surface border-b border-brand-border flex justify-between items-center z-10 flex-shrink-0">
+                    <header className="p-4 bg-brand-surface border-b border-brand-border grid grid-cols-[1fr_auto_1fr] items-center gap-3 z-10 flex-shrink-0">
                         <div className="flex items-center gap-3 truncate">
                             <h1 className="text-xl font-bold text-brand-primary truncate">{projectName}</h1>
                             {isStableVersion && (
@@ -2465,7 +2684,10 @@ const App: React.FC = () => {
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="justify-self-center">
+                            <ConciergeModeBadge />
+                        </div>
+                        <div className="flex items-center justify-self-end gap-4">
                             <AIProviderSelector config={aiProviderConfig} onChange={handleProviderConfigChange} />
                             <button
                                 onClick={() => setIsResetModalOpen(true)}
@@ -2541,6 +2763,7 @@ const App: React.FC = () => {
                                 scopeReviewGenerated={scopeReviewGenerated}
                                 modularBreakdownGenerated={modularBreakdownGenerated}
                                 isGeneratingKey={generationStatus.key}
+                                workflowError={workflowError}
                             />
                         </aside>
                     </div>
@@ -2575,9 +2798,15 @@ const App: React.FC = () => {
                     progress={generationStatus.progress} 
                     message={generationStatus.message} 
                     title={generationStatus.title}
+                    stageKey={generationStatus.key}
+                    substage={generationStatus.substage}
+                    completed={generationStatus.completed}
+                    total={generationStatus.total}
+                    currentItem={generationStatus.currentItem}
+                    activitySequence={generationStatus.activitySequence}
                 />
                 
-                <header className="p-4 bg-brand-surface border-b border-brand-border flex justify-between items-center z-40 flex-shrink-0">
+                <header className="p-4 bg-brand-surface border-b border-brand-border grid grid-cols-[1fr_auto_1fr] items-center gap-3 z-40 flex-shrink-0">
                     <div className="flex items-center gap-3 truncate">
                         <h1 className="text-xl font-bold text-brand-primary truncate">{projectName}</h1>
                         {isStableVersion && (
@@ -2586,8 +2815,21 @@ const App: React.FC = () => {
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="justify-self-center">
+                        <ConciergeModeBadge />
+                    </div>
+                    <div className="flex items-center justify-self-end gap-4">
                         <AIProviderSelector config={aiProviderConfig} onChange={handleProviderConfigChange} />
+                            <ShareButton
+                                projectName={projectName}
+                                projectType={projectType}
+                                gddContent={gddContent}
+                                pitchDeckContent={pitchDeckContent}
+                                generatedImages={generatedImages}
+                                mvpDefinition={mvpDefinition}
+                                tddContent={tddContent}
+                                projectPackage={currentProjectPackage}
+                            />
                         <div className="relative download-dropdown-container">
                             <button
                                 onClick={() => setIsDownloadDropdownOpen(!isDownloadDropdownOpen)}
@@ -2659,6 +2901,56 @@ const App: React.FC = () => {
                 <div className="flex flex-1 overflow-hidden">
                     <main className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-6">
                         <div className="space-y-4">
+                            <div className="bg-brand-surface rounded-lg border border-brand-border overflow-hidden">
+                                <button
+                                    onClick={() => setOpenSection(openSection === 'rich' ? null : 'rich')}
+                                    className="w-full flex justify-between items-center p-4 text-left hover:bg-brand-border/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                                    aria-expanded={openSection === 'rich'}
+                                >
+                                    <div>
+                                        <h2 className="text-xl font-bold text-brand-primary">Rich project package</h2>
+                                        <p className="text-sm text-brand-text-muted mt-1">The same structured package powers this preview, HTML export, JSON export, and sharing.</p>
+                                    </div>
+                                    <ChevronDownIcon className={`w-6 h-6 text-brand-text-muted transition-transform duration-300 ${openSection === 'rich' ? 'rotate-180' : ''}`} />
+                                </button>
+                                {openSection === 'rich' && (
+                                    <div className="p-2 sm:p-4 border-t border-brand-border">
+                                        <RichPackagePreview packageData={currentProjectPackage} />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between gap-4 pt-2">
+                                <div>
+                                    <h2 className="text-lg font-bold text-brand-text">Legacy section viewers</h2>
+                                    <p className="text-sm text-brand-text-muted">Use the original focused viewers for individual document editing and review.</p>
+                                </div>
+                                <button
+                                    onClick={() => setOpenSection(openSection && openSection !== 'rich' ? null : 'gdd')}
+                                    className="flex-shrink-0 px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-surface transition-colors"
+                                >
+                                    {openSection && openSection !== 'rich' ? 'Hide sections' : 'Show sections'}
+                                </button>
+                            </div>
+                            <div className="bg-brand-surface rounded-lg border border-brand-border overflow-hidden">
+                                <button
+                                    onClick={() => setOpenSection(openSection === 'persona' ? null : 'persona')}
+                                    className="w-full flex justify-between items-center p-4 text-left hover:bg-brand-border/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                                    aria-expanded={openSection === 'persona'}
+                                >
+                                    <div>
+                                        <h2 className="text-xl font-bold text-brand-primary">Memory &amp; Persona Records</h2>
+                                        <p className="text-sm text-brand-text-muted mt-1">Review the captured memory, Concierge mode, critique specialists, synthesis, and transcript status.</p>
+                                    </div>
+                                    <ChevronDownIcon className={`w-6 h-6 text-brand-text-muted transition-transform duration-300 ${openSection === 'persona' ? 'rotate-180' : ''}`} />
+                                </button>
+                                {openSection === 'persona' && (
+                                    <div className="p-4 sm:p-8 border-t border-brand-border">
+                                        <PersonaRecordsViewer packageData={currentProjectPackage} />
+                                    </div>
+                                )}
+                            </div>
+                            {openSection !== 'rich' && (
+                            <>
                             {gddGenerated && (
                                 <div className="bg-brand-surface rounded-lg border border-brand-border">
                                     <div className="flex justify-between items-center p-4 hover:bg-brand-border/20 transition-colors relative rounded-t-lg">
@@ -2865,6 +3157,8 @@ const App: React.FC = () => {
                                     )}
                                 </div>
                             )}
+                            </>
+                            )}
                         </div>
                     </main>
                      <aside className="hidden md:block w-full max-w-sm border-l border-brand-border bg-brand-bg">
@@ -2888,6 +3182,7 @@ const App: React.FC = () => {
                                 scopeReviewGenerated={scopeReviewGenerated}
                                 modularBreakdownGenerated={modularBreakdownGenerated}
                                 isGeneratingKey={generationStatus.key}
+                                workflowError={workflowError}
                             />
                     </aside>
                 </div>
@@ -2906,6 +3201,10 @@ const App: React.FC = () => {
     
     if (loadingState === 'error') {
         return <DataCorruptionErrorScreen />;
+    }
+
+    if (window.location.hash.startsWith('#share_id=')) {
+        return <ShareLandingPage />;
     }
 
     return (

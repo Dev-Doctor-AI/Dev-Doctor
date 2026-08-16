@@ -2,6 +2,19 @@ import React from 'react';
 import Markdown from 'react-markdown';
 import { MVPFeatureSpec } from '../types';
 
+const OptionalListSection: React.FC<{ title: string; items?: string[] }> = ({ title, items }) => {
+    if (!items?.length) return null;
+
+    return (
+        <section className="space-y-2">
+            <h4 className="text-lg font-bold text-brand-primary">{title}</h4>
+            <ul className="list-disc ml-4 prose prose-invert prose-sm markdown-content pl-4 border-l-2 border-brand-primary/20">
+                {items.map((item, index) => <li key={index}>{item}</li>)}
+            </ul>
+        </section>
+    );
+};
+
 export const MVPFeatureSpecViewer: React.FC<{ features: MVPFeatureSpec[] | null; projectName?: string }> = ({ features, projectName }) => {
     if (!features || features.length === 0) return <div className="text-center text-brand-text-muted">No feature specifications have been generated.</div>;
 
@@ -16,6 +29,7 @@ export const MVPFeatureSpecViewer: React.FC<{ features: MVPFeatureSpec[] | null;
                 <article key={f.id || idx} className="space-y-6">
                     <header>
                         <h3 className="text-3xl font-bold text-brand-secondary border-b border-brand-border pb-2">Feature: {f.feature}</h3>
+                        {f.id && <p className="text-xs font-mono text-brand-text-muted mt-2">Feature ID: {f.id}</p>}
                         <p className="text-sm text-brand-text-muted mt-2">User story: <strong>{f.userStory}</strong></p>
                     </header>
 
@@ -24,7 +38,13 @@ export const MVPFeatureSpecViewer: React.FC<{ features: MVPFeatureSpec[] | null;
                         <div className="space-y-3">
                             {f.scenarios.map((s, sIdx) => (
                                 <div key={sIdx} className="p-3 rounded-lg border border-brand-border bg-brand-surface/40">
-                                    {s.title && <div className="font-semibold text-brand-text">{s.title}</div>}
+                                    {(s.title || s.id || s.type) && (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {s.title && <div className="font-semibold text-brand-text">{s.title}</div>}
+                                            {s.type && <span className="rounded-full bg-brand-primary/15 px-2 py-0.5 text-xs font-semibold text-brand-primary">{s.type}</span>}
+                                            {s.id && <span className="font-mono text-xs text-brand-text-muted">ID: {s.id}</span>}
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                                         <div>
                                             <div className="text-xs font-semibold text-brand-text-muted">Given</div>
@@ -50,6 +70,12 @@ export const MVPFeatureSpecViewer: React.FC<{ features: MVPFeatureSpec[] | null;
                             ))}
                         </div>
                     </section>
+
+                    <OptionalListSection title="Acceptance criteria" items={f.acceptanceCriteria} />
+                    <OptionalListSection title="Failure states" items={f.failureStates} />
+                    <OptionalListSection title="Telemetry" items={f.telemetry} />
+                    <OptionalListSection title="Security considerations" items={f.securityConsiderations} />
+                    <OptionalListSection title="Performance targets" items={f.performanceTargets} />
 
                     <section className="space-y-2">
                         <h4 className="text-lg font-bold text-brand-primary">Invalid / Wrong-input behavior</h4>

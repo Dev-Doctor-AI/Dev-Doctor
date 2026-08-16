@@ -1,0 +1,1220 @@
+AQUA FIGHTER
+========================================
+Generated: 16/08/2026, 11:00:11 PM
+
+DESIGN DOCUMENT (GDD/PRD)
+----------------------------------------
+1.1 PRODUCT VISION
+**Aqua Fighter** is a fast-paced, one-on-one underwater arena fighter built around fluid movement, deliberate momentum control, and readable anime spectacle.
+
+Players control distinctive aquatic heroes and rivals in fixed-camera 2.5D arenas. Fighters attack with punches, kicks, dashes, and special aquatic techniques while exploiting currents, coral reefs, wreckage, cover, hazards, and limited depth lanes.
+
+The game must communicate two simultaneous promises:
+
+1. **Immediate accessibility:** A new player can move, attack, dash, chain basic attacks, and use a special ability within minutes.
+2. **Competitive mastery:** Experienced players can optimize timing, momentum redirection, current manipulation, spacing, defensive routing, environmental setups, and matchup-specific counterplay.
+
+The underwater setting is not cosmetic. Movement, currents, rebound surfaces, and environmental hazards are core combat systems.
+
+1.2 TARGET AUDIENCE
+Aqua Fighter targets:
+
+- Players who enjoy accessible arcade and platform fighters.
+- Anime and action-game audiences.
+- Local multiplayer groups seeking immediate couch-play fun.
+- Competitive fighting-game players seeking a movement-focused arena fighter.
+- Players who prefer spectacle and character expression without requiring traditional fighting-game execution barriers.
+- Younger and family audiences, supported by clear visual language and scalable accessibility options.
+
+The game should be approachable with a controller, but its deterministic systems, replay tools, and ranked rules must support serious competitive play.
+
+PILLAR 1: FLUID, SKILLFUL UNDERWATER COMBAT
+Movement must feel responsive rather than floaty. Fighters should respond immediately to directional inputs while retaining a controllable momentum vector that enables:
+
+- Current-assisted approaches.
+- Mid-air or mid-water redirection.
+- Dash routing.
+- Rebound extensions.
+- Evasive lane changes.
+- Positioning around cover and hazards.
+
+The player should understand why a fighter moved and should be able to reproduce the result.
+
+PILLAR 2: ANIME SPECTACLE WITH GAMEPLAY CLARITY
+Attacks should feel dramatic through:
+
+- Strong anticipation poses.
+- Exaggerated impact frames.
+- Speed lines.
+- Elemental water effects.
+- Camera shake and hit-stop.
+- Character callouts.
+- Brief, high-contrast finishing poses.
+
+Spectacle must never conceal:
+
+- The attacking fighter’s pose.
+- The defender’s hurt reaction.
+- The active hit volume.
+- The direction of knockback.
+- Hazard telegraphs.
+- Available defensive options.
+
+PILLAR 3: ENVIRONMENTAL OUTPLAY
+Arenas are combat tools. Players should be able to:
+
+- Ride a current into a combo.
+- Use a reef to rebound toward or away from an opponent.
+- Hide or reposition behind wreckage.
+- Redirect an opponent toward a hazard.
+- Bait an enemy into an unsafe lane.
+- Convert environmental contact into a deliberate combo extension.
+- Use hazards for comebacks without relying on random outcomes.
+
+PILLAR 4: ACCESSIBLE FUNDAMENTALS, DEEP OPTIMIZATION
+The baseline control scheme must not require complex motion inputs. Depth comes from:
+
+- Timing.
+- Spacing.
+- Attack selection.
+- Momentum management.
+- Resource usage.
+- Cancel discipline.
+- Current routing.
+- Risk and reward assessment.
+- Matchup knowledge.
+- Arena knowledge.
+
+PILLAR 5: FAIR ESCALATION
+Progression introduces deeper and more dangerous areas, but difficulty must come from richer decisions rather than unreadable punishment.
+
+Every advanced hazard must have:
+
+- A visible telegraph.
+- A consistent activation rule.
+- A defined counterplay option.
+- A predictable collision result.
+- A reasonable recovery or reset opportunity.
+
+1.4 CORE MATCH FANTASY
+A successful match should produce moments such as:
+
+- A fighter dashes through a water mine just before it detonates.
+- An opponent is launched into a current, then intercepted with a rising kick.
+- A player uses wreckage to break line of sight, changes depth lanes, and reverses position.
+- A reef rebound converts a near-ring-out into a counterattack.
+- A deep-sea creature shadow appears in the background while a clearly telegraphed hazard creates a final exchange.
+
+---
+
+2.1 MATCH OBJECTIVE
+A standard duel is a one-on-one fight in which each fighter has a health gauge.
+
+Default rules:
+
+- Best of three rounds.
+- Each round lasts 90 seconds.
+- Fighter health resets between rounds.
+- The first fighter to win two rounds wins the match.
+- If time expires, the fighter with greater remaining health wins.
+- A tie uses remaining momentum/resource advantage as a secondary tiebreaker, followed by a sudden-death round if required.
+- Ranked modes use fixed competitive rules and no fighter-specific progression advantages.
+
+Alternative rules such as stock, endurance, and hazard-heavy variants may exist in casual modes.
+
+2.2 STANDARD CONTROL LAYOUT
+The control scheme must support controller, keyboard, and remappable input.
+
+GAMEPAD DEFAULT
+| Input | Action |
+|---|---|
+| Left Stick / D-pad | Four-direction movement |
+| Face Button 1 | Light attack / punch |
+| Face Button 2 | Heavy attack / kick |
+| Face Button 3 | Aquatic technique |
+| Face Button 4 | Dash burst |
+| Shoulder Button 1 | Guard |
+| Shoulder Button 2 | Technique modifier / alternate technique |
+| Start/Menu | Pause or menu |
+| Select/View | Training controls, replay information, or scorecard |
+
+KEYBOARD DEFAULT
+| Input | Action |
+|---|---|
+| WASD / Arrow Keys | Movement |
+| J | Light attack |
+| K | Heavy attack |
+| L | Aquatic technique |
+| Space | Dash |
+| Shift | Guard |
+| U | Alternate technique/modifier |
+| Esc | Pause/menu |
+
+All controls must be remappable. Each action must support keyboard rollover validation and controller dead-zone configuration.
+
+2.3 MOVEMENT AND ATTACK DIRECTION
+Attacks inherit direction from the current movement intent and fighter state.
+
+Examples:
+
+- Neutral light attack: forward jab.
+- Up plus light: rising strike.
+- Down plus heavy: descending kick.
+- Direction plus technique: directional technique variant where supported.
+- Dash plus attack: dash strike or approach attack.
+
+The direction sampled at attack commitment is stored for deterministic replay and cannot be altered by later analog noise unless the move explicitly supports steering.
+
+2.4 BASIC ATTACKS
+Each fighter has a universal or semi-universal base kit:
+
+- Light punch.
+- Heavy punch or kick.
+- Rising attack.
+- Descending attack.
+- Dash attack.
+- Air or waterborne follow-up.
+- Guard.
+- Dash burst.
+- Aquatic technique slots.
+
+LIGHT ATTACKS
+Light attacks are:
+
+- Fast.
+- Low commitment.
+- Lower damage.
+- Suitable for confirming combos.
+- Capable of chaining into other lights during the chain window.
+
+Recommended baseline:
+
+- Startup: 5–8 simulation frames.
+- Active: 3–5 frames.
+- Recovery: 10–18 frames.
+- Damage: 2–4% of standard round health.
+- Hit advantage: modest, allowing a follow-up under correct timing.
+
+HEAVY ATTACKS
+Heavy attacks are:
+
+- Slower.
+- More damaging.
+- Higher knockback.
+- More likely to interact strongly with environmental surfaces.
+- Riskier on whiff or block.
+
+Recommended baseline:
+
+- Startup: 12–20 frames.
+- Active: 4–8 frames.
+- Recovery: 20–34 frames.
+- Damage: 6–10%.
+- Strong hit reaction and possible wall or reef bounce.
+
+ATTACK CHAINS
+Attack-chain inputs are accepted during the final 12 recovery ticks of an attack, equal to 100 ms in the 120 Hz offline simulation.
+
+The chain system must:
+
+- Accept buffered input during recovery.
+- Preserve the first valid next attack.
+- Reject duplicate or ambiguous inputs according to priority rules.
+- Prevent infinite loops through per-chain route limits.
+- Allow fighter-specific chain branches.
+- Provide visual and audio confirmation when a chain is accepted.
+
+A basic route may be:
+
+`Light → Light → Heavy`
+
+A fighter-specific route may be:
+
+`Light → Up-Light → Technique`
+
+GUARD
+Guard reduces or negates incoming damage depending on attack type.
+
+Default guard behavior:
+
+- Guard is held manually.
+- Guard applies only within the fighter’s forward-facing defensive arc unless a fighter trait modifies it.
+- Guard prevents normal hit-stun from light attacks.
+- Heavy attacks apply guard pushback and guard strain.
+- Techniques may chip guard, force movement, or bypass guard only when explicitly telegraphed.
+
+GUARD BREAK
+Guard breaks occur when:
+
+- Guard strain exceeds the fighter’s threshold.
+- A designated guard-break attack connects.
+- A fighter remains stationary in guard against repeated pressure.
+
+Guard break must have:
+
+- A distinct audio cue.
+- A readable stagger animation.
+- A guaranteed minimum vulnerability window.
+- No hidden random chance.
+
+HIT-STUN
+Hit-stun is an authored state. During hit-stun:
+
+- Movement input is suppressed.
+- Momentum may continue according to the attack’s knockback profile.
+- The fighter cannot attack or dash unless a specific recovery technique is available.
+- Hit-stop may occur at impact.
+- Environmental collision is resolved using deterministic rules.
+
+The game must distinguish:
+
+- Light hit-stun.
+- Heavy hit-stun.
+- Launch state.
+- Knockdown state.
+- Rebound state.
+- Hazard stun.
+
+RECOVERY OPTIONS
+Depending on fighter and move, players may have:
+
+- Directional recovery input.
+- Air tech.
+- Dash recovery.
+- Reef rebound.
+- Technique cancel.
+- Depth-lane escape.
+
+Recovery options must be clearly communicated and limited by resources, cooldowns, or move-specific rules.
+
+2.6 AQUATIC TECHNIQUES
+Aquatic techniques are character-defining abilities such as:
+
+- Water blades.
+- Bubble traps.
+- Pressure bursts.
+- Electric eel arcs.
+- Ice currents.
+- Coral growth.
+- Ink clouds.
+- Tidal grabs.
+- Whirlpool pulls.
+
+Each technique must define:
+
+- Startup.
+- Active frames.
+- Recovery.
+- Damage.
+- Hit-stun.
+- Knockback.
+- Resource cost.
+- Cooldown, if any.
+- Directional behavior.
+- Guard interaction.
+- Environmental interaction.
+- Telegraph.
+- VFX and audio references.
+- Counterplay.
+- Online determinism requirements.
+
+Techniques should not all be direct damage tools. Some should be used for:
+
+- Space control.
+- Current creation.
+- Momentum redirection.
+- Defensive escape.
+- Cover denial.
+- Combo routing.
+- Hazard interruption.
+- Resource conversion.
+
+2.7 FIGHTER DESIGN FRAMEWORK
+Launch capacity is 12 fighters. Each fighter must have a distinct combat identity without violating the universal readability rules.
+
+Recommended fighter archetypes:
+
+1. **Striker:** Fast punch and kick chains, high pressure.
+2. **Current Rider:** Excels at converting currents into movement and damage.
+3. **Anchor:** High stability, strong guard, lower mobility.
+4. **Trickster:** Creates decoys, bubbles, or deceptive trajectories.
+5. **Lancer:** Controls long-range space with spear-like aquatic attacks.
+6. **Grappler:** Converts close contact into throws or directional slams.
+7. **Reef Guardian:** Uses rebound and collision interactions.
+8. **Storm Fighter:** Electric techniques and lane control.
+9. **Depth Hunter:** Strong against hazards and darkness effects.
+10. **Glass Cannon:** High mobility and burst damage, low durability.
+11. **Support Controller:** Creates temporary currents or cover.
+12. **Balanced Rival:** Teaches the standard system and serves as the introductory fighter.
+
+Every fighter must have:
+
+- A readable silhouette at gameplay scale.
+- A unique movement accent.
+- A universal basic attack language.
+- One signature mechanic.
+- At least one clear weakness.
+- At least one reliable approach tool.
+- At least one defensive answer.
+- A defined arena interaction profile.
+
+2.8 DAMAGE AND SCALING
+Damage must be data-driven and deterministic.
+
+Damage calculation may include:
+
+- Base move damage.
+- Combo scaling.
+- Counter-hit modifier.
+- Guard modifier.
+- Environmental multiplier.
+- Technique resource modifier.
+- Round or mode-specific modifier.
+
+A recommended combo scaling model:
+
+- First hit: 100%.
+- Second hit: 92%.
+- Third hit: 84%.
+- Subsequent hits: minimum 45%.
+- Environmental hits may have a separate capped multiplier.
+
+Scaling must prevent infinite or low-risk loops while preserving satisfying short combos.
+
+---
+
+3.1 HYBRID MOVEMENT MODEL
+Aqua Fighter uses a deterministic, kinematic movement controller rather than fully emergent rigid-body physics.
+
+The controller consists of:
+
+1. **Input intent vector**
+2. **Immediate movement response**
+3. **Lightweight momentum vector**
+4. **Current and authored force contributions**
+5. **State-machine constraints**
+6. **Post-movement collision resolution**
+7. **Attack and hurt-volume evaluation**
+
+The simulation must never rely on platform-specific floating-point behavior for authoritative outcomes.
+
+3.2 MOVEMENT PLANE AND DEPTH LANES
+The playable arena is a 2D combat plane with limited depth lanes.
+
+Recommended structure:
+
+- Three gameplay lanes: foreground, center, background.
+- Fighters may move between lanes using up/down input.
+- Each lane has a defined world-space depth.
+- Lane transitions take a short, consistent duration.
+- Attacks have lane tolerance values.
+- Some attacks affect multiple lanes.
+- Cover and hazards may occupy selected lanes.
+
+Depth lanes are not a free 3D space. They exist to support:
+
+- Dodging.
+- Layered positioning.
+- Cover play.
+- Current routing.
+- Background and foreground composition.
+- Attack prediction and counterplay.
+
+3.3 MOVEMENT RESPONSE
+Input response should feel immediate.
+
+Recommended controller properties:
+
+- Input sampling offline: 240 Hz.
+- Offline simulation: 120 Hz.
+- Online simulation: fixed 60 Hz.
+- Normal input-to-gameplay response target: ≤25 ms.
+- Hard maximum input-to-action latency: 33 ms.
+- Movement acceleration is high enough to feel responsive.
+- Momentum decay is deterministic and tunable by fighter.
+- Direction reversal has authored braking rather than uncontrolled sliding.
+
+A fighter’s velocity is represented as fixed-point or deterministic integer components:
+
+```text
+velocity = input_velocity
+         + retained_momentum
+         + current_force
+         + authored_rebound
+         + attack_knockback
+```
+
+Each component has a source tag for debugging and replay validation.
+
+3.4 DASH BURST
+Dash is a short, high-priority movement action.
+
+Default properties:
+
+- Dash input buffer: 100 ms.
+- Dash duration: approximately 100–150 ms.
+- Dash distance: fighter-specific but within a controlled range.
+- Dash grants limited collision protection only if explicitly assigned.
+- Dash may cross certain attacks but not all hazards.
+- Dash cancels selected attacks during the defined cancel window.
+- Dash has a cooldown or stamina cost.
+
+Dash cancel timing:
+
+- The cancel window begins two simulation ticks after attack impact.
+- It remains available through eight 120 Hz ticks.
+- The full authored window is 66.7 ms in the 120 Hz simulation.
+- In the 60 Hz online simulation, the window is represented using equivalent serialized timing markers rather than rounded inconsistently.
+- The move definition stores the timing in milliseconds and derives tick windows per simulation rate.
+
+Dash must not become a universal escape from all commitment. Cancel eligibility is move-specific and must be visible in training mode.
+
+3.5 MOMENTUM
+Momentum is intentionally lightweight and readable.
+
+Momentum affects:
+
+- Drift after directional movement.
+- Current interaction.
+- Dash exit position.
+- Reef rebounds.
+- Knockback travel.
+- Some techniques.
+
+Momentum does not create uncontrolled physics. It is clamped by:
+
+- Fighter maximum momentum.
+- Arena boundary limits.
+- State-specific movement limits.
+- Hazard-specific safety limits.
+- Rebound caps.
+
+Players can redirect momentum through:
+
+- Opposite directional input.
+- Dash.
+- Current entry or exit.
+- Reef rebound.
+- Techniques that explicitly alter velocity.
+- Depth-lane movement.
+
+3.6 CURRENTS
+Currents are authored volumes or lanes that apply directional force.
+
+Each current defines:
+
+- Shape or path.
+- Active lanes.
+- Direction.
+- Magnitude.
+- Acceleration curve.
+- Maximum applied momentum.
+- Entry telegraph.
+- Exit behavior.
+- Whether attacks can be performed inside it.
+- Whether it affects projectiles and hazards.
+- Whether fighters can resist or reverse it.
+- Cooldown or cycle timing.
+
+Current rules:
+
+- Current force is applied after player movement intent but before collision resolution.
+- Current direction is predictable and visually represented.
+- Entering and exiting a current should not randomly rotate a fighter.
+- Current effects use caps and smooth interpolation.
+- A current may alter momentum without disabling control.
+- Only authored moves or hazards may temporarily override player control.
+
+A current must support intentional gameplay such as:
+
+```text
+Approach → enter current → retain forward momentum → dash cancel → heavy strike
+```
+
+3.7 REEF REBOUNDS
+Reefs are solid environmental surfaces with authored rebound behavior.
+
+On valid contact:
+
+- The fighter enters a rebound state.
+- An authored impulse is applied away from the reef.
+- Rebound duration and steering are defined per reef.
+- The rebound may be canceled into an attack or dash if specified.
+- The contact point is snapped to a deterministic valid location.
+- The player retains limited directional influence unless the rebound explicitly restricts it.
+
+Rebounds must not be based on arbitrary rigid-body restitution. Each reef uses a defined rebound profile:
+
+```text
+ReboundProfile:
+  impulseVector
+  steeringPercent
+  durationTicks
+  attackCancelStart
+  attackCancelEnd
+  invulnerabilityFrames
+  maximumUsesPerSequence
+```
+
+3.8 WRECKAGE AND COVER
+Wreckage provides hard cover and controlled collision redirection.
+
+Wreckage may:
+
+- Block direct attacks.
+- Break projectile paths.
+- Split lanes.
+- Force a fighter to route around an object.
+- Provide a temporary hiding point.
+- Create predictable wall-bounce opportunities.
+
+Wreckage must not:
+
+- Move through emergent physics.
+- Trap a fighter indefinitely.
+- Produce unpredictable corner interactions.
+- Obscure both fighters from the camera.
+- Override control except during authored hit-stun or rebound states.
+
+Collision behavior should use:
+
+- Static authored shapes.
+- Lane-aware redirection.
+- Minimum escape distance.
+- Corner unsticking rules.
+- Deterministic slide vectors.
+- Explicit projectile interaction flags.
+
+3.9 COLLISION PRIORITY
+The deterministic collision resolution order is:
+
+1. Apply player input movement.
+2. Apply state restrictions.
+3. Apply current force.
+4. Apply dash or technique displacement.
+5. Apply active knockback or rebound.
+6. Resolve arena boundaries.
+7. Resolve wreckage and reef contacts.
+
+PITCH DECK
+----------------------------------------
+SLIDE 1: TITLE SLIDE
+# Aqua Fighter
+
+### Master the Current. Own the Arena.
+
+A fast-paced underwater arena fighter where movement, spectacle, and competitive mastery collide.
+
+SLIDE 2: THE PROBLEM
+## Action spectacle should not come at the cost of control
+
+Aqua Fighter is designed around a clear player desire: immediate, readable action with room for long-term mastery.
+
+- **Immediate entry:** Movement, attacks, dashes, and aquatic abilities should feel understandable from the first duel.
+- **Meaningful mastery:** Timing, momentum, positioning, and environmental interactions create room for skilled play.
+- **Readable spectacle:** Dramatic effects and hazards should remain telegraphed, counterable, and easy to follow.
+- **A setting with gameplay value:** The underwater environment is treated as part of the combat experience rather than a visual backdrop.
+
+### The opportunity
+
+Create an underwater 1v1 fighter that combines accessible fundamentals with expressive, skill-driven arena play.
+
+SLIDE 3: THE SOLUTION: YOUR PROJECT
+## Aqua Fighter
+
+### Underwater movement becomes a competitive combat advantage
+
+Aqua Fighter is a fast-paced one-on-one arena fighter set in vibrant underwater environments.
+
+Players combine movement, attacks, dash bursts, aquatic abilities, and arena interactions to create dynamic exchanges between rival fighters.
+
+- Ride currents and redirect momentum.
+- Rebound from coral reefs and use wreckage as cover.
+- Chain attacks while managing position and timing.
+- Progress toward new fighters, techniques, and deeper arenas.
+
+**High concept:** anime arena combat where the flow of the environment is part of every matchup.
+
+SLIDE 4: CORE FEATURES & LOOP
+## The duel-to-depth loop
+
+**Select → Fight → Outplay → Unlock → Dive Deeper**
+
+- **Select:** Choose a fighter and enter an underwater arena.
+- **Fight:** Use movement, dash bursts, punch and kick chains, and aquatic abilities.
+- **Outplay:** Manipulate currents, momentum, positioning, cover, reefs, and hazards.
+- **Unlock:** Advance toward additional fighters, techniques, and arena content.
+- **Dive deeper:** Encounter arenas with a darker visual and gameplay identity.
+
+### Why the loop is compelling
+
+- Fundamentals are designed to be immediately readable.
+- Advanced play rewards timing, routing, positioning, and environmental awareness.
+- Visual effects support the impact of each exchange while preserving combat clarity.
+- Each duel can function as both a skill test and a progression step.
+
+SLIDE 5: UNIQUE SELLING PROPOSITION
+## Anime spectacle meets skill-first underwater combat
+
+Aqua Fighter differentiates itself by making the underwater setting central to how combat feels and plays.
+
+- **Fluid arena movement:** Four-direction movement and dash control support expressive positioning.
+- **Environmental combat:** Currents, reefs, wreckage, cover, and hazards create tactical possibilities.
+- **Readable spectacle:** High-contrast silhouettes, clear telegraphs, and deliberate effects keep exchanges understandable.
+- **Accessible depth:** Straightforward fundamentals can lead into timing, momentum control, and environmental mastery.
+- **Distinctive fantasy:** The project offers a fighter identity built around aquatic motion rather than a conventional arena.
+
+SLIDE 6: TARGET AUDIENCE
+## Built for players who want immediate action and room to improve
+
+### Primary audiences
+
+- **Action-game players** drawn to fast, expressive one-on-one combat.
+- **Anime fans** seeking colorful rivals, dramatic abilities, and energetic presentation.
+- **Fighting-game newcomers** looking for readable controls and approachable fundamentals.
+- **Experienced competitive players** interested in timing, positioning, momentum, and environmental outplays.
+
+### Audience fit
+
+Aqua Fighter is positioned to serve both social and mastery-driven play through its 1v1 format, accessible entry point, and deeper combat possibilities.
+
+### Market size
+
+No quantified TAM, SAM, or SOM figures were supplied. Market sizing should be completed using validated research across action-game, anime-game, and fighting-game audiences.
+
+SLIDE 7: ART & STYLE
+## Vibrant spectacle. Clear combat. Deeper mystery.
+
+Aqua Fighter’s visual direction combines Saturday-morning anime energy with gameplay-first readability.
+
+- Bold fighter silhouettes and expressive rival designs.
+- Glowing aquatic abilities and dramatic motion effects.
+- Colorful coral reefs, currents, wreckage, and layered underwater spaces.
+- A visual progression from bright shallows toward darker, more mysterious depths.
+- Strong contrast and clear presentation of combat-critical information.
+
+The intended result is energetic, memorable art that supports—not obscures—the action.
+
+SLIDE 8: THE TEAM
+## Roles required to bring Aqua Fighter to life
+
+The supplied material does not identify individual team members by name. The project’s described responsibilities map to these key disciplines:
+
+- **Creative and game direction:** Owns the project identity, onboarding, fighter fantasy, and progression.
+- **Combat and systems design:** Shapes movement, attacks, abilities, currents, timing, and counterplay.
+- **Technical and online development:** Supports simulation, multiplayer, input handling, and replay-ready systems.
+- **Art and VFX:** Creates expressive fighters, aquatic abilities, telegraphs, and readable effects.
+- **Arena and content design:** Develops reefs, currents, wreckage, hazards, and deeper environments.
+
+Named team members, biographies, and credentials should be added when supplied.
+
+SLIDE 9: THE ASK & ROADMAP
+## Seeking development support and a publishing partner
+
+### The ask
+
+- **Development funding** to build and validate the core combat experience.
+- **A publishing partner** to support production, market preparation, and release planning.
+- Strategic support aligned with an accessible 1v1 fighter that can also reward competitive mastery.
+
+### High-level roadmap
+
+1. **Combat Prototype** — Validate movement, attacks, abilities, hit detection, and underwater handling.
+2. **Vertical Slice** — Present a polished arena, rival fighters, environmental interactions, and the intended visual identity.
+3. **Production and Online Validation** — Expand fighters, techniques, arenas, networking, readability, and balance.
+4. **Beta and Launch Readiness** — Test local and online 1v1 play, tune accessibility and competition, and prepare release content.
+
+Specific funding amount, milestone dates, and confirmed platform commitments were not supplied and should be added after validation.
+
+SLIDE 10: CONTACT INFORMATION
+## Continue the conversation
+
+### Aqua Fighter
+
+A fast-paced underwater arena fighter built around responsive combat, readable anime spectacle, environmental play, and competitive mastery.
+
+**Project contact:** Not provided
+
+Add the appropriate representative, studio name, email address, website, and social links before distribution.
+
+MVP DEFINITION
+A focused local 1v1 vertical slice that proves Aqua Fighter’s unique hook: responsive momentum-based underwater movement combined with readable arena outplay. It ships with two contrasting fighters, one handcrafted three-lane arena, and a complete best-of-three match loop.
+In Scope:
+- Local two-player versus on one supported platform, with controller and keyboard input, remappable controls, pause, and basic round/match results.
+- Two fighters: one balanced introductory fighter and one movement-focused rival, each with distinct movement, a signature aquatic technique, a weakness, and a clear approach and defensive option.
+- Deterministic 2.5D combat with three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light/heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option.
+- One arena built around the hook: a predictable current, reef rebound surfaces, lane-aware wreckage cover, arena boundaries, and one clearly telegraphed deterministic hazard with defined counterplay.
+- Complete best-of-three round rules with 90-second rounds, health reset between rounds, timeout resolution by remaining health, readable hit/hurt feedback, and essential combat HUD.
+- A minimal training mode with a stationary or repeatable dummy, move display, and reset controls for learning movement, attacks, currents, rebounds, and the hazard.
+Out of Scope:
+- Online multiplayer, rollback networking, ranked rules, matchmaking, leaderboards, spectating, and replay sharing.
+- A 12-fighter launch roster; additional fighters, fighter-specific progression, unlocks, and balance across a full roster.
+- Multiple arenas, hazard variants, stock or endurance modes, casual rule modifiers, and a campaign or story mode.
+- Advanced systems such as complex technique resource economies, multiple techniques per fighter, elaborate cancel routes, deep matchup-specific mechanics, or a full environmental interaction matrix.
+- AI opponents, if local versus and training are the initial playable modes.
+- Full accessibility, localization, platform certification, extensive graphics customization, and cinematic presentation beyond combat readability essentials.
+
+MVP FEATURE SPECIFICATIONS (BDD)
+FEATURE: Local two-player versus with remappable controls, pause, and best-of-three results
+Feature ID: local-two-player-versus-controls-and-match-loop
+User Story: As a local player, I want to configure keyboard or controller controls and complete a readable best-of-three Aqua Fighter match with another player, so that we can compete locally using our preferred inputs and understand every round and match result.
+Scenarios:
+- Start a local best-of-three match with keyboard and controller input [happy-path] (ID: start-local-versus-with-keyboard-and-controller)
+    Given Aqua Fighter is running on the supported platform in local versus setup
+    Given One supported controller is connected and detected
+    Given The default keyboard mapping is available
+    Given The two launch fighters and the single three-lane arena are available
+    When Player 1 selects the balanced introductory fighter and confirms keyboard controls
+    When Player 2 selects the movement-focused rival and confirms the connected controller
+    When Both players confirm the arena and start the match
+    Then A best-of-three match is created with one fighter assigned to each player
+    Then Round 1 starts with both fighters at full health and the timer at 90 seconds
+    Then The combat HUD shows both health values, fighter identities, the 0-0 round score, and the countdown
+    Then Keyboard input controls only Player 1 and controller input controls only Player 2
+- Prevent match start when a selected controller is unavailable [failure] (ID: reject-disconnected-controller-before-match)
+    Given Player 2 selected a connected controller during local versus setup
+    Given The selected controller is disconnected before both players confirm
+    When Player 2 attempts to confirm the controller layout or start the match
+    Then The match is not created and no fighter enters combat
+    Then The setup screen identifies the missing controller and offers reconnect, choose keyboard, or return to device selection
+    Then Player 1's confirmed fighter and controls remain intact
+Acceptance criteria:
+- On the supported platform, two local players can enter the same match using supported combinations of keyboard and detected controllers.
+- The match contains exactly two fighters, one per player, and uses the single handcrafted three-lane arena.
+- The match is best-of-three: the first player to win two rounds is the match winner.
+- Each round lasts no longer than 90 seconds, starts with both fighters at full health, and resets health between rounds.
+- If the timer reaches 00:00 with both fighters alive, the fighter with greater remaining health wins; equal-health timeout uses a documented deterministic tie rule visible in the result.
+- The combat HUD shows both health values, the round timer, and the round score during active combat.
+- Pause stops deterministic combat simulation and the timer, blocks gameplay state changes, and supports resume without losing combat state.
+- The control editor supports remapping shipped movement, combat, signature-technique, recovery, and pause actions for each local player.
+- A player cannot confirm a control layout with an invalid input or without one valid binding for every required action.
+- Round results identify the round winner and resolution reason; final results identify the match winner, final score, fighters, and round winners.
+- A rematch can reuse selected fighters, arena, input devices, and valid control layouts without restarting the application.
+- Hit-stun, knockback, current movement, reef rebounds, lane-aware wreckage cover, and the telegraphed arena hazard are frozen during pause and resume deterministically from their prior state.
+Failure states:
+- A selected controller disconnects during setup: block match creation, preserve the other player's setup, and offer reconnect or device reassignment.
+- A controller disconnects during active combat: pause the match automatically, identify the player who lost input, and offer reconnect, switch to an available valid device, or quit.
+- A control-layout save fails: retain the last valid local layout in memory, report that the new layout was not saved, and allow play only with the last valid layout or shipped defaults.
+- A match-state transition fails between rounds: keep the completed result visible, prevent duplicate round awards, and provide a safe return to setup.
+- The application is suspended or loses focus during active combat: enter the paused state before the next simulation tick and resume only through explicit player action.
+- A fighter reaches zero health at the same simulation tick as the timer reaches zero: apply the deterministic event-order rule and show the resulting resolution reason.
+Invalid inputs:
+- Keyboard keys or controller inputs not present in the supported input-device enumeration are rejected by the remapping UI.
+- A pause request from an unassigned or non-participating device is ignored.
+- A remap that duplicates a required action is rejected unless explicit replacement confirmation gives the displaced action a valid replacement.
+- Starting local versus with fewer than two valid player input assignments is blocked.
+- Starting local versus with the same exclusive controller assignment for both players is blocked unless the platform exposes that device as two independent supported sources.
+- Gameplay inputs during pause, round-result, or match-result screens cannot alter fighter state.
+- Continue or rematch commands before the relevant result screen is active are ignored.
+Boundary/Tolerance conditions:
+- The round timer starts at 90 seconds, reaches zero exactly, and never displays a negative value.
+- The match ends at the first score of two rounds won; a third round is never created after a 2-0 result.
+- Health is clamped between zero and the fighter's configured maximum.
+- Exactly three depth lanes are available; lane movement beyond either outer lane produces no transition.
+- Only one local match and one active round simulation may exist at a time.
+- Pause duration is excluded from the round timer and combat simulation time.
+- Every required action must have one valid binding before a control layout is confirmed.
+- The round-result state accepts exactly one round award and one continuation transition even if confirmation is repeated.
+Offline/Failure behavior:
+All local versus, control remapping, pause, round results, and match results operate without internet access, authentication, or backend services. Control layouts and local match preferences are stored on the supported platform's local profile when available. No match is uploaded, synchronized, or recoverable across devices; if local persistence is unavailable, the current session remains playable and the layout is discarded when the application exits.
+Accessibility / Usability:
+- Every remappable action has a text label and a non-color-only visual indicator.
+- Player-specific HUD elements use player labels, fighter names, icons, and distinct patterns or markers in addition to color.
+- Round-result and match-result screens state the winner and resolution reason in text.
+- Pause, resume, quit, remap, restore-defaults, confirm, and cancel actions are reachable by keyboard and controller.
+- The control editor provides visible focus and supports navigation without simultaneous button presses.
+- Hit, guard, hazard, and round-ending feedback use at least two of visual, audio, and controller-vibration channels where supported; gameplay-critical information does not rely on color alone.
+- The 90-second timer and health values remain legible against the underwater arena background.
+Telemetry:
+- Record local session events for versus setup opened, device assignment confirmed, match started, round started, round won, round timeout, match completed, pause opened, resume selected, remap saved, remap rejected, device disconnected, and match abandoned.
+- For match events, record an anonymized session ID, fighter selections, arena ID, input-device types, round number, resolution reason, and elapsed active simulation time; do not record raw key presses or controller inputs.
+- Measure match-start failure rate by reason, controller disconnect count, remap rejection count, pause duration, round duration, and match completion rate.
+- Log deterministic simulation diagnostics for duplicate round awards, invalid state transitions, timer values outside 0-90 seconds, health values outside 0-maximum, and lane indices outside 0-2.
+- Telemetry remains disabled from network transmission while offline and may be queued only if an existing consented analytics pipeline supports later upload.
+Security considerations:
+- No network authority, matchmaking, account authentication, or remote-player trust is required for this local-only feature.
+- Treat local profile files as untrusted input: validate fighter IDs, arena ID, device IDs, action names, binding types, and serialized values before loading them.
+- Reject malformed or oversized control-layout data without crashing or overwriting the last valid layout.
+- Do not execute arbitrary strings or platform commands from remapped control data or match-result data.
+- If telemetry is enabled by the existing product consent model, exclude raw input sequences, personal identifiers, and file paths.
+Performance targets:
+- Run deterministic combat simulation and rendering at the supported platform's target frame rate, with simulation updates completing within 25% of the frame budget during two-player combat, hazard activity, hit effects, and pause transitions.
+- Apply a local input event to its owning fighter within 50 milliseconds at the target frame rate under normal load.
+- Open the pause overlay and freeze simulation within one rendered frame of the pause input.
+- Enter the next round or match-results state within 250 milliseconds after the round-ending event, excluding intentional result-screen presentation time.
+- Load a remapped local control profile and populate the control editor within 500 milliseconds after opening setup.
+- Support at least two simultaneous local input devices and all required action bindings without dropped input events during active combat.
+- Control-layout persistence uses no more than 64 KB per local profile.
+Technical notes:
+Implement a deterministic local match state machine with Setup, ActiveRound, Paused, RoundResult, MatchResult, and Aborted states. Use a fixed-step combat simulation so keyboard and controller inputs enter the same normalized action pipeline and produce reproducible momentum, dash, guard, attack, hit-stun, knockback, lane movement, current, rebound, wreckage-cover, and hazard behavior. Assign each input source to exactly one player and route normalized actions through player ownership before fighter simulation. Define event ordering explicitly: process input, movement and arena forces, attacks and collisions, health resolution, then timer expiry; document and test the zero-health/zero-timer case. Use active simulation time rather than wall-clock time for the timer. Reset health, hit-stun, knockback, momentum, active attacks, hazard state, and temporary arena interactions between rounds while preserving fighter selection and control layouts. Version serialized control layouts, validate action coverage and input identifiers on load, support restore-defaults, and retain the last valid layout on failure. Pause must halt gameplay and arena simulation, suppress gameplay action application, retain UI navigation input only, and auto-pause on application deactivation or participating-device loss. Integrate with the existing fighter definitions, three-lane arena collision and hazard systems, HUD, training-mode input display, local profile storage, and platform controller-discovery APIs.
+Dependencies:
+- Supported-platform keyboard and controller input APIs with device connection and disconnection events
+- Two shipped fighter definitions: one balanced introductory fighter and one movement-focused rival
+- Deterministic 2.5D combat simulation supporting three depth lanes, momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option
+- One handcrafted three-lane arena with a predictable current, reef rebound surfaces, lane-aware wreckage cover, arena boundaries, and one clearly telegraphed deterministic hazard with defined counterplay
+- Combat HUD and readable hit and hurt feedback
+- Local profile storage for control layouts and local match preferences
+- Minimal training mode with stationary or repeatable dummy, move display, and reset controls
+
+FEATURE: Two contrasting playable fighters
+Feature ID: two-fighter-roster
+User Story: As a local versus player, I want to choose between a balanced introductory fighter and a movement-focused rival with distinct movement, aquatic techniques, weaknesses, approach options, and defensive options, so that I can learn and outplay different combat styles in Aqua Fighter.
+Scenarios:
+- Players select and use the two contrasting fighters [happy-path] (ID: select-and-play-two-fighters)
+    Given Two local players are on the fighter-select screen
+    Given The MVP fighter roster contains one balanced introductory fighter and one movement-focused rival
+    Given A supported three-lane arena is available for local versus play
+    When Each player selects a different fighter
+    When The players start a local best-of-three match
+    When The players use movement, dash, guard, attacks, and each fighter's signature aquatic technique
+    Then The match starts with the selected fighters in the arena
+    Then Each fighter uses its authored movement profile and signature aquatic technique
+    Then Each fighter has a readable weakness, approach option, and defensive option during play
+    Then Movement, attacks, guard, hit-stun, knockback, and signature-technique results are deterministic for identical inputs and game states
+- The match cannot start without two valid fighter selections [failure] (ID: reject-incomplete-fighter-selection)
+    Given Two local players are on the fighter-select screen
+    Given At least one player has not selected a valid playable fighter
+    When A player attempts to start the local versus match
+    Then The match does not start
+    Then The fighter-select screen remains visible until both players have selected valid fighters
+    Then No round, health state, or match result is created
+Technical notes:
+Implement exactly the two MVP fighters as data-driven definitions within the deterministic 2.5D combat system. The balanced introductory fighter and movement-focused rival must have distinct movement behavior, one signature aquatic technique each, an authored weakness, a clear approach option, and a clear defensive option. Integrate both fighters with the three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and the available recovery option. Their techniques and combat behavior must work in local two-player versus and the minimal training mode, support keyboard and controller input with remappable controls, and expose readable combat feedback through the HUD and move display. Identical local inputs with identical fighter, arena, current, and hazard states must produce identical combat and round results.
+
+FEATURE: Deterministic 2.5D three-lane combat
+Feature ID: aqua-fighter-deterministic-2-5d-combat
+User Story: As a local-versus player, I want responsive momentum-based movement and readable combat across three depth lanes, so that I can outmaneuver an opponent and complete a best-of-three match.
+Scenarios:
+- Two local players complete a best-of-three match [happy-path] (ID: complete-local-best-of-three-match)
+    Given A local two-player match is started on the supported platform.
+    Given Player 1 and Player 2 select the two available fighters.
+    Given The handcrafted arena is loaded with three depth lanes, arena boundaries, a predictable current, reef rebound surfaces, lane-aware wreckage cover, and one telegraphed deterministic hazard.
+    Given Both fighters begin the first 90-second round with full health.
+    When The players use keyboard or controller inputs for immediate directional movement, lane changes, controllable momentum, dash burst, guard, light attacks, heavy attacks, and directional attacks.
+    When A fighter lands an attack and the opponent receives hit-stun and knockback.
+    When The defending player uses the available recovery option during the match.
+    When A fighter wins two rounds, or a round reaches its 90-second limit and is resolved using remaining health.
+    Then Movement and lane changes respond immediately while preserving the configured momentum behavior.
+    Then Attacks, guard, hit-stun, knockback, basic chains, and the recovery option resolve deterministically and provide readable combat feedback.
+    Then The arena current, rebound surfaces, wreckage cover, boundaries, and telegraphed hazard behave according to their configured counterplay.
+    Then Health resets between rounds, and timeout resolution uses remaining health.
+    Then After one fighter wins two rounds, the match-results screen shows the winner and round results.
+- Unavailable dash or recovery input is rejected [failure] (ID: reject-unavailable-combat-action)
+    Given A fighter is in a state where dash burst or the recovery option is unavailable, such as an active cooldown, an invalid recovery situation, hit-stun, defeat, or a round transition.
+    Given The local-versus match is still active.
+    When The player presses the unavailable dash burst or recovery control.
+    Then The unavailable action does not create movement, damage, or a combat-state change.
+    Then The fighter remains in a valid lane and retains the correct combat state.
+    Then The HUD continues to show the actual availability of the recovery option and the relevant dash state.
+    Then The rejected input does not affect the deterministic match result.
+Technical notes:
+Implement the feature as deterministic local 1v1 combat with exactly three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option. Support keyboard and controller input for both players, remappable controls, and pause. Use the single handcrafted arena's predictable current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and one clearly telegraphed deterministic hazard with defined counterplay. Implement complete best-of-three rules with 90-second rounds, health reset between rounds, timeout resolution by remaining health, readable hit and hurt feedback, and an essential combat HUD. Training mode must use the combat rules with a stationary or repeatable dummy, move display, and reset controls for practicing movement, attacks, currents, rebounds, and the hazard. Online multiplayer, AI opponents, additional arenas, additional fighters, and network-dependent systems are out of scope.
+
+FEATURE: Three-lane arena with predictable current, reef rebounds, wreckage cover, boundaries, and deterministic hazard
+Feature ID: three-lane-arena-environmental-outplay
+User Story: As a local versus player, I want to read and use the arena current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and telegraphed hazard, so that positioning and movement create predictable outplay opportunities.
+Scenarios:
+- Player counters the telegraphed hazard using lane movement or cover [happy-path] (ID: use-arena-elements-to-counter-hazard)
+    Given A local 1v1 round is active in the handcrafted three-lane arena
+    Given The deterministic arena hazard has visibly telegraphed its target lane
+    Given The player can move between the three depth lanes and lane-aware wreckage cover is available
+    When The player changes to an unselected lane or moves behind valid wreckage cover before the hazard activates
+    Then The hazard resolves in its telegraphed lane
+    Then The player avoids the hazard effect through the selected counterplay
+    Then The arena continues applying its predictable current and normal movement rules without random hazard behavior
+- Boundary or unavailable rebound input cannot remove the fighter from the arena [failure] (ID: invalid-arena-interaction-stays-contained)
+    Given A fighter is at an arena boundary or has no valid reef rebound interaction available
+    Given The fighter is affected by movement or knockback that would leave the arena, or the player attempts the unavailable rebound
+    When The movement or knockback is resolved, or the player submits the rebound input
+    Then The fighter remains within the arena boundaries
+    Then An unavailable rebound does not grant rebound movement or another defensive effect
+    Then The failed interaction does not corrupt the fighter, lane, or round state
+Technical notes:
+Implement the arena as a deterministic local combat-space component for the supported 2.5D three-lane fighter simulation. Author stable lane geometry, a predictable current, reef rebound collision surfaces, lane-aware wreckage cover, explicit arena boundaries, and one deterministic hazard with a visible telegraph and documented counterplay. Resolve current movement, lane changes, rebound interactions, cover checks, hazard effects, knockback, and boundary containment in a fixed simulation order so identical local inputs produce identical results. Integrate the arena with local 1v1 best-of-three rounds, 90-second round timing, pause, remappable keyboard and controller controls, essential combat HUD feedback, and minimal training-mode reset and repeat controls. Hazard, current, rebound, cover, boundary, and timeout behavior must remain deterministic in both versus and training modes.
+
+FEATURE: Complete best-of-three combat rounds with readable feedback and essential HUD
+Feature ID: complete-best-of-three-combat-round-rules
+User Story: As a local Aqua Fighter player, I want clear 90-second rounds with visible health, timer, hit feedback, and round results, so that I can understand the fight state and win a complete best-of-three match through readable combat decisions.
+Scenarios:
+- Two local fighters complete a best-of-three match [happy-path] (ID: start-and-win-best-of-three-match)
+    Given Two local players have selected the two available fighters: the balanced introductory fighter and the movement-focused rival.
+    Given Both players are in the handcrafted three-lane arena in the pre-round state.
+    Given The match score is 0-0 and both fighters have their configured starting health.
+    When The pre-round countdown reaches zero.
+    When One fighter reduces the other fighter's health to zero before the 90-second round timer expires.
+    When The round result is displayed and the next round begins.
+    When The same player wins a second round.
+    Then The player who reduced the opponent's health to zero is awarded one round win.
+    Then Both fighters' health is reset to their configured starting health before the next round begins.
+    Then Temporary combat state from the completed round is cleared before the next active round.
+    Then The round timer resets to 90 seconds for the next round.
+    Then The HUD displays both health states, both round scores, the active round number, and the 90-second countdown.
+    Then The match ends immediately when either player reaches two round wins, and a third round is not started.
+- A 90-second round is resolved by remaining health [boundary] (ID: timeout-resolves-by-remaining-health)
+    Given A local versus round is active in the three-lane arena.
+    Given The round timer is at 00:01.
+    Given Player 1 has less remaining health than Player 2.
+    Given Neither fighter has reached zero health.
+    When The timer reaches exactly 00:00.
+    Then The round enters its timeout result state.
+    Then The player with greater remaining health is awarded the round.
+    Then The authoritative round result cannot be changed by combat input, movement, hazard effects, or damage after the timeout is committed.
+    Then The HUD identifies the result as a timeout and shows the health values used for resolution.
+    Then The next round resets both fighters' health and starts with a new 90-second timer after the round transition.
+Acceptance criteria:
+- A local versus match uses a first-to-two-round-wins format.
+- Each round has a 90-second timer that counts down only during active combat.
+- A fighter reaching zero health wins the round unless the round has already been resolved by timeout.
+- At timeout, the fighter with greater remaining health wins the round based on health sampled at the timeout transition.
+- Health resets between rounds without changing the match score or fighter selection.
+- The HUD displays both fighters' health, round scores, active round number, and timer during active combat.
+- Hit and hurt feedback remains readable during combat.
+- The feature works with local controller and keyboard input, including remapped controls, and can be paused.
+Failure states:
+- Combat inputs received after a round or match has resolved must not alter health, score, timer, or the resolved result.
+- A timeout must not be resolved more than once, and damage received after the timeout transition must not change its result.
+- If a fighter or arena fails to initialize, the match must not enter active combat with partial round state.
+Offline/Failure behavior:
+The complete local versus match, including character selection, arena loading, rounds, HUD, feedback, pause, and remappable controls, must remain playable without network access.
+Technical notes:
+Implement an explicit local match and round state flow covering pre-round, active round, round resolution, and match resolution. The active-round timer must run for exactly 90 seconds and stop when the round resolves. A round ends when a fighter reaches zero health or when the timer expires; timeout resolution compares the fighters' remaining health at the authoritative 00:00 transition. Reset both fighters' health and temporary combat state between rounds without changing fighter selection or match score. End the match when a player reaches two round wins. The combat HUD must show both fighter identities, health, round scores, active round number, and timer. Hit and hurt feedback must be readable during deterministic 2.5D combat across the three depth lanes and must communicate impact and damage without relying on color alone. Support the local controller and keyboard inputs, including remappable controls and pause, with no online-service dependency.
+
+FEATURE: Minimal Training Mode
+Feature ID: aqua-fighter-training-mode-mvp
+User Story: As an Aqua Fighter player, I want a local training mode with a controllable dummy, move display, and reset controls, so that I can learn movement, attacks, currents, rebounds, and the arena hazard before playing a best-of-three match.
+Scenarios:
+- Enter training mode and practice movement [happy-path] (ID: enter-training-and-practice-core-movement)
+    Given Aqua Fighter is at the local mode selection screen.
+    Given The player selects Training Mode and selects either of the two MVP fighters.
+    Given The three-lane handcrafted arena is loaded with its predictable current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and deterministic hazard.
+    When The player presses movement inputs, dash burst, guard, light attack, heavy attack, and directional attack inputs.
+    When The player moves between all three depth lanes and contacts a reef rebound surface.
+    Then The selected fighter responds using the same deterministic movement, momentum, dash, attack, guard, hit-stun, knockback, rebound, current, and boundary rules as local versus.
+    Then The move display identifies the most recently recognized action and its directional variant within 100 milliseconds of the input being accepted.
+    Then The move display records whether the action connected with the dummy, was guarded, whiffed, or was interrupted.
+    Then The player remains in Training Mode after attacks, knockback, or hazard interactions; no round win, loss, or best-of-three transition occurs.
+- Use a stationary dummy and reset the drill [happy-path] (ID: practice-stationary-dummy-and-reset-state)
+    Given Training Mode is active with the stationary dummy selected.
+    Given The fighter, dummy, and arena have non-default positions or combat states.
+    Given The dummy has been hit, moved by knockback, or placed into hit-stun.
+    When The player activates Reset Training using the configured reset control.
+    When The player attacks the stationary dummy again after the reset completes.
+    Then The fighter returns to the configured player start position and the dummy returns to the configured dummy start position in the selected depth lanes.
+    Then Fighter and dummy health, hit-stun, knockback, guard state, active attack state, momentum, and recovery state return to their training defaults.
+    Then The current, hazard telegraph, hazard active window, and arena interaction state return to the same deterministic starting phase on every reset.
+    Then The move display history is cleared and the next accepted action becomes the first displayed action.
+    Then The dummy remains stationary until the player changes its mode or directly interacts with it.
+- Practice against a repeatable dummy pattern [happy-path] (ID: replay-repeatable-dummy-pattern)
+    Given Training Mode is active and the repeatable dummy mode is selected.
+    Given A deterministic dummy pattern containing movement, guard, and attack actions is loaded.
+    Given The fighter and dummy are at their configured training start positions.
+    When The player starts the repeatable dummy pattern.
+    When The pattern reaches its final action or the player activates Reset Training.
+    Then The dummy performs the same recorded pattern with the same timing and lane transitions on every run.
+    Then The pattern pauses or restarts at its defined beginning when the player activates Reset Training.
+    Then The move display identifies both player actions and dummy actions, including whether a player attack hit, was guarded, or missed.
+    Then The repeatable dummy pattern does not create a round result, alter best-of-three scores, or persist changes outside the current training session.
+- Reset while the hazard is active [edge-case] (ID: reset-during-active-hazard)
+    Given Training Mode is active and the arena hazard is in its telegraphed or active phase.
+    Given The fighter or dummy is currently affected by the hazard, in hit-stun, or in knockback.
+    When The player activates Reset Training during the hazard telegraph, active window, hit-stun, or knockback.
+    Then The reset completes at the next simulation-safe frame without applying additional hazard damage, knockback, or hit-stun.
+    Then Both combatants return to their configured training positions and health.
+    Then The hazard returns to its deterministic initial phase and its telegraph is not left visually active after reset.
+    Then No hazard hit, attack result, or move-display entry is generated solely by the reset operation.
+- Continue training when a controller disconnects [failure] (ID: controller-disconnect-during-training)
+    Given Training Mode is active with a local controller assigned to the player.
+    Given The player is not in a round transition or loading screen.
+    When The assigned controller disconnects or stops reporting input.
+    Then The fighter stops receiving movement and attack input within 100 milliseconds of the last valid input sample.
+    Then The game pauses training and identifies the disconnected controller using the existing pause/input-reconnect flow.
+    Then No buffered input causes an attack, dash, lane change, or reset while the controller is disconnected.
+    Then After the controller is reconnected and the player confirms resume, the training state is preserved unless the player explicitly chooses Reset Training.
+- Reset at the start and end of an input frame [boundary] (ID: training-reset-at-simulation-boundary)
+    Given Training Mode is active at 60 simulation updates per second.
+    Given The player activates Reset Training while an input frame contains a movement, attack, hazard, or rebound event.
+    When The reset request is received before the frame is simulated or after the frame has completed.
+    Then The reset is applied exactly once at a simulation-safe boundary.
+    Then No partially applied attack, rebound, current displacement, hazard effect, or duplicate reset remains after the reset.
+    Then The resulting state is identical for equivalent reset requests regardless of whether the request arrived before or after the frame simulation boundary.
+Acceptance criteria:
+- Training Mode is selectable from the local mode flow and loads the same two fighters and the same three-lane arena used by local versus.
+- Training Mode provides stationary dummy and repeatable dummy modes without AI decision-making or network services.
+- The player can practice immediate directional movement, controllable momentum, dash burst, guard, light attack, heavy attack, directional attacks, basic chains, hit-stun, knockback, recovery, current interaction, reef rebounds, arena boundaries, wreckage cover, and the deterministic hazard.
+- The move display shows the latest accepted player or dummy action, directional variant, and result state of hit, guard, miss, or interruption.
+- Reset Training restores fighter, dummy, arena, current, hazard, health, momentum, hit-stun, knockback, guard, and move-display state to a deterministic baseline in no more than 250 milliseconds.
+- Training Mode has no 90-second round timer, no round score, no best-of-three result, and no transition to match results.
+- Training behavior uses the same combat simulation rules and input mappings as local versus, except for explicitly configured training-only dummy behavior and reset behavior.
+- All training controls are available through both supported keyboard input and supported controller input, including remapped controls.
+- Training Mode remains fully playable without an online connection or account service.
+Failure states:
+- If the training scene fails to load, the game returns to the local mode selection screen and records the scene-load failure; it does not enter a partially initialized combat state.
+- If the repeatable dummy pattern data is missing or invalid, Training Mode loads with the stationary dummy selected and identifies repeatable mode as unavailable for that session.
+- If reset processing fails, gameplay remains paused, the reset control is not silently ignored, and the player can retry reset or leave Training Mode without corrupting local match state.
+- If a controller disconnects, its held inputs are cleared and no input is reassigned to the other local player or dummy.
+Invalid inputs:
+- A reset request received while the training scene is not initialized is ignored and cannot modify local versus round or match state.
+- A repeatable dummy pattern index outside the available pattern range is rejected and replaced with the stationary dummy mode.
+- A move-display action identifier not present in the two-fighter MVP move definitions is not rendered as a valid move and is logged as an invalid simulation event.
+- A lane selection outside the three valid depth lanes is clamped by the shared arena movement rules and cannot place a fighter outside the arena bounds.
+- Multiple reset inputs received during one reset operation are coalesced into one reset and cannot produce duplicate reset events.
+Boundary/Tolerance conditions:
+- The arena contains exactly three valid depth lanes; training must expose and permit transitions among lane 1, lane 2, and lane 3 only.
+- Training Mode runs at the project's 60 simulation updates per second target and must remain deterministic across repeated resets.
+- Reset requests are coalesced while a reset is pending and are applied no more than once per simulation frame.
+- The move display retains the latest 32 recognized actions per combatant; when full, the oldest entry is removed first.
+- Training Mode has no 90-second round timeout; the existing 90-second timer is disabled and must not resolve a training result.
+- Dummy health cannot produce a match result; damage, hit-stun, knockback, and recovery may be observed, but training continues until the player exits.
+- A fighter at an arena boundary cannot be moved beyond that boundary by training reset, current, rebound, knockback, or dummy interaction.
+Offline/Failure behavior:
+Training Mode is entirely local. It loads fighter definitions, arena data, dummy patterns, controls, move-display labels, and reset behavior from packaged game data. No account, matchmaking, telemetry upload, or network connection is required. Telemetry events are queued locally when enabled and discarded or retained according to the existing local telemetry policy when no connection is available.
+Accessibility / Usability:
+- Every training action, including dummy-mode selection, pattern start, reset, pause, and exit, is available through keyboard and controller input and respects remappable controls.
+- The move display uses text labels in addition to color, animation, or sound to identify action, direction, and result.
+- Hit, guard, miss, hazard telegraph, and reset feedback each use distinct visual and audio cues; no result may rely on color alone.
+- The move display, dummy mode, and reset status remain visible while the game is paused and are readable at the project's minimum supported resolution.
+- The player can pause Training Mode without losing the current drill state, and can resume or reset from the pause menu.
+- Controller and keyboard prompts update to the currently assigned input device and do not require simultaneous use of both devices.
+Telemetry:
+- Record training_mode_entered with selected fighter, input device, dummy mode, and arena build version.
+- Record training_action_result with fighter, action identifier, direction, lane, result category, and simulation frame.
+- Record training_reset with reset reason, current hazard phase, current dummy mode, and time since training entry.
+- Record repeatable_dummy_started, repeatable_dummy_completed, and repeatable_dummy_interrupted with pattern identifier and completion frame.
+- Record training_load_failure, invalid_pattern_data, controller_disconnect, and reset_processing_failure with local diagnostic context.
+- Do not record raw keyboard keys, controller serial numbers, account identifiers, or network-originated player data.
+Security considerations:
+- Training input is accepted only from locally assigned devices and cannot alter online, ranked, progression, or best-of-three match results.
+- Packaged dummy patterns and move definitions are validated against known fighter, action, lane, timing, and arena identifiers before use.
+- Reset and dummy-mode commands are scoped to the active training session and cannot invoke unrestricted debug commands, modify save data, or change match rules.
+- Telemetry payloads contain no personally identifying information and are safe to discard when offline.
+Performance targets:
+- At 60 simulation updates per second, accepted movement, attack, guard, dash, lane, and reset inputs are reflected in simulation within one simulation frame.
+- The move display updates within 100 milliseconds of an accepted action and does not reduce the combat simulation rate below 60 updates per second.
+- Training scene entry reaches an interactive state within 3 seconds after its load begins on the supported platform, excluding initial application startup.
+- Reset Training completes within 250 milliseconds and within 15 simulation frames under normal local storage and CPU conditions.
+- Training Mode adds no more than 32 MB of runtime memory over the loaded local versus arena and maintains a frame time of 16.67 milliseconds or less during combat, hazard activity, reset, and move-display updates.
+Technical notes:
+Implement Training Mode as a local match-context variant using the shared deterministic 2.5D combat simulation, fighter definitions, input mapping, arena collision, current, rebound, hazard, hit/hurt, and HUD systems. The training context must disable round countdown, 90-second timeout, round scoring, best-of-three transitions, and match results. Provide a stationary dummy entity with configurable start lane and position, infinite training continuity, and shared hurt, guard, hit-stun, knockback, and recovery states. Provide a repeatable dummy entity driven by packaged deterministic action-timeline data rather than AI. Each pattern must validate action identifiers, direction values, lane values, timing, and arena positions before activation. Maintain a per-combatant move-display buffer of 32 entries containing simulation frame, action identifier, direction, result category, and source combatant. Reset must execute through the simulation command queue at a frame boundary, clear pending inputs and active transient effects, restore deterministic fighter and dummy transforms and combat state, restore current and hazard phase, and clear the move-display buffer. The reset baseline must be generated from immutable training-session configuration so repeated resets produce identical state. Use the existing pause and remappable-control systems, with explicit bindings for reset, dummy mode, pattern start, pause, and exit. Keep all training-only state owned by the training scene or match context so leaving the mode cannot mutate local versus scores or persistent progression.
+Dependencies:
+- Local mode selection and scene-loading flow
+- Shared deterministic 2.5D combat simulation
+- Two MVP fighter definitions and move metadata
+- Three-lane handcrafted arena with current, reef rebound surfaces, wreckage cover, boundaries, and deterministic hazard
+- Keyboard and controller input abstraction with remappable controls
+- Pause and controller reconnect flow
+- Combat HUD rendering and readable hit, guard, miss, hazard, and knockback feedback
+- Packaged deterministic dummy-pattern data and local validation
+- Existing local telemetry and diagnostic logging policy
+
+MVP FEATURE SPECIFICATIONS
+FEATURE: Local two-player versus with remappable controls, pause, and best-of-three results
+User Stories & Acceptance Criteria:
+As a local player, I want to configure keyboard or controller controls and complete a readable best-of-three Aqua Fighter match with another player, so that we can compete locally using our preferred inputs and understand every round and match result.
+Technical Specifications:
+Implement a deterministic local match state machine with Setup, ActiveRound, Paused, RoundResult, MatchResult, and Aborted states. Use a fixed-step combat simulation so keyboard and controller inputs enter the same normalized action pipeline and produce reproducible momentum, dash, guard, attack, hit-stun, knockback, lane movement, current, rebound, wreckage-cover, and hazard behavior. Assign each input source to exactly one player and route normalized actions through player ownership before fighter simulation. Define event ordering explicitly: process input, movement and arena forces, attacks and collisions, health resolution, then timer expiry; document and test the zero-health/zero-timer case. Use active simulation time rather than wall-clock time for the timer. Reset health, hit-stun, knockback, momentum, active attacks, hazard state, and temporary arena interactions between rounds while preserving fighter selection and control layouts. Version serialized control layouts, validate action coverage and input identifiers on load, support restore-defaults, and retain the last valid layout on failure. Pause must halt gameplay and arena simulation, suppress gameplay action application, retain UI navigation input only, and auto-pause on application deactivation or participating-device loss. Integrate with the existing fighter definitions, three-lane arena collision and hazard systems, HUD, training-mode input display, local profile storage, and platform controller-discovery APIs.
+
+FEATURE: Two contrasting playable fighters
+User Stories & Acceptance Criteria:
+As a local versus player, I want to choose between a balanced introductory fighter and a movement-focused rival with distinct movement, aquatic techniques, weaknesses, approach options, and defensive options, so that I can learn and outplay different combat styles in Aqua Fighter.
+Technical Specifications:
+Implement exactly the two MVP fighters as data-driven definitions within the deterministic 2.5D combat system. The balanced introductory fighter and movement-focused rival must have distinct movement behavior, one signature aquatic technique each, an authored weakness, a clear approach option, and a clear defensive option. Integrate both fighters with the three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and the available recovery option. Their techniques and combat behavior must work in local two-player versus and the minimal training mode, support keyboard and controller input with remappable controls, and expose readable combat feedback through the HUD and move display. Identical local inputs with identical fighter, arena, current, and hazard states must produce identical combat and round results.
+
+FEATURE: Deterministic 2.5D three-lane combat
+User Stories & Acceptance Criteria:
+As a local-versus player, I want responsive momentum-based movement and readable combat across three depth lanes, so that I can outmaneuver an opponent and complete a best-of-three match.
+Technical Specifications:
+Implement the feature as deterministic local 1v1 combat with exactly three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option. Support keyboard and controller input for both players, remappable controls, and pause. Use the single handcrafted arena's predictable current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and one clearly telegraphed deterministic hazard with defined counterplay. Implement complete best-of-three rules with 90-second rounds, health reset between rounds, timeout resolution by remaining health, readable hit and hurt feedback, and an essential combat HUD. Training mode must use the combat rules with a stationary or repeatable dummy, move display, and reset controls for practicing movement, attacks, currents, rebounds, and the hazard. Online multiplayer, AI opponents, additional arenas, additional fighters, and network-dependent systems are out of scope.
+
+FEATURE: Three-lane arena with predictable current, reef rebounds, wreckage cover, boundaries, and deterministic hazard
+User Stories & Acceptance Criteria:
+As a local versus player, I want to read and use the arena current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and telegraphed hazard, so that positioning and movement create predictable outplay opportunities.
+Technical Specifications:
+Implement the arena as a deterministic local combat-space component for the supported 2.5D three-lane fighter simulation. Author stable lane geometry, a predictable current, reef rebound collision surfaces, lane-aware wreckage cover, explicit arena boundaries, and one deterministic hazard with a visible telegraph and documented counterplay. Resolve current movement, lane changes, rebound interactions, cover checks, hazard effects, knockback, and boundary containment in a fixed simulation order so identical local inputs produce identical results. Integrate the arena with local 1v1 best-of-three rounds, 90-second round timing, pause, remappable keyboard and controller controls, essential combat HUD feedback, and minimal training-mode reset and repeat controls. Hazard, current, rebound, cover, boundary, and timeout behavior must remain deterministic in both versus and training modes.
+
+FEATURE: Complete best-of-three combat rounds with readable feedback and essential HUD
+User Stories & Acceptance Criteria:
+As a local Aqua Fighter player, I want clear 90-second rounds with visible health, timer, hit feedback, and round results, so that I can understand the fight state and win a complete best-of-three match through readable combat decisions.
+Technical Specifications:
+Implement an explicit local match and round state flow covering pre-round, active round, round resolution, and match resolution. The active-round timer must run for exactly 90 seconds and stop when the round resolves. A round ends when a fighter reaches zero health or when the timer expires; timeout resolution compares the fighters' remaining health at the authoritative 00:00 transition. Reset both fighters' health and temporary combat state between rounds without changing fighter selection or match score. End the match when a player reaches two round wins. The combat HUD must show both fighter identities, health, round scores, active round number, and timer. Hit and hurt feedback must be readable during deterministic 2.5D combat across the three depth lanes and must communicate impact and damage without relying on color alone. Support the local controller and keyboard inputs, including remappable controls and pause, with no online-service dependency.
+
+FEATURE: Minimal Training Mode
+User Stories & Acceptance Criteria:
+As an Aqua Fighter player, I want a local training mode with a controllable dummy, move display, and reset controls, so that I can learn movement, attacks, currents, rebounds, and the arena hazard before playing a best-of-three match.
+Technical Specifications:
+Implement Training Mode as a local match-context variant using the shared deterministic 2.5D combat simulation, fighter definitions, input mapping, arena collision, current, rebound, hazard, hit/hurt, and HUD systems. The training context must disable round countdown, 90-second timeout, round scoring, best-of-three transitions, and match results. Provide a stationary dummy entity with configurable start lane and position, infinite training continuity, and shared hurt, guard, hit-stun, knockback, and recovery states. Provide a repeatable dummy entity driven by packaged deterministic action-timeline data rather than AI. Each pattern must validate action identifiers, direction values, lane values, timing, and arena positions before activation. Maintain a per-combatant move-display buffer of 32 entries containing simulation frame, action identifier, direction, result category, and source combatant. Reset must execute through the simulation command queue at a frame boundary, clear pending inputs and active transient effects, restore deterministic fighter and dummy transforms and combat state, restore current and hazard phase, and clear the move-display buffer. The reset baseline must be generated from immutable training-session configuration so repeated resets produce identical state. Use the existing pause and remappable-control systems, with explicit bindings for reset, dummy mode, pattern start, pause, and exit. Keep all training-only state owned by the training scene or match context so leaving the mode cannot mutate local versus scores or persistent progression.
+
+ASSET LIST
+TECHNICAL
+- Aqua Fighter Default Input Control Layout — Defines the default gamepad and keyboard mappings for movement, attacks, techniques, dash, guard, menus, and training controls. — JSON — N/A
+- Deterministic Input Buffer and Direction Sampler — Captures movement intent, attack direction, buffered chain inputs, dash buffers, and serialized input timing for deterministic gameplay and replay. — C# — N/A
+- Aqua Fighter Combat State Machine — Controls fighter states including neutral movement, attacks, guard, hit-stun, launch, knockdown, rebound, hazard stun, and recovery states. — C# — N/A
+- Fighter Combat Data Schema — Stores deterministic fighter attributes, attack definitions, movement tuning, signature mechanics, weaknesses, defensive options, and arena interaction profiles. — JSON Schema — N/A
+- Universal Attack and Hurt Volume Library — Provides authored hit volumes, hurt volumes, guard volumes, lane tolerances, and collision labels for readable fighter interactions. — JSON — N/A
+- Deterministic Damage and Combo Scaling Rules — Calculates damage, combo scaling, counter-hit modifiers, guard modifiers, environmental multipliers, and technique resource modifiers. — JSON — N/A
+- Aquatic Technique Data Schema — Defines character techniques, including timing, damage, resource cost, cooldown, direction, guard behavior, environmental interaction, telegraph, counterplay, and deterministic simulation rules. — JSON Schema — N/A
+- Deterministic Arena Collision Resolution System — Resolves movement, current force, dash and technique displacement, knockback, rebound, arena boundaries, wreckage, and reef contacts in a fixed priority order. — C# — N/A
+
+ENVIRONMENT
+- Three-Lane Underwater Arena Collision Data — Defines the 2D combat plane, foreground, center, and background gameplay lanes, lane transitions, arena boundaries, cover shapes, reef contacts, and hazard occupancy. — JSON — N/A
+- Authored Current Volume and Lane Data — Defines predictable current paths, active lanes, directional force, acceleration curves, momentum caps, entry telegraphs, exit behavior, and projectile or hazard influence. — JSON — N/A
+- Authored Reef Rebound Profiles — Defines deterministic reef contact behavior, rebound impulse, steering, duration, cancel windows, invulnerability, and sequence-use limits. — JSON — N/A
+
+VFX
+- Gameplay Current Flow Effects — Visually communicates current direction, active lanes, acceleration strength, entry state, and exit state without obscuring fighters or attack volumes. — PNG sprite sheet — 2048x1024 per lane variant
+- Reef Rebound Contact and Direction Effects — Communicates reef contact, rebound direction, rebound state, available cancel timing, and limited invulnerability without obscuring gameplay. — PNG sprite sheet — 1024x1024 per effect variant
+
+SCOPE REVIEW
+Feature: 12-fighter launch roster
+Severity: High
+Critique: Twelve fighters multiplied by unique movement accents, signature mechanics, techniques, animations, VFX, balance data, arena interactions, tutorials, and matchup testing is a major production burden. The roster also creates a large balance matrix before the core combat is proven.
+Suggestion: Cut V1 to 4 fighters: one balanced tutorial fighter, one mobility specialist, one control specialist, and one heavy fighter. Build all four from the same universal base kit and allow only one signature mechanic per fighter. Add the remaining roster only after the combat prototype survives external playtesting.
+
+Feature: Online ranked multiplayer
+Severity: High
+Critique: Deterministic simulation, rollback or lockstep networking, input delay handling, desync detection, matchmaking, reconnect behavior, region support, ranking, moderation, and platform certification are separate products inside the game. Supporting 240 Hz input, 120 Hz offline simulation, and 60 Hz online simulation increases synchronization risk.
+Suggestion: Remove online ranked play from V1. Ship local versus, training, and possibly same-device challenge modes first. If online is mandatory, target one fixed 60 Hz simulation with rollback and no ranked ladder, crossplay, or reconnect complexity until the core combat is validated.
+
+Feature: Multiple simulation rates and deterministic replay
+Severity: High
+Critique: Maintaining 240 Hz input sampling, 120 Hz offline simulation, 60 Hz online simulation, fixed-point movement, serialized timing markers, replay validation, and platform-independent outcomes is a high-risk engineering requirement. Differences in rounding, input buffering, collision order, and animation timing will create difficult-to-reproduce bugs.
+Suggestion: Use one fixed simulation rate for V1, preferably 60 Hz or 120 Hz depending on prototype feel. Store inputs and deterministic random seeds only after the simulation is stable. Defer authoritative replay verification and cross-rate compatibility.
+
+Feature: Full environmental interaction suite
+Severity: High
+Critique: Currents, reefs, wreckage, cover, lane splitting, rebounds, projectiles, hazards, hit-stun, knockback, and techniques all interacting creates a combinatorial collision matrix. Every combination needs rules for priority, escape, camera visibility, corner behavior, and competitive fairness.
+Suggestion: Choose one signature environmental interaction for V1: authored currents plus simple boundary rebounds. Remove hard cover, movable-looking wreckage, lane-splitting objects, and complex environmental multipliers. Use static visual props until the core interaction is proven.
+
+Feature: Three gameplay depth lanes
+Severity: High
+Critique: Depth lanes require lane-aware hitboxes, attack tolerance, transitions, camera composition, cover rules, projectile behavior, collision handling, player readability, and edge-case testing during hit-stun and knockback. They can also make attacks feel like they miss for unclear reasons.
+Suggestion: Prototype two lanes first, or make depth a single short dodge/shift action rather than a continuously available three-lane system. Restrict attacks to clear lane rules and avoid attacks that hit arbitrary lane combinations in V1.
+
+Feature: Universal chain system plus fighter-specific branches
+Severity: High
+Critique: Buffered inputs, priority rules, duplicate rejection, route limits, branch-specific timing, cancel windows, hit-confirm behavior, animation transitions, and training feedback are more complex than a simple three-hit combo system. Ambiguous directional input will generate frequent player-facing errors.
+Suggestion: Ship one universal Light-Light-Heavy chain and one directional finisher per fighter. Remove branching route trees, alternate chain priorities, and extensive fighter-specific cancel logic from V1.
+
+Feature: Aquatic technique slots and environmental technique interactions
+Severity: High
+Critique: Each technique requires authored timing, hitboxes, resource behavior, guard rules, telegraphs, VFX, sound, animation, counterplay, and interaction testing with currents, cover, rebounds, hazards, and every fighter state. Supporting multiple technique roles per character creates substantial balance and content cost.
+Suggestion: Give each fighter one signature technique in V1. Use a shared resource model and restrict techniques to one or two interaction categories, such as damage or movement control. Defer alternate techniques, modifiers, grabs, traps, clouds, and persistent hazards.
+
+Feature: Guard, guard strain, guard breaks, recovery options, and multiple defensive states
+Severity: High
+Critique: Manual guard, directional arcs, guard pushback, strain thresholds, repeated-pressure rules, guard breaks, air techs, dash recovery, technique cancels, reef rebounds, and lane escapes can create defensive complexity that is difficult to teach and balance. The design risks producing situations where players cannot tell which escape is valid.
+Suggestion: Use one guard state, one clear guard-break rule, and one universal recovery option. Remove fighter-specific defensive exceptions and resource-based recovery variants from V1. Make guard direction either full-front with a clear facing indicator or omnidirectional.
+
+Feature: Hazard-heavy arenas and fair escalation
+Severity: High
+Critique: Every hazard needs telegraphs, activation timing, collision outcomes, interruption behavior, recovery rules, camera treatment, accessibility settings, and competitive balance. Hazard interactions with currents, knockback, guard, cover, and techniques will multiply QA requirements. Background creatures and spectacle can also be mistaken for gameplay threats.
+Suggestion: Exclude hazards from ranked and standard V1 matches. Include one optional casual arena hazard with a fixed timer, obvious telegraph, fixed damage, and a guaranteed escape route. Treat background creatures as non-interactive visual dressing.
+
+Feature: Dynamic camera, anime spectacle, and impact presentation
+Severity: Medium
+Critique: Camera shake, hit-stop, speed lines, finishing poses, callouts, water effects, lane visibility, silhouettes, and readable hurt reactions compete for screen space. Effects that look good in isolation may obscure hit volumes, current telegraphs, or directional knockback. Camera behavior also becomes difficult around boundaries and cover.
+Suggestion: Use a fixed camera with limited, globally tuned hit-stop and one restrained impact effect. Remove character-specific camera moves, finishing poses, large screen overlays, and complex speed-line packages from V1. Add an effects intensity accessibility slider.
+
+Feature: Wreckage as hard cover and line-of-sight gameplay
+Severity: High
+Critique: Cover introduces occlusion, corner trapping, projectile path rules, lane-specific collision, minimum escape distances, camera conflicts, and potential stalling strategies. It is effectively a tactical level-design system layered onto a fighter.
+Suggestion: Cut hard cover from V1. Replace it with visually distinct static reefs or soft boundary zones that provide a single predictable rebound interaction. Reintroduce cover only after matches demonstrate a need for line-of-sight play.

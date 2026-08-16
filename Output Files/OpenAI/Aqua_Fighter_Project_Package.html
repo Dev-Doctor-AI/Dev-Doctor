@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aqua Fighter - Project Package</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-bg': '#0a0a0a',
+                        'brand-surface': '#141414',
+                        'brand-primary': '#00A99D',
+                        'brand-secondary': '#6A4C93',
+                        'brand-text': '#EAEAEA',
+                        'brand-text-muted': '#9E9E9E',
+                        'brand-border': '#262626',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
+        body { background-color: #0a0a0a; color: #EAEAEA; font-family: 'Inter', sans-serif; }
+        summary::-webkit-details-marker { display: none; }
+        details summary { list-style: none; }
+        .whitespace-pre-wrap { white-space: pre-wrap; }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 { color: #00A99D; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: bold; }
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 { color: #EAEAEA; margin-top: 1.25rem; margin-bottom: 0.5rem; font-weight: bold; }
+        .markdown-content p { margin-bottom: 1rem; line-height: 1.6; }
+        .markdown-content ul, .markdown-content ol { margin-left: 1.5rem; margin-bottom: 1rem; list-style-type: disc; }
+        .markdown-content li { margin-bottom: 0.25rem; }
+        .markdown-content code { background-color: #1E1E1E; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #00FFCC; }
+        .markdown-content pre { background-color: #1E1E1E; padding: 1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1rem; border: 1px solid #333; }
+        .markdown-content pre code { background-color: transparent; padding: 0; color: #EAEAEA; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; border: 1px solid #333; }
+        .markdown-content th, .markdown-content td { border: 1px solid #333; padding: 0.75rem; text-align: left; }
+        .markdown-content th { background-color: #1E1E1E; color: #00A99D; }
+        .markdown-content tr:nth-child(even) { background-color: #1A1A1A; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+    </style>
+</head>
+<body class="p-4 md:p-8 lg:p-12 max-w-6xl mx-auto">
+    <header class="mb-12">
+        <div class="flex items-center justify-center gap-4 mb-4">
+            <h1 class="text-4xl md:text-6xl font-bold text-brand-primary">Aqua Fighter</h1>
+            <span class="px-3 py-1 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 rounded text-xs font-bold uppercase tracking-wider">
+                Stable
+            </span>
+        </div>
+        <p class="text-xl text-brand-text-muted text-center">Complete Project Documentation Package</p>
+    </header>
+    
+    
+                <nav id="toc" class="mb-12 p-6 bg-brand-surface rounded-xl border border-brand-border shadow-lg">
+                    <h2 class="text-xl font-bold text-brand-primary mb-4">Table of Contents</h2>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <li><a href="#section-gdd" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Design Document (GDD/PRD)</a></li><li><a href="#section-pitch" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Pitch Deck</a></li><li><a href="#section-mvp" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> MVP Definition</a></li><li><a href="#section-tdd-specs" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> MVP Feature Specifications</a></li><li><a href="#section-assets" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Asset List</a></li><li><a href="#section-scope" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Scope Critical Review</a></li>
+                    </ul>
+                </nav>
+            
+
+    <main>
+        <details id="section-gdd" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Design Document (GDD/PRD)</h2>
+                        <div class="flex items-center gap-4">
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                        </div>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.1 Product Vision</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p><strong>Aqua Fighter</strong> is a fast-paced, one-on-one underwater arena fighter built around fluid movement, deliberate momentum control, and readable anime spectacle.</p>
+<p>Players control distinctive aquatic heroes and rivals in fixed-camera 2.5D arenas. Fighters attack with punches, kicks, dashes, and special aquatic techniques while exploiting currents, coral reefs, wreckage, cover, hazards, and limited depth lanes.</p>
+<p>The game must communicate two simultaneous promises:</p>
+<ol>
+<li><strong>Immediate accessibility:</strong> A new player can move, attack, dash, chain basic attacks, and use a special ability within minutes.</li>
+<li><strong>Competitive mastery:</strong> Experienced players can optimize timing, momentum redirection, current manipulation, spacing, defensive routing, environmental setups, and matchup-specific counterplay.</li>
+</ol>
+<p>The underwater setting is not cosmetic. Movement, currents, rebound surfaces, and environmental hazards are core combat systems.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.2 Target Audience</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Aqua Fighter targets:</p>
+<ul>
+<li>Players who enjoy accessible arcade and platform fighters.</li>
+<li>Anime and action-game audiences.</li>
+<li>Local multiplayer groups seeking immediate couch-play fun.</li>
+<li>Competitive fighting-game players seeking a movement-focused arena fighter.</li>
+<li>Players who prefer spectacle and character expression without requiring traditional fighting-game execution barriers.</li>
+<li>Younger and family audiences, supported by clear visual language and scalable accessibility options.</li>
+</ul>
+<p>The game should be approachable with a controller, but its deterministic systems, replay tools, and ranked rules must support serious competitive play.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Pillar 1: Fluid, Skillful Underwater Combat</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Movement must feel responsive rather than floaty. Fighters should respond immediately to directional inputs while retaining a controllable momentum vector that enables:</p>
+<ul>
+<li>Current-assisted approaches.</li>
+<li>Mid-air or mid-water redirection.</li>
+<li>Dash routing.</li>
+<li>Rebound extensions.</li>
+<li>Evasive lane changes.</li>
+<li>Positioning around cover and hazards.</li>
+</ul>
+<p>The player should understand why a fighter moved and should be able to reproduce the result.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Pillar 2: Anime Spectacle With Gameplay Clarity</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Attacks should feel dramatic through:</p>
+<ul>
+<li>Strong anticipation poses.</li>
+<li>Exaggerated impact frames.</li>
+<li>Speed lines.</li>
+<li>Elemental water effects.</li>
+<li>Camera shake and hit-stop.</li>
+<li>Character callouts.</li>
+<li>Brief, high-contrast finishing poses.</li>
+</ul>
+<p>Spectacle must never conceal:</p>
+<ul>
+<li>The attacking fighter’s pose.</li>
+<li>The defender’s hurt reaction.</li>
+<li>The active hit volume.</li>
+<li>The direction of knockback.</li>
+<li>Hazard telegraphs.</li>
+<li>Available defensive options.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Pillar 3: Environmental Outplay</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Arenas are combat tools. Players should be able to:</p>
+<ul>
+<li>Ride a current into a combo.</li>
+<li>Use a reef to rebound toward or away from an opponent.</li>
+<li>Hide or reposition behind wreckage.</li>
+<li>Redirect an opponent toward a hazard.</li>
+<li>Bait an enemy into an unsafe lane.</li>
+<li>Convert environmental contact into a deliberate combo extension.</li>
+<li>Use hazards for comebacks without relying on random outcomes.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Pillar 4: Accessible Fundamentals, Deep Optimization</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>The baseline control scheme must not require complex motion inputs. Depth comes from:</p>
+<ul>
+<li>Timing.</li>
+<li>Spacing.</li>
+<li>Attack selection.</li>
+<li>Momentum management.</li>
+<li>Resource usage.</li>
+<li>Cancel discipline.</li>
+<li>Current routing.</li>
+<li>Risk and reward assessment.</li>
+<li>Matchup knowledge.</li>
+<li>Arena knowledge.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Pillar 5: Fair Escalation</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Progression introduces deeper and more dangerous areas, but difficulty must come from richer decisions rather than unreadable punishment.</p>
+<p>Every advanced hazard must have:</p>
+<ul>
+<li>A visible telegraph.</li>
+<li>A consistent activation rule.</li>
+<li>A defined counterplay option.</li>
+<li>A predictable collision result.</li>
+<li>A reasonable recovery or reset opportunity.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.4 Core Match Fantasy</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>A successful match should produce moments such as:</p>
+<ul>
+<li>A fighter dashes through a water mine just before it detonates.</li>
+<li>An opponent is launched into a current, then intercepted with a rising kick.</li>
+<li>A player uses wreckage to break line of sight, changes depth lanes, and reverses position.</li>
+<li>A reef rebound converts a near-ring-out into a counterattack.</li>
+<li>A deep-sea creature shadow appears in the background while a clearly telegraphed hazard creates a final exchange.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.1 Match Objective</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>A standard duel is a one-on-one fight in which each fighter has a health gauge.</p>
+<p>Default rules:</p>
+<ul>
+<li>Best of three rounds.</li>
+<li>Each round lasts 90 seconds.</li>
+<li>Fighter health resets between rounds.</li>
+<li>The first fighter to win two rounds wins the match.</li>
+<li>If time expires, the fighter with greater remaining health wins.</li>
+<li>A tie uses remaining momentum/resource advantage as a secondary tiebreaker, followed by a sudden-death round if required.</li>
+<li>Ranked modes use fixed competitive rules and no fighter-specific progression advantages.</li>
+</ul>
+<p>Alternative rules such as stock, endurance, and hazard-heavy variants may exist in casual modes.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.2 Standard Control Layout</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>The control scheme must support controller, keyboard, and remappable input.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Gamepad Default</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Left Stick / D-pad</td>
+<td>Four-direction movement</td>
+</tr>
+<tr>
+<td>Face Button 1</td>
+<td>Light attack / punch</td>
+</tr>
+<tr>
+<td>Face Button 2</td>
+<td>Heavy attack / kick</td>
+</tr>
+<tr>
+<td>Face Button 3</td>
+<td>Aquatic technique</td>
+</tr>
+<tr>
+<td>Face Button 4</td>
+<td>Dash burst</td>
+</tr>
+<tr>
+<td>Shoulder Button 1</td>
+<td>Guard</td>
+</tr>
+<tr>
+<td>Shoulder Button 2</td>
+<td>Technique modifier / alternate technique</td>
+</tr>
+<tr>
+<td>Start/Menu</td>
+<td>Pause or menu</td>
+</tr>
+<tr>
+<td>Select/View</td>
+<td>Training controls, replay information, or scorecard</td>
+</tr>
+</tbody></table>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Keyboard Default</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>WASD / Arrow Keys</td>
+<td>Movement</td>
+</tr>
+<tr>
+<td>J</td>
+<td>Light attack</td>
+</tr>
+<tr>
+<td>K</td>
+<td>Heavy attack</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Aquatic technique</td>
+</tr>
+<tr>
+<td>Space</td>
+<td>Dash</td>
+</tr>
+<tr>
+<td>Shift</td>
+<td>Guard</td>
+</tr>
+<tr>
+<td>U</td>
+<td>Alternate technique/modifier</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>Pause/menu</td>
+</tr>
+</tbody></table>
+<p>All controls must be remappable. Each action must support keyboard rollover validation and controller dead-zone configuration.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.3 Movement and Attack Direction</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Attacks inherit direction from the current movement intent and fighter state.</p>
+<p>Examples:</p>
+<ul>
+<li>Neutral light attack: forward jab.</li>
+<li>Up plus light: rising strike.</li>
+<li>Down plus heavy: descending kick.</li>
+<li>Direction plus technique: directional technique variant where supported.</li>
+<li>Dash plus attack: dash strike or approach attack.</li>
+</ul>
+<p>The direction sampled at attack commitment is stored for deterministic replay and cannot be altered by later analog noise unless the move explicitly supports steering.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.4 Basic Attacks</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Each fighter has a universal or semi-universal base kit:</p>
+<ul>
+<li>Light punch.</li>
+<li>Heavy punch or kick.</li>
+<li>Rising attack.</li>
+<li>Descending attack.</li>
+<li>Dash attack.</li>
+<li>Air or waterborne follow-up.</li>
+<li>Guard.</li>
+<li>Dash burst.</li>
+<li>Aquatic technique slots.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Light Attacks</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Light attacks are:</p>
+<ul>
+<li>Fast.</li>
+<li>Low commitment.</li>
+<li>Lower damage.</li>
+<li>Suitable for confirming combos.</li>
+<li>Capable of chaining into other lights during the chain window.</li>
+</ul>
+<p>Recommended baseline:</p>
+<ul>
+<li>Startup: 5–8 simulation frames.</li>
+<li>Active: 3–5 frames.</li>
+<li>Recovery: 10–18 frames.</li>
+<li>Damage: 2–4% of standard round health.</li>
+<li>Hit advantage: modest, allowing a follow-up under correct timing.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Heavy Attacks</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Heavy attacks are:</p>
+<ul>
+<li>Slower.</li>
+<li>More damaging.</li>
+<li>Higher knockback.</li>
+<li>More likely to interact strongly with environmental surfaces.</li>
+<li>Riskier on whiff or block.</li>
+</ul>
+<p>Recommended baseline:</p>
+<ul>
+<li>Startup: 12–20 frames.</li>
+<li>Active: 4–8 frames.</li>
+<li>Recovery: 20–34 frames.</li>
+<li>Damage: 6–10%.</li>
+<li>Strong hit reaction and possible wall or reef bounce.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Attack Chains</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Attack-chain inputs are accepted during the final 12 recovery ticks of an attack, equal to 100 ms in the 120 Hz offline simulation.</p>
+<p>The chain system must:</p>
+<ul>
+<li>Accept buffered input during recovery.</li>
+<li>Preserve the first valid next attack.</li>
+<li>Reject duplicate or ambiguous inputs according to priority rules.</li>
+<li>Prevent infinite loops through per-chain route limits.</li>
+<li>Allow fighter-specific chain branches.</li>
+<li>Provide visual and audio confirmation when a chain is accepted.</li>
+</ul>
+<p>A basic route may be:</p>
+<p><code>Light → Light → Heavy</code></p>
+<p>A fighter-specific route may be:</p>
+<p><code>Light → Up-Light → Technique</code></p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Guard</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Guard reduces or negates incoming damage depending on attack type.</p>
+<p>Default guard behavior:</p>
+<ul>
+<li>Guard is held manually.</li>
+<li>Guard applies only within the fighter’s forward-facing defensive arc unless a fighter trait modifies it.</li>
+<li>Guard prevents normal hit-stun from light attacks.</li>
+<li>Heavy attacks apply guard pushback and guard strain.</li>
+<li>Techniques may chip guard, force movement, or bypass guard only when explicitly telegraphed.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Guard Break</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Guard breaks occur when:</p>
+<ul>
+<li>Guard strain exceeds the fighter’s threshold.</li>
+<li>A designated guard-break attack connects.</li>
+<li>A fighter remains stationary in guard against repeated pressure.</li>
+</ul>
+<p>Guard break must have:</p>
+<ul>
+<li>A distinct audio cue.</li>
+<li>A readable stagger animation.</li>
+<li>A guaranteed minimum vulnerability window.</li>
+<li>No hidden random chance.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Hit-Stun</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Hit-stun is an authored state. During hit-stun:</p>
+<ul>
+<li>Movement input is suppressed.</li>
+<li>Momentum may continue according to the attack’s knockback profile.</li>
+<li>The fighter cannot attack or dash unless a specific recovery technique is available.</li>
+<li>Hit-stop may occur at impact.</li>
+<li>Environmental collision is resolved using deterministic rules.</li>
+</ul>
+<p>The game must distinguish:</p>
+<ul>
+<li>Light hit-stun.</li>
+<li>Heavy hit-stun.</li>
+<li>Launch state.</li>
+<li>Knockdown state.</li>
+<li>Rebound state.</li>
+<li>Hazard stun.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Recovery Options</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Depending on fighter and move, players may have:</p>
+<ul>
+<li>Directional recovery input.</li>
+<li>Air tech.</li>
+<li>Dash recovery.</li>
+<li>Reef rebound.</li>
+<li>Technique cancel.</li>
+<li>Depth-lane escape.</li>
+</ul>
+<p>Recovery options must be clearly communicated and limited by resources, cooldowns, or move-specific rules.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.6 Aquatic Techniques</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Aquatic techniques are character-defining abilities such as:</p>
+<ul>
+<li>Water blades.</li>
+<li>Bubble traps.</li>
+<li>Pressure bursts.</li>
+<li>Electric eel arcs.</li>
+<li>Ice currents.</li>
+<li>Coral growth.</li>
+<li>Ink clouds.</li>
+<li>Tidal grabs.</li>
+<li>Whirlpool pulls.</li>
+</ul>
+<p>Each technique must define:</p>
+<ul>
+<li>Startup.</li>
+<li>Active frames.</li>
+<li>Recovery.</li>
+<li>Damage.</li>
+<li>Hit-stun.</li>
+<li>Knockback.</li>
+<li>Resource cost.</li>
+<li>Cooldown, if any.</li>
+<li>Directional behavior.</li>
+<li>Guard interaction.</li>
+<li>Environmental interaction.</li>
+<li>Telegraph.</li>
+<li>VFX and audio references.</li>
+<li>Counterplay.</li>
+<li>Online determinism requirements.</li>
+</ul>
+<p>Techniques should not all be direct damage tools. Some should be used for:</p>
+<ul>
+<li>Space control.</li>
+<li>Current creation.</li>
+<li>Momentum redirection.</li>
+<li>Defensive escape.</li>
+<li>Cover denial.</li>
+<li>Combo routing.</li>
+<li>Hazard interruption.</li>
+<li>Resource conversion.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.7 Fighter Design Framework</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Launch capacity is 12 fighters. Each fighter must have a distinct combat identity without violating the universal readability rules.</p>
+<p>Recommended fighter archetypes:</p>
+<ol>
+<li><strong>Striker:</strong> Fast punch and kick chains, high pressure.</li>
+<li><strong>Current Rider:</strong> Excels at converting currents into movement and damage.</li>
+<li><strong>Anchor:</strong> High stability, strong guard, lower mobility.</li>
+<li><strong>Trickster:</strong> Creates decoys, bubbles, or deceptive trajectories.</li>
+<li><strong>Lancer:</strong> Controls long-range space with spear-like aquatic attacks.</li>
+<li><strong>Grappler:</strong> Converts close contact into throws or directional slams.</li>
+<li><strong>Reef Guardian:</strong> Uses rebound and collision interactions.</li>
+<li><strong>Storm Fighter:</strong> Electric techniques and lane control.</li>
+<li><strong>Depth Hunter:</strong> Strong against hazards and darkness effects.</li>
+<li><strong>Glass Cannon:</strong> High mobility and burst damage, low durability.</li>
+<li><strong>Support Controller:</strong> Creates temporary currents or cover.</li>
+<li><strong>Balanced Rival:</strong> Teaches the standard system and serves as the introductory fighter.</li>
+</ol>
+<p>Every fighter must have:</p>
+<ul>
+<li>A readable silhouette at gameplay scale.</li>
+<li>A unique movement accent.</li>
+<li>A universal basic attack language.</li>
+<li>One signature mechanic.</li>
+<li>At least one clear weakness.</li>
+<li>At least one reliable approach tool.</li>
+<li>At least one defensive answer.</li>
+<li>A defined arena interaction profile.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.8 Damage and Scaling</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Damage must be data-driven and deterministic.</p>
+<p>Damage calculation may include:</p>
+<ul>
+<li>Base move damage.</li>
+<li>Combo scaling.</li>
+<li>Counter-hit modifier.</li>
+<li>Guard modifier.</li>
+<li>Environmental multiplier.</li>
+<li>Technique resource modifier.</li>
+<li>Round or mode-specific modifier.</li>
+</ul>
+<p>A recommended combo scaling model:</p>
+<ul>
+<li>First hit: 100%.</li>
+<li>Second hit: 92%.</li>
+<li>Third hit: 84%.</li>
+<li>Subsequent hits: minimum 45%.</li>
+<li>Environmental hits may have a separate capped multiplier.</li>
+</ul>
+<p>Scaling must prevent infinite or low-risk loops while preserving satisfying short combos.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.1 Hybrid Movement Model</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Aqua Fighter uses a deterministic, kinematic movement controller rather than fully emergent rigid-body physics.</p>
+<p>The controller consists of:</p>
+<ol>
+<li><strong>Input intent vector</strong></li>
+<li><strong>Immediate movement response</strong></li>
+<li><strong>Lightweight momentum vector</strong></li>
+<li><strong>Current and authored force contributions</strong></li>
+<li><strong>State-machine constraints</strong></li>
+<li><strong>Post-movement collision resolution</strong></li>
+<li><strong>Attack and hurt-volume evaluation</strong></li>
+</ol>
+<p>The simulation must never rely on platform-specific floating-point behavior for authoritative outcomes.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.2 Movement Plane and Depth Lanes</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>The playable arena is a 2D combat plane with limited depth lanes.</p>
+<p>Recommended structure:</p>
+<ul>
+<li>Three gameplay lanes: foreground, center, background.</li>
+<li>Fighters may move between lanes using up/down input.</li>
+<li>Each lane has a defined world-space depth.</li>
+<li>Lane transitions take a short, consistent duration.</li>
+<li>Attacks have lane tolerance values.</li>
+<li>Some attacks affect multiple lanes.</li>
+<li>Cover and hazards may occupy selected lanes.</li>
+</ul>
+<p>Depth lanes are not a free 3D space. They exist to support:</p>
+<ul>
+<li>Dodging.</li>
+<li>Layered positioning.</li>
+<li>Cover play.</li>
+<li>Current routing.</li>
+<li>Background and foreground composition.</li>
+<li>Attack prediction and counterplay.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.3 Movement Response</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Input response should feel immediate.</p>
+<p>Recommended controller properties:</p>
+<ul>
+<li>Input sampling offline: 240 Hz.</li>
+<li>Offline simulation: 120 Hz.</li>
+<li>Online simulation: fixed 60 Hz.</li>
+<li>Normal input-to-gameplay response target: ≤25 ms.</li>
+<li>Hard maximum input-to-action latency: 33 ms.</li>
+<li>Movement acceleration is high enough to feel responsive.</li>
+<li>Momentum decay is deterministic and tunable by fighter.</li>
+<li>Direction reversal has authored braking rather than uncontrolled sliding.</li>
+</ul>
+<p>A fighter’s velocity is represented as fixed-point or deterministic integer components:</p>
+<pre><code class="language-text">velocity = input_velocity
+         + retained_momentum
+         + current_force
+         + authored_rebound
+         + attack_knockback
+</code></pre>
+<p>Each component has a source tag for debugging and replay validation.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.4 Dash Burst</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Dash is a short, high-priority movement action.</p>
+<p>Default properties:</p>
+<ul>
+<li>Dash input buffer: 100 ms.</li>
+<li>Dash duration: approximately 100–150 ms.</li>
+<li>Dash distance: fighter-specific but within a controlled range.</li>
+<li>Dash grants limited collision protection only if explicitly assigned.</li>
+<li>Dash may cross certain attacks but not all hazards.</li>
+<li>Dash cancels selected attacks during the defined cancel window.</li>
+<li>Dash has a cooldown or stamina cost.</li>
+</ul>
+<p>Dash cancel timing:</p>
+<ul>
+<li>The cancel window begins two simulation ticks after attack impact.</li>
+<li>It remains available through eight 120 Hz ticks.</li>
+<li>The full authored window is 66.7 ms in the 120 Hz simulation.</li>
+<li>In the 60 Hz online simulation, the window is represented using equivalent serialized timing markers rather than rounded inconsistently.</li>
+<li>The move definition stores the timing in milliseconds and derives tick windows per simulation rate.</li>
+</ul>
+<p>Dash must not become a universal escape from all commitment. Cancel eligibility is move-specific and must be visible in training mode.</p>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.5 Momentum</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Momentum is intentionally lightweight and readable.</p>
+<p>Momentum affects:</p>
+<ul>
+<li>Drift after directional movement.</li>
+<li>Current interaction.</li>
+<li>Dash exit position.</li>
+<li>Reef rebounds.</li>
+<li>Knockback travel.</li>
+<li>Some techniques.</li>
+</ul>
+<p>Momentum does not create uncontrolled physics. It is clamped by:</p>
+<ul>
+<li>Fighter maximum momentum.</li>
+<li>Arena boundary limits.</li>
+<li>State-specific movement limits.</li>
+<li>Hazard-specific safety limits.</li>
+<li>Rebound caps.</li>
+</ul>
+<p>Players can redirect momentum through:</p>
+<ul>
+<li>Opposite directional input.</li>
+<li>Dash.</li>
+<li>Current entry or exit.</li>
+<li>Reef rebound.</li>
+<li>Techniques that explicitly alter velocity.</li>
+<li>Depth-lane movement.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.6 Currents</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Currents are authored volumes or lanes that apply directional force.</p>
+<p>Each current defines:</p>
+<ul>
+<li>Shape or path.</li>
+<li>Active lanes.</li>
+<li>Direction.</li>
+<li>Magnitude.</li>
+<li>Acceleration curve.</li>
+<li>Maximum applied momentum.</li>
+<li>Entry telegraph.</li>
+<li>Exit behavior.</li>
+<li>Whether attacks can be performed inside it.</li>
+<li>Whether it affects projectiles and hazards.</li>
+<li>Whether fighters can resist or reverse it.</li>
+<li>Cooldown or cycle timing.</li>
+</ul>
+<p>Current rules:</p>
+<ul>
+<li>Current force is applied after player movement intent but before collision resolution.</li>
+<li>Current direction is predictable and visually represented.</li>
+<li>Entering and exiting a current should not randomly rotate a fighter.</li>
+<li>Current effects use caps and smooth interpolation.</li>
+<li>A current may alter momentum without disabling control.</li>
+<li>Only authored moves or hazards may temporarily override player control.</li>
+</ul>
+<p>A current must support intentional gameplay such as:</p>
+<pre><code class="language-text">Approach → enter current → retain forward momentum → dash cancel → heavy strike
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.7 Reef Rebounds</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Reefs are solid environmental surfaces with authored rebound behavior.</p>
+<p>On valid contact:</p>
+<ul>
+<li>The fighter enters a rebound state.</li>
+<li>An authored impulse is applied away from the reef.</li>
+<li>Rebound duration and steering are defined per reef.</li>
+<li>The rebound may be canceled into an attack or dash if specified.</li>
+<li>The contact point is snapped to a deterministic valid location.</li>
+<li>The player retains limited directional influence unless the rebound explicitly restricts it.</li>
+</ul>
+<p>Rebounds must not be based on arbitrary rigid-body restitution. Each reef uses a defined rebound profile:</p>
+<pre><code class="language-text">ReboundProfile:
+  impulseVector
+  steeringPercent
+  durationTicks
+  attackCancelStart
+  attackCancelEnd
+  invulnerabilityFrames
+  maximumUsesPerSequence
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.8 Wreckage and Cover</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Wreckage provides hard cover and controlled collision redirection.</p>
+<p>Wreckage may:</p>
+<ul>
+<li>Block direct attacks.</li>
+<li>Break projectile paths.</li>
+<li>Split lanes.</li>
+<li>Force a fighter to route around an object.</li>
+<li>Provide a temporary hiding point.</li>
+<li>Create predictable wall-bounce opportunities.</li>
+</ul>
+<p>Wreckage must not:</p>
+<ul>
+<li>Move through emergent physics.</li>
+<li>Trap a fighter indefinitely.</li>
+<li>Produce unpredictable corner interactions.</li>
+<li>Obscure both fighters from the camera.</li>
+<li>Override control except during authored hit-stun or rebound states.</li>
+</ul>
+<p>Collision behavior should use:</p>
+<ul>
+<li>Static authored shapes.</li>
+<li>Lane-aware redirection.</li>
+<li>Minimum escape distance.</li>
+<li>Corner unsticking rules.</li>
+<li>Deterministic slide vectors.</li>
+<li>Explicit projectile interaction flags.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">3.9 Collision Priority</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>The deterministic collision resolution order is:</p>
+<ol>
+<li>Apply player input movement.</li>
+<li>Apply state restrictions.</li>
+<li>Apply current force.</li>
+<li>Apply dash or technique displacement.</li>
+<li>Apply active knockback or rebound.</li>
+<li>Resolve arena boundaries.</li>
+<li>Resolve wreckage and reef contacts.</li>
+</ol>
+
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-pitch" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Pitch Deck</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-8 border-t border-brand-border"><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 1: Title Slide</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="md:w-1/2 p-4 flex items-center justify-center bg-black/20">
+                                    <img src="data:image/jpeg;base64,Image generation coming soon" alt="Title Slide" class="max-w-full max-h-96 object-contain rounded shadow-md"/>
+                                </div>
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center">
+                                    <div class="prose prose-invert prose-lg max-w-none">
+                                        <h1>Aqua Fighter</h1>
+<h3>Master the Current. Own the Arena.</h3>
+<p>A fast-paced underwater arena fighter where movement, spectacle, and competitive mastery collide.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 2: The Problem</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Action spectacle should not come at the cost of control</h2>
+<p>Aqua Fighter is designed around a clear player desire: immediate, readable action with room for long-term mastery.</p>
+<ul>
+<li><strong>Immediate entry:</strong> Movement, attacks, dashes, and aquatic abilities should feel understandable from the first duel.</li>
+<li><strong>Meaningful mastery:</strong> Timing, momentum, positioning, and environmental interactions create room for skilled play.</li>
+<li><strong>Readable spectacle:</strong> Dramatic effects and hazards should remain telegraphed, counterable, and easy to follow.</li>
+<li><strong>A setting with gameplay value:</strong> The underwater environment is treated as part of the combat experience rather than a visual backdrop.</li>
+</ul>
+<h3>The opportunity</h3>
+<p>Create an underwater 1v1 fighter that combines accessible fundamentals with expressive, skill-driven arena play.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 3: The Solution: Your Project</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="md:w-1/2 p-4 flex items-center justify-center bg-black/20">
+                                    <img src="data:image/jpeg;base64,Image generation coming soon" alt="The Solution: Your Project" class="max-w-full max-h-96 object-contain rounded shadow-md"/>
+                                </div>
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center">
+                                    <div class="prose prose-invert prose-lg max-w-none">
+                                        <h2>Aqua Fighter</h2>
+<h3>Underwater movement becomes a competitive combat advantage</h3>
+<p>Aqua Fighter is a fast-paced one-on-one arena fighter set in vibrant underwater environments.</p>
+<p>Players combine movement, attacks, dash bursts, aquatic abilities, and arena interactions to create dynamic exchanges between rival fighters.</p>
+<ul>
+<li>Ride currents and redirect momentum.</li>
+<li>Rebound from coral reefs and use wreckage as cover.</li>
+<li>Chain attacks while managing position and timing.</li>
+<li>Progress toward new fighters, techniques, and deeper arenas.</li>
+</ul>
+<p><strong>High concept:</strong> anime arena combat where the flow of the environment is part of every matchup.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 4: Core Features &amp; Loop</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="md:w-1/2 p-4 flex items-center justify-center bg-black/20">
+                                    <img src="data:image/jpeg;base64,Image generation coming soon" alt="Core Features &amp; Loop" class="max-w-full max-h-96 object-contain rounded shadow-md"/>
+                                </div>
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center">
+                                    <div class="prose prose-invert prose-lg max-w-none">
+                                        <h2>The duel-to-depth loop</h2>
+<p><strong>Select → Fight → Outplay → Unlock → Dive Deeper</strong></p>
+<ul>
+<li><strong>Select:</strong> Choose a fighter and enter an underwater arena.</li>
+<li><strong>Fight:</strong> Use movement, dash bursts, punch and kick chains, and aquatic abilities.</li>
+<li><strong>Outplay:</strong> Manipulate currents, momentum, positioning, cover, reefs, and hazards.</li>
+<li><strong>Unlock:</strong> Advance toward additional fighters, techniques, and arena content.</li>
+<li><strong>Dive deeper:</strong> Encounter arenas with a darker visual and gameplay identity.</li>
+</ul>
+<h3>Why the loop is compelling</h3>
+<ul>
+<li>Fundamentals are designed to be immediately readable.</li>
+<li>Advanced play rewards timing, routing, positioning, and environmental awareness.</li>
+<li>Visual effects support the impact of each exchange while preserving combat clarity.</li>
+<li>Each duel can function as both a skill test and a progression step.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 5: Unique Selling Proposition</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Anime spectacle meets skill-first underwater combat</h2>
+<p>Aqua Fighter differentiates itself by making the underwater setting central to how combat feels and plays.</p>
+<ul>
+<li><strong>Fluid arena movement:</strong> Four-direction movement and dash control support expressive positioning.</li>
+<li><strong>Environmental combat:</strong> Currents, reefs, wreckage, cover, and hazards create tactical possibilities.</li>
+<li><strong>Readable spectacle:</strong> High-contrast silhouettes, clear telegraphs, and deliberate effects keep exchanges understandable.</li>
+<li><strong>Accessible depth:</strong> Straightforward fundamentals can lead into timing, momentum control, and environmental mastery.</li>
+<li><strong>Distinctive fantasy:</strong> The project offers a fighter identity built around aquatic motion rather than a conventional arena.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 6: Target Audience</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Built for players who want immediate action and room to improve</h2>
+<h3>Primary audiences</h3>
+<ul>
+<li><strong>Action-game players</strong> drawn to fast, expressive one-on-one combat.</li>
+<li><strong>Anime fans</strong> seeking colorful rivals, dramatic abilities, and energetic presentation.</li>
+<li><strong>Fighting-game newcomers</strong> looking for readable controls and approachable fundamentals.</li>
+<li><strong>Experienced competitive players</strong> interested in timing, positioning, momentum, and environmental outplays.</li>
+</ul>
+<h3>Audience fit</h3>
+<p>Aqua Fighter is positioned to serve both social and mastery-driven play through its 1v1 format, accessible entry point, and deeper combat possibilities.</p>
+<h3>Market size</h3>
+<p>No quantified TAM, SAM, or SOM figures were supplied. Market sizing should be completed using validated research across action-game, anime-game, and fighting-game audiences.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 7: Art &amp; Style</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="md:w-1/2 p-4 flex items-center justify-center bg-black/20">
+                                    <img src="data:image/jpeg;base64,Image generation coming soon" alt="Art &amp; Style" class="max-w-full max-h-96 object-contain rounded shadow-md"/>
+                                </div>
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center">
+                                    <div class="prose prose-invert prose-lg max-w-none">
+                                        <h2>Vibrant spectacle. Clear combat. Deeper mystery.</h2>
+<p>Aqua Fighter’s visual direction combines Saturday-morning anime energy with gameplay-first readability.</p>
+<ul>
+<li>Bold fighter silhouettes and expressive rival designs.</li>
+<li>Glowing aquatic abilities and dramatic motion effects.</li>
+<li>Colorful coral reefs, currents, wreckage, and layered underwater spaces.</li>
+<li>A visual progression from bright shallows toward darker, more mysterious depths.</li>
+<li>Strong contrast and clear presentation of combat-critical information.</li>
+</ul>
+<p>The intended result is energetic, memorable art that supports—not obscures—the action.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 8: The Team</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Roles required to bring Aqua Fighter to life</h2>
+<p>The supplied material does not identify individual team members by name. The project’s described responsibilities map to these key disciplines:</p>
+<ul>
+<li><strong>Creative and game direction:</strong> Owns the project identity, onboarding, fighter fantasy, and progression.</li>
+<li><strong>Combat and systems design:</strong> Shapes movement, attacks, abilities, currents, timing, and counterplay.</li>
+<li><strong>Technical and online development:</strong> Supports simulation, multiplayer, input handling, and replay-ready systems.</li>
+<li><strong>Art and VFX:</strong> Creates expressive fighters, aquatic abilities, telegraphs, and readable effects.</li>
+<li><strong>Arena and content design:</strong> Develops reefs, currents, wreckage, hazards, and deeper environments.</li>
+</ul>
+<p>Named team members, biographies, and credentials should be added when supplied.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 9: The Ask &amp; Roadmap</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Seeking development support and a publishing partner</h2>
+<h3>The ask</h3>
+<ul>
+<li><strong>Development funding</strong> to build and validate the core combat experience.</li>
+<li><strong>A publishing partner</strong> to support production, market preparation, and release planning.</li>
+<li>Strategic support aligned with an accessible 1v1 fighter that can also reward competitive mastery.</li>
+</ul>
+<h3>High-level roadmap</h3>
+<ol>
+<li><strong>Combat Prototype</strong> — Validate movement, attacks, abilities, hit detection, and underwater handling.</li>
+<li><strong>Vertical Slice</strong> — Present a polished arena, rival fighters, environmental interactions, and the intended visual identity.</li>
+<li><strong>Production and Online Validation</strong> — Expand fighters, techniques, arenas, networking, readability, and balance.</li>
+<li><strong>Beta and Launch Readiness</strong> — Test local and online 1v1 play, tune accessibility and competition, and prepare release content.</li>
+</ol>
+<p>Specific funding amount, milestone dates, and confirmed platform commitments were not supplied and should be added after validation.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 10: Contact Information</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h2>Continue the conversation</h2>
+<h3>Aqua Fighter</h3>
+<p>A fast-paced underwater arena fighter built around responsive combat, readable anime spectacle, environmental play, and competitive mastery.</p>
+<p><strong>Project contact:</strong> Not provided</p>
+<p>Add the appropriate representative, studio name, email address, website, and social links before distribution.</p>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div></div></details>
+<details id="section-mvp" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">MVP Definition</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border">
+                        <div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                            <h3 class="text-lg font-bold text-brand-primary mb-2">Summary</h3>
+                            <p class="text-brand-text-muted">A focused local 1v1 vertical slice that proves Aqua Fighter’s unique hook: responsive momentum-based underwater movement combined with readable arena outplay. It ships with two contrasting fighters, one handcrafted three-lane arena, and a complete best-of-three match loop.</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-4 bg-green-900/10 rounded-lg border border-green-500/30">
+                                <h3 class="text-lg font-bold text-green-400 mb-3">In Scope</h3>
+                                <ul class="space-y-2">
+                                    <li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> Local two-player versus on one supported platform, with controller and keyboard input, remappable controls, pause, and basic round/match results.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> Two fighters: one balanced introductory fighter and one movement-focused rival, each with distinct movement, a signature aquatic technique, a weakness, and a clear approach and defensive option.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> Deterministic 2.5D combat with three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light/heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> One arena built around the hook: a predictable current, reef rebound surfaces, lane-aware wreckage cover, arena boundaries, and one clearly telegraphed deterministic hazard with defined counterplay.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> Complete best-of-three round rules with 90-second rounds, health reset between rounds, timeout resolution by remaining health, readable hit/hurt feedback, and essential combat HUD.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> A minimal training mode with a stationary or repeatable dummy, move display, and reset controls for learning movement, attacks, currents, rebounds, and the hazard.</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-red-900/10 rounded-lg border border-red-500/30">
+                                <h3 class="text-lg font-bold text-red-400 mb-3">Out of Scope</h3>
+                                <ul class="space-y-2">
+                                    <li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> Online multiplayer, rollback networking, ranked rules, matchmaking, leaderboards, spectating, and replay sharing.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> A 12-fighter launch roster; additional fighters, fighter-specific progression, unlocks, and balance across a full roster.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> Multiple arenas, hazard variants, stock or endurance modes, casual rule modifiers, and a campaign or story mode.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> Advanced systems such as complex technique resource economies, multiple techniques per fighter, elaborate cancel routes, deep matchup-specific mechanics, or a full environmental interaction matrix.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> AI opponents, if local versus and training are the initial playable modes.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> Full accessibility, localization, platform certification, extensive graphics customization, and cinematic presentation beyond combat readability essentials.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+<details id="section-tdd-specs" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">MVP Feature Specifications</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Local two-player versus with remappable controls, pause, and best-of-three results</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a local player, I want to configure keyboard or controller controls and complete a readable best-of-three Aqua Fighter match with another player, so that we can compete locally using our preferred inputs and understand every round and match result.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement a deterministic local match state machine with Setup, ActiveRound, Paused, RoundResult, MatchResult, and Aborted states. Use a fixed-step combat simulation so keyboard and controller inputs enter the same normalized action pipeline and produce reproducible momentum, dash, guard, attack, hit-stun, knockback, lane movement, current, rebound, wreckage-cover, and hazard behavior. Assign each input source to exactly one player and route normalized actions through player ownership before fighter simulation. Define event ordering explicitly: process input, movement and arena forces, attacks and collisions, health resolution, then timer expiry; document and test the zero-health/zero-timer case. Use active simulation time rather than wall-clock time for the timer. Reset health, hit-stun, knockback, momentum, active attacks, hazard state, and temporary arena interactions between rounds while preserving fighter selection and control layouts. Version serialized control layouts, validate action coverage and input identifiers on load, support restore-defaults, and retain the last valid layout on failure. Pause must halt gameplay and arena simulation, suppress gameplay action application, retain UI navigation input only, and auto-pause on application deactivation or participating-device loss. Integrate with the existing fighter definitions, three-lane arena collision and hazard systems, HUD, training-mode input display, local profile storage, and platform controller-discovery APIs.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Two contrasting playable fighters</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a local versus player, I want to choose between a balanced introductory fighter and a movement-focused rival with distinct movement, aquatic techniques, weaknesses, approach options, and defensive options, so that I can learn and outplay different combat styles in Aqua Fighter.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement exactly the two MVP fighters as data-driven definitions within the deterministic 2.5D combat system. The balanced introductory fighter and movement-focused rival must have distinct movement behavior, one signature aquatic technique each, an authored weakness, a clear approach option, and a clear defensive option. Integrate both fighters with the three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and the available recovery option. Their techniques and combat behavior must work in local two-player versus and the minimal training mode, support keyboard and controller input with remappable controls, and expose readable combat feedback through the HUD and move display. Identical local inputs with identical fighter, arena, current, and hazard states must produce identical combat and round results.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Deterministic 2.5D three-lane combat</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a local-versus player, I want responsive momentum-based movement and readable combat across three depth lanes, so that I can outmaneuver an opponent and complete a best-of-three match.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement the feature as deterministic local 1v1 combat with exactly three depth lanes, immediate directional movement, controllable momentum, dash burst, guard, light and heavy attacks, directional attacks, hit-stun, knockback, basic chains, and one recovery option. Support keyboard and controller input for both players, remappable controls, and pause. Use the single handcrafted arena&#39;s predictable current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and one clearly telegraphed deterministic hazard with defined counterplay. Implement complete best-of-three rules with 90-second rounds, health reset between rounds, timeout resolution by remaining health, readable hit and hurt feedback, and an essential combat HUD. Training mode must use the combat rules with a stationary or repeatable dummy, move display, and reset controls for practicing movement, attacks, currents, rebounds, and the hazard. Online multiplayer, AI opponents, additional arenas, additional fighters, and network-dependent systems are out of scope.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Three-lane arena with predictable current, reef rebounds, wreckage cover, boundaries, and deterministic hazard</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a local versus player, I want to read and use the arena current, reef rebound surfaces, lane-aware wreckage cover, boundaries, and telegraphed hazard, so that positioning and movement create predictable outplay opportunities.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement the arena as a deterministic local combat-space component for the supported 2.5D three-lane fighter simulation. Author stable lane geometry, a predictable current, reef rebound collision surfaces, lane-aware wreckage cover, explicit arena boundaries, and one deterministic hazard with a visible telegraph and documented counterplay. Resolve current movement, lane changes, rebound interactions, cover checks, hazard effects, knockback, and boundary containment in a fixed simulation order so identical local inputs produce identical results. Integrate the arena with local 1v1 best-of-three rounds, 90-second round timing, pause, remappable keyboard and controller controls, essential combat HUD feedback, and minimal training-mode reset and repeat controls. Hazard, current, rebound, cover, boundary, and timeout behavior must remain deterministic in both versus and training modes.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Complete best-of-three combat rounds with readable feedback and essential HUD</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a local Aqua Fighter player, I want clear 90-second rounds with visible health, timer, hit feedback, and round results, so that I can understand the fight state and win a complete best-of-three match through readable combat decisions.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement an explicit local match and round state flow covering pre-round, active round, round resolution, and match resolution. The active-round timer must run for exactly 90 seconds and stop when the round resolves. A round ends when a fighter reaches zero health or when the timer expires; timeout resolution compares the fighters&#39; remaining health at the authoritative 00:00 transition. Reset both fighters&#39; health and temporary combat state between rounds without changing fighter selection or match score. End the match when a player reaches two round wins. The combat HUD must show both fighter identities, health, round scores, active round number, and timer. Hit and hurt feedback must be readable during deterministic 2.5D combat across the three depth lanes and must communicate impact and damage without relying on color alone. Support the local controller and keyboard inputs, including remappable controls and pause, with no online-service dependency.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Minimal Training Mode</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As an Aqua Fighter player, I want a local training mode with a controllable dummy, move display, and reset controls, so that I can learn movement, attacks, currents, rebounds, and the arena hazard before playing a best-of-three match.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implement Training Mode as a local match-context variant using the shared deterministic 2.5D combat simulation, fighter definitions, input mapping, arena collision, current, rebound, hazard, hit/hurt, and HUD systems. The training context must disable round countdown, 90-second timeout, round scoring, best-of-three transitions, and match results. Provide a stationary dummy entity with configurable start lane and position, infinite training continuity, and shared hurt, guard, hit-stun, knockback, and recovery states. Provide a repeatable dummy entity driven by packaged deterministic action-timeline data rather than AI. Each pattern must validate action identifiers, direction values, lane values, timing, and arena positions before activation. Maintain a per-combatant move-display buffer of 32 entries containing simulation frame, action identifier, direction, result category, and source combatant. Reset must execute through the simulation command queue at a frame boundary, clear pending inputs and active transient effects, restore deterministic fighter and dummy transforms and combat state, restore current and hazard phase, and clear the move-display buffer. The reset baseline must be generated from immutable training-session configuration so repeated resets produce identical state. Use the existing pause and remappable-control systems, with explicit bindings for reset, dummy mode, pattern start, pause, and exit. Keep all training-only state owned by the training scene or match context so leaving the mode cannot mutate local versus scores or persistent progression.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-assets" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Asset List</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border"><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">technical</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Aqua Fighter Default Input Control Layout — Defines the default gamepad and keyboard mappings for movement, attacks, techniques, dash, guard, menus, and training controls. — JSON — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Deterministic Input Buffer and Direction Sampler — Captures movement intent, attack direction, buffered chain inputs, dash buffers, and serialized input timing for deterministic gameplay and replay. — C# — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Aqua Fighter Combat State Machine — Controls fighter states including neutral movement, attacks, guard, hit-stun, launch, knockdown, rebound, hazard stun, and recovery states. — C# — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Fighter Combat Data Schema — Stores deterministic fighter attributes, attack definitions, movement tuning, signature mechanics, weaknesses, defensive options, and arena interaction profiles. — JSON Schema — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Universal Attack and Hurt Volume Library — Provides authored hit volumes, hurt volumes, guard volumes, lane tolerances, and collision labels for readable fighter interactions. — JSON — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Deterministic Damage and Combo Scaling Rules — Calculates damage, combo scaling, counter-hit modifiers, guard modifiers, environmental multipliers, and technique resource modifiers. — JSON — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Aquatic Technique Data Schema — Defines character techniques, including timing, damage, resource cost, cooldown, direction, guard behavior, environmental interaction, telegraph, counterplay, and deterministic simulation rules. — JSON Schema — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Deterministic Arena Collision Resolution System — Resolves movement, current force, dash and technique displacement, knockback, rebound, arena boundaries, wreckage, and reef contacts in a fixed priority order. — C# — N/A</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">environment</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Three-Lane Underwater Arena Collision Data — Defines the 2D combat plane, foreground, center, and background gameplay lanes, lane transitions, arena boundaries, cover shapes, reef contacts, and hazard occupancy. — JSON — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Authored Current Volume and Lane Data — Defines predictable current paths, active lanes, directional force, acceleration curves, momentum caps, entry telegraphs, exit behavior, and projectile or hazard influence. — JSON — N/A</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Authored Reef Rebound Profiles — Defines deterministic reef contact behavior, rebound impulse, steering, duration, cancel windows, invulnerability, and sequence-use limits. — JSON — N/A</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">VFX</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Gameplay Current Flow Effects — Visually communicates current direction, active lanes, acceleration strength, entry state, and exit state without obscuring fighters or attack volumes. — PNG sprite sheet — 2048x1024 per lane variant</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Reef Rebound Contact and Direction Effects — Communicates reef contact, rebound direction, rebound state, available cancel timing, and limited invulnerability without obscuring gameplay. — PNG sprite sheet — 1024x1024 per effect variant</li>
+                        </ul>
+                    </div></div></details>
+<details id="section-scope" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Scope Critical Review</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border"><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">12-fighter launch roster</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Twelve fighters multiplied by unique movement accents, signature mechanics, techniques, animations, VFX, balance data, arena interactions, tutorials, and matchup testing is a major production burden. The roster also creates a large balance matrix before the core combat is proven.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Cut V1 to 4 fighters: one balanced tutorial fighter, one mobility specialist, one control specialist, and one heavy fighter. Build all four from the same universal base kit and allow only one signature mechanic per fighter. Add the remaining roster only after the combat prototype survives external playtesting.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">A smaller roster preserves the identity of character-driven combat while making animation, balance, readability, and QA achievable for a 1–5 person team. Four fighters are enough to validate whether the game has real matchup depth.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Online ranked multiplayer</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Deterministic simulation, rollback or lockstep networking, input delay handling, desync detection, matchmaking, reconnect behavior, region support, ranking, moderation, and platform certification are separate products inside the game. Supporting 240 Hz input, 120 Hz offline simulation, and 60 Hz online simulation increases synchronization risk.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Remove online ranked play from V1. Ship local versus, training, and possibly same-device challenge modes first. If online is mandatory, target one fixed 60 Hz simulation with rollback and no ranked ladder, crossplay, or reconnect complexity until the core combat is validated.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Online infrastructure can consume the entire project and still fail to make the combat feel good. Local play proves the hook more cheaply and exposes balance problems before networking multiplies them.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Multiple simulation rates and deterministic replay</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Maintaining 240 Hz input sampling, 120 Hz offline simulation, 60 Hz online simulation, fixed-point movement, serialized timing markers, replay validation, and platform-independent outcomes is a high-risk engineering requirement. Differences in rounding, input buffering, collision order, and animation timing will create difficult-to-reproduce bugs.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Use one fixed simulation rate for V1, preferably 60 Hz or 120 Hz depending on prototype feel. Store inputs and deterministic random seeds only after the simulation is stable. Defer authoritative replay verification and cross-rate compatibility.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">One clock dramatically reduces debugging and QA cost. The movement hook can still be preserved without building a custom deterministic technology stack before the design has been proven.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Full environmental interaction suite</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Currents, reefs, wreckage, cover, lane splitting, rebounds, projectiles, hazards, hit-stun, knockback, and techniques all interacting creates a combinatorial collision matrix. Every combination needs rules for priority, escape, camera visibility, corner behavior, and competitive fairness.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Choose one signature environmental interaction for V1: authored currents plus simple boundary rebounds. Remove hard cover, movable-looking wreckage, lane-splitting objects, and complex environmental multipliers. Use static visual props until the core interaction is proven.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">The underwater setting remains mechanically meaningful, but the team avoids implementing several overlapping physics systems simultaneously. A single strong environmental verb is more memorable than five inconsistent ones.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Three gameplay depth lanes</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Depth lanes require lane-aware hitboxes, attack tolerance, transitions, camera composition, cover rules, projectile behavior, collision handling, player readability, and edge-case testing during hit-stun and knockback. They can also make attacks feel like they miss for unclear reasons.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Prototype two lanes first, or make depth a single short dodge/shift action rather than a continuously available three-lane system. Restrict attacks to clear lane rules and avoid attacks that hit arbitrary lane combinations in V1.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Two lanes can preserve the underwater positioning hook while reducing visual ambiguity and collision cases. The third lane should be earned only if testing shows it creates meaningful decisions rather than confusion.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Universal chain system plus fighter-specific branches</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Buffered inputs, priority rules, duplicate rejection, route limits, branch-specific timing, cancel windows, hit-confirm behavior, animation transitions, and training feedback are more complex than a simple three-hit combo system. Ambiguous directional input will generate frequent player-facing errors.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Ship one universal Light-Light-Heavy chain and one directional finisher per fighter. Remove branching route trees, alternate chain priorities, and extensive fighter-specific cancel logic from V1.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">A small, reliable combo grammar provides immediate accessibility and enough timing depth to test the combat. Complexity can be added after input clarity and hit confirmation are proven.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Aquatic technique slots and environmental technique interactions</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Each technique requires authored timing, hitboxes, resource behavior, guard rules, telegraphs, VFX, sound, animation, counterplay, and interaction testing with currents, cover, rebounds, hazards, and every fighter state. Supporting multiple technique roles per character creates substantial balance and content cost.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Give each fighter one signature technique in V1. Use a shared resource model and restrict techniques to one or two interaction categories, such as damage or movement control. Defer alternate techniques, modifiers, grabs, traps, clouds, and persistent hazards.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">One excellent ability per fighter protects character identity and keeps the balance surface manageable. It also makes the tutorial and control scheme much easier to understand.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Guard, guard strain, guard breaks, recovery options, and multiple defensive states</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Manual guard, directional arcs, guard pushback, strain thresholds, repeated-pressure rules, guard breaks, air techs, dash recovery, technique cancels, reef rebounds, and lane escapes can create defensive complexity that is difficult to teach and balance. The design risks producing situations where players cannot tell which escape is valid.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Use one guard state, one clear guard-break rule, and one universal recovery option. Remove fighter-specific defensive exceptions and resource-based recovery variants from V1. Make guard direction either full-front with a clear facing indicator or omnidirectional.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">A focused defensive layer supports competitive mastery without requiring a state-machine encyclopedia. Fewer escape tools also make offense, punishment, and spectator readability stronger.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Hazard-heavy arenas and fair escalation</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Every hazard needs telegraphs, activation timing, collision outcomes, interruption behavior, recovery rules, camera treatment, accessibility settings, and competitive balance. Hazard interactions with currents, knockback, guard, cover, and techniques will multiply QA requirements. Background creatures and spectacle can also be mistaken for gameplay threats.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Exclude hazards from ranked and standard V1 matches. Include one optional casual arena hazard with a fixed timer, obvious telegraph, fixed damage, and a guaranteed escape route. Treat background creatures as non-interactive visual dressing.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">The environmental fantasy survives in casual play without allowing random-feeling hazards to undermine competitive combat. This protects fairness while keeping the production and test matrix small.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Dynamic camera, anime spectacle, and impact presentation</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Severity: Medium</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Camera shake, hit-stop, speed lines, finishing poses, callouts, water effects, lane visibility, silhouettes, and readable hurt reactions compete for screen space. Effects that look good in isolation may obscure hit volumes, current telegraphs, or directional knockback. Camera behavior also becomes difficult around boundaries and cover.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Use a fixed camera with limited, globally tuned hit-stop and one restrained impact effect. Remove character-specific camera moves, finishing poses, large screen overlays, and complex speed-line packages from V1. Add an effects intensity accessibility slider.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Readability is a pillar, not decoration. A restrained presentation is faster to tune, easier to test, and more likely to make the movement and hit confirmation feel deliberate.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Wreckage as hard cover and line-of-sight gameplay</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Cover introduces occlusion, corner trapping, projectile path rules, lane-specific collision, minimum escape distances, camera conflicts, and potential stalling strategies. It is effectively a tactical level-design system layered onto a fighter.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Cut hard cover from V1. Replace it with visually distinct static reefs or soft boundary zones that provide a single predictable rebound interaction. Reintroduce cover only after matches demonstrate a need for line-of-sight play.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Cover is not required to prove fluid momentum combat and is likely to create the most frustrating environmental edge cases. Removing it improves match pace and spectator clarity.</p>
+                            </div>
+                        </div>
+                    </div></div></details>
+    </main>
+    
+    <footer class="mt-12 pt-8 border-t border-brand-border text-center text-brand-text-muted text-sm">
+        Generated by Dev Doctor AI &bull; 16/08/2026
+    </footer>
+</body>
+</html>

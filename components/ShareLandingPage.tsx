@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { BotIcon, LoaderIcon, ChevronDownIcon } from './icons';
-import { ProjectType, GDDSection, PitchDeckSlide, GeneratedImages, MVPDefinition, TDDFeature } from '../types';
+import { ProjectType, GDDSection, PitchDeckSlide, GeneratedImages, MVPDefinition, TDDFeature, ProjectPackage } from '../types';
 import { TDDViewer } from './TDDViewer';
 import { MVPViewer } from './MVPViewer';
+import { RichPackagePreview } from './RichPackagePreview';
+import { isRichSharePackage } from '../services/sharePackage';
 
 
 // Helper function to determine GDD section styling.
@@ -31,7 +33,35 @@ interface SharePayload {
     generatedImages: GeneratedImages;
     mvpDefinition?: MVPDefinition;
     tddContent?: TDDFeature[];
+    meta?: ProjectPackage['meta'];
+    chatHistory?: ProjectPackage['chatHistory'];
+    critiqueQA?: ProjectPackage['critiqueQA'];
+    expandedText?: string;
+    mvpFeatureSpecs?: ProjectPackage['mvpFeatureSpecs'];
+    mvpFeatureSpecValidation?: ProjectPackage['mvpFeatureSpecValidation'];
+    technicalDesignDocument?: ProjectPackage['technicalDesignDocument'];
+    modularBreakdown?: ProjectPackage['modularBreakdown'];
+    assetList?: ProjectPackage['assetList'];
+    scopeReviewContent?: ProjectPackage['scopeReviewContent'];
+    critiqueRecord?: ProjectPackage['critiqueRecord'];
+    generationMetadata?: ProjectPackage['generationMetadata'];
+    transcriptRecord?: ProjectPackage['transcriptRecord'];
+    memoryEntries?: ProjectPackage['memoryEntries'];
+    conciergeMode?: ProjectPackage['conciergeMode'];
+    productionBriefs?: ProjectPackage['productionBriefs'];
+    assetMetadata?: ProjectPackage['assetMetadata'];
+    visualPromptContracts?: ProjectPackage['visualPromptContracts'];
+    scopeReviewValidation?: ProjectPackage['scopeReviewValidation'];
+    pitchDeckValidation?: ProjectPackage['pitchDeckValidation'];
+    userProxy?: ProjectPackage['userProxy'];
+    riskCritique?: ProjectPackage['riskCritique'];
+    synthesis?: ProjectPackage['synthesis'];
 }
+
+const toProjectPackage = (data: SharePayload): ProjectPackage | null => {
+    if (!isRichSharePackage(data)) return null;
+    return data;
+};
 
 export const ShareLandingPage: React.FC = () => {
     const [shareData, setShareData] = useState<SharePayload | null>(null);
@@ -126,6 +156,21 @@ export const ShareLandingPage: React.FC = () => {
     }
     
     if (!shareData) return null; // Should not happen if logic is correct
+
+    const richPackage = toProjectPackage(shareData);
+    if (richPackage) {
+        return (
+            <div className="w-full min-h-screen bg-brand-bg font-sans text-brand-text">
+                <header className="p-4 bg-brand-surface border-b border-brand-border sticky top-0 z-20 backdrop-blur-sm bg-opacity-80">
+                    <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+                        <div><h1 className="text-2xl font-bold text-brand-primary">Dev Doctor AI</h1><p className="text-sm text-brand-text-muted">Rich shared package: <span className="font-semibold text-brand-text">{richPackage.meta.projectName}</span></p></div>
+                        <button onClick={handleStart} className="bg-brand-secondary hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg">Create Your Own Project</button>
+                    </div>
+                </header>
+                <main className="max-w-7xl mx-auto p-4"><RichPackagePreview packageData={richPackage} /></main>
+            </div>
+        );
+    }
 
     const { projectName, projectType, gddContent, pitchDeckContent, generatedImages, mvpDefinition, tddContent } = shareData;
     const documentTypeName = projectType === ProjectType.GAME ? 'Game Design Document' : 'Product Requirements Document';

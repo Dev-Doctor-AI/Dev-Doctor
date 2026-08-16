@@ -1,8 +1,9 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ProjectType, GDDSection, PitchDeckSlide, GeneratedImages, MVPDefinition, TDDFeature } from '../types';
+import { ProjectType, GDDSection, PitchDeckSlide, GeneratedImages, MVPDefinition, TDDFeature, ProjectPackage } from '../types';
 import { EmailIcon, ClipboardIcon, LinkIcon, CheckIcon, LoaderIcon } from './icons';
+import { createSharePayload } from '../services/sharePackage';
 
 interface ShareButtonProps {
     projectName: string;
@@ -12,6 +13,7 @@ interface ShareButtonProps {
     generatedImages: GeneratedImages;
     mvpDefinition: MVPDefinition | null;
     tddContent: TDDFeature[] | null;
+    projectPackage?: ProjectPackage;
 }
 
 const ShareModal: React.FC<{
@@ -143,10 +145,10 @@ const ShareModal: React.FC<{
 };
 
 
-const ShareButton: React.FC<ShareButtonProps> = ({ projectName, projectType, gddContent, pitchDeckContent, generatedImages, mvpDefinition, tddContent }) => {
+const ShareButton: React.FC<ShareButtonProps> = ({ projectName, projectType, gddContent, pitchDeckContent, generatedImages, mvpDefinition, tddContent, projectPackage }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const payload = useMemo(() => ({
+    const legacyPayload = {
         projectName,
         projectType,
         gddContent,
@@ -154,7 +156,8 @@ const ShareButton: React.FC<ShareButtonProps> = ({ projectName, projectType, gdd
         generatedImages,
         mvpDefinition,
         tddContent,
-    }), [projectName, projectType, gddContent, pitchDeckContent, generatedImages, mvpDefinition, tddContent]);
+    };
+    const payload = useMemo(() => projectPackage ? createSharePayload(projectPackage) : legacyPayload, [projectPackage, projectName, projectType, gddContent, pitchDeckContent, generatedImages, mvpDefinition, tddContent]);
     
     return (
         <>

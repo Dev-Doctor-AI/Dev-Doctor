@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Marines - Project Package</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-bg': '#0a0a0a',
+                        'brand-surface': '#141414',
+                        'brand-primary': '#00A99D',
+                        'brand-secondary': '#6A4C93',
+                        'brand-text': '#EAEAEA',
+                        'brand-text-muted': '#9E9E9E',
+                        'brand-border': '#262626',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
+        body { background-color: #0a0a0a; color: #EAEAEA; font-family: 'Inter', sans-serif; }
+        summary::-webkit-details-marker { display: none; }
+        details summary { list-style: none; }
+        .whitespace-pre-wrap { white-space: pre-wrap; }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 { color: #00A99D; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: bold; }
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 { color: #EAEAEA; margin-top: 1.25rem; margin-bottom: 0.5rem; font-weight: bold; }
+        .markdown-content p { margin-bottom: 1rem; line-height: 1.6; }
+        .markdown-content ul, .markdown-content ol { margin-left: 1.5rem; margin-bottom: 1rem; list-style-type: disc; }
+        .markdown-content li { margin-bottom: 0.25rem; }
+        .markdown-content code { background-color: #1E1E1E; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #00FFCC; }
+        .markdown-content pre { background-color: #1E1E1E; padding: 1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1rem; border: 1px solid #333; }
+        .markdown-content pre code { background-color: transparent; padding: 0; color: #EAEAEA; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; border: 1px solid #333; }
+        .markdown-content th, .markdown-content td { border: 1px solid #333; padding: 0.75rem; text-align: left; }
+        .markdown-content th { background-color: #1E1E1E; color: #00A99D; }
+        .markdown-content tr:nth-child(even) { background-color: #1A1A1A; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+    </style>
+</head>
+<body class="p-4 md:p-8 lg:p-12 max-w-6xl mx-auto">
+    <header class="mb-12">
+        <div class="flex items-center justify-center gap-4 mb-4">
+            <h1 class="text-4xl md:text-6xl font-bold text-brand-primary">Space Marines</h1>
+            <span class="px-3 py-1 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 rounded text-xs font-bold uppercase tracking-wider">
+                Stable
+            </span>
+        </div>
+        <p class="text-xl text-brand-text-muted text-center">Complete Project Documentation Package</p>
+    </header>
+    
+    
+                <nav id="toc" class="mb-12 p-6 bg-brand-surface rounded-xl border border-brand-border shadow-lg">
+                    <h2 class="text-xl font-bold text-brand-primary mb-4">Table of Contents</h2>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <li><a href="#section-gdd" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Design Document (GDD/PRD)</a></li><li><a href="#section-pitch" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Pitch Deck</a></li><li><a href="#section-mvp" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> MVP Definition</a></li><li><a href="#section-tdd-specs" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> MVP Feature Specifications</a></li><li><a href="#section-tdd-final" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Technical Design Document (TDD)</a></li><li><a href="#section-assets" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Asset List</a></li><li><a href="#section-briefs" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Freelance Briefs</a></li><li><a href="#section-scope" class="text-brand-text hover:text-brand-primary transition-colors flex items-center gap-2"><span class="text-brand-primary">→</span> Scope Critical Review</a></li>
+                    </ul>
+                </nav>
+            
+
+    <main>
+        <details id="section-gdd" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Design Document (GDD/PRD)</h2>
+                        <div class="flex items-center gap-4">
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                        </div>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Space Marines: Game Design Document &amp; Systems Architecture</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.1 Executive Summary</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p><em>Space Marines</em> is a high-stakes, cooperative first-person shooter (FPS) built for 4-player squad play. Players assume the roles of genetically augmented, heavily armored frontline operators deployed into deep-space industrial facilities, mining outposts, and derelict naval vessels overrun by biomechanical alien swarms. The core gameplay loop focuses on high-density swarm clearance, resource conservation, positional defense, and coordinated retreat through claustrophobic, low-light corridors.</p>
+<pre><code>       +-------------------------------------------------------------+
+       |                      CORE GAMEPLAY LOOP                     |
+       +-------------------------------------------------------------+
+                                      |
+                                      v
++------------------+        +--------------------+        +--------------------+
+|  Corridor Push   | -----&gt; | Objective Lockdown | -----&gt; | Desperate Retreat  |
+| (Resource Search |        | (Fortify &amp; Hold    |        | (Swarm Pursuit to  |
+|  &amp; Recon Sweep)  |        |  Against Waves)    |        |  Extraction Point) |
++------------------+        +--------------------+        +--------------------+
+         ^                                                          |
+         |                                                          |
+         +------------------- [ Mission Success ] &lt;-----------------+
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.2 Core Design Pillars</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <pre><code>+---------------------------------------------------------------------------------+
+|                              CORE DESIGN PILLARS                                |
++------------------------------------+--------------------------------------------+
+| Pillar                             | Concrete Systems Implementation            |
++------------------------------------+--------------------------------------------+
+| 1. Visceral First-Person Combat    | Heavy, momentum-driven kinematic movement; |
+|                                    | physicalized recoil; high-impact ballistics|
+|                                    | with dynamic, server-validated gibbing.    |
++------------------------------------+--------------------------------------------+
+| 2. Claustrophobic Survival Horror  | Dynamic, clustered forward lighting with   |
+|                                    | flashlight/flare reliance; 3-lane choke    |
+|                                    | level design; dynamic swarm audio cues.    |
++------------------------------------+--------------------------------------------+
+| 3. High-Stakes Co-op Synergy       | Directional shield mechanics; class-linked |
+|                                    | tactical cooldowns; manual assisted reload;|
+|                                    | weldable doors and deployable sentry kits. |
++------------------------------------+--------------------------------------------+
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">1.3 Target Platforms &amp; Performance Budget</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <ul>
+<li><strong>Target Platforms:</strong> PC (Steam), PlayStation 5, Xbox Series X|S.</li>
+<li><strong>Target Framerate/Resolution:</strong> Native 1080p dynamic internal render resolution reconstructed to 1440p/4K via temporal upscaling (AMD FSR 3.1 / NVIDIA DLSS 3.7) @ locked 60 FPS on consoles; scalable up to 144+ FPS on PC.</li>
+<li><strong>PC Baseline Target:</strong> NVIDIA GeForce GTX 1060 (6GB VRAM), AMD Ryzen 5 1600, 16GB System DDR4 RAM.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Frame-Time Budget Allocation (16.66ms Baseline)</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <pre><code>+-----------------------------------------------------------------------------+
+| ENGINE SUBSYSTEM                          | CPU BUDGET (ms) | GPU BUDGET (ms) |
++-------------------------------------------+-----------------+---------------+
+| Flow-Field AI Simulation (Macro Horde)    | 2.80 ms         | 0.00 ms       |
+| Micro NavMesh AI &amp; Animation Evaluation   | 2.20 ms         | 0.00 ms       |
+| Character Movement &amp; Physics Substepping  | 1.80 ms         | 0.50 ms       |
+| Game Logic, Weapon Traces, &amp; Abilities    | 1.50 ms         | 0.00 ms       |
+| Networking &amp; Delta Snapshot Serialization | 1.20 ms         | 0.00 ms       |
+| Clustered Light Culling &amp; Depth Prepass   | 0.50 ms         | 2.80 ms       |
+| Base Pass (Opaque Geometry + VAT Horde)   | 0.60 ms         | 5.40 ms       |
+| Volumetrics, Particles, &amp; Blood Splatters | 0.40 ms         | 3.60 ms       |
+| Post-Processing, Temporal Upscaling, &amp; UI | 0.66 ms         | 4.36 ms       |
++-------------------------------------------+-----------------+---------------+
+| TOTAL ALLOCATED BUDGET                    | 11.66 ms        | 16.66 ms      |
++-------------------------------------------+-----------------+---------------+
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.1 Kinematic Movement Mechanics</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>The Marine movement system balances the feeling of immense weight with precise tactical agility.</p>
+<pre><code>       +-------------------------------------------------------+
+       |               MARINE MOVEMENT STATE MACHINE           |
+       +-------------------------------------------------------+
+
+                     +---------------------------+
+                     |           IDLE            |
+                     +---------------------------+
+                       |                       ^
+          Input Vector |                       | Deceleration Curve
+          Magnitude &gt; 0|                       | (12.0 m/s^2)
+                       v                       |
+                     +---------------------------+
+         +---------&gt; |     TACTICAL JOG          | &lt;---------+
+         |           |      (4.2 m/s)            |           |
+         |           +---------------------------+           |
+         |             |                       ^             |
+Sprint   |      Sprint |                       | Stamina = 0 | Sprint
+Released |       Input |                       | OR Release  | Released
+         |             v                       |             |
+         |           +---------------------------+           |
+         |           |      COMBAT SPRINT        |           |
+         |           |        (6.8 m/s)          |           |
+         |           +---------------------------+           |
+         |             |                       ^             |
+         |       Crouch|                       | Slide Timer |
+         |        Input|                       | Elapsed     |
+         |             v                       |             |
+         |           +---------------------------+           |
+         +---------- |       TACTICAL SLIDE      | ----------+
+                     |    (7.5 -&gt; 2.0 m/s)       |
+                     +---------------------------+
+</code></pre>
+<ul>
+<li><strong>Tactical Jog (Base):</strong> Forward velocity $V_{\text{max}} = 4.2 \text{ m/s}$; Strafe/Backwards $V_{\text{strafe}} = 3.2 \text{ m/s}$. Acceleration curve: $a = 18.0 \text{ m/s}^2$; Deceleration damping: $d = 12.0 \text{ m/s}^2$.</li>
+<li><strong>Combat Sprint:</strong> Forward-only velocity $V_{\text{sprint}} = 6.8 \text{ m/s}$. Requires sustained input. Drains stamina pool ($100 \text{ units}$) at $15 \text{ units/sec}$. Turn-rate limited by angular velocity cap ($\omega_{\text{max}} = 120^\circ/\text{s}$) to communicate mechanical inertia.</li>
+<li><strong>Tactical Slide:</strong> Initiated by pressing <code>[Crouch]</code> while sprinting. Immediate impulse velocity of $7.5 \text{ m/s}$, decaying non-linearly over $1.2 \text{ seconds}$ to a static crouch ($2.0 \text{ m/s}$). Marine can fire high-dispersion hip fire during the slide.</li>
+<li><strong>Mantle &amp; Vault:</strong> High-speed trace sweeps dynamically identify ledges between $0.5\text{m}$ and $2.1\text{m}$. Root-motion interpolation executes vertical clearance at $2.2 \text{ m/s}$, restricting primary weapon fire during the transition.</li>
+<li><strong>Inertial Landing Damping:</strong> Vertical falls $&gt; 3.5 \text{ meters}$ trigger an impact compression state, reducing movement speed by $40%$ for $0.6 \text{ seconds}$ and inducing procedural vertical camera displacement.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.2 Armor Integrity &amp; Ablative Plating System</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>Marine survivability is governed by a two-tier defense model: <strong>Ablative Power Armor (APA)</strong> and <strong>Biological Vitality (HP)</strong>.</p>
+<pre><code>Incoming Damage Vector
+         |
+         v
++---------------------------------------------------+
+| Is Directional Kinetic Barrier Active?            |
+| -&gt; YES: Mitigate 75% Damage, Apply Shield Drain   |
+| -&gt; NO: Pass to Ablative Plating                   |
++---------------------------------------------------+
+         |
+         v
++---------------------------------------------------+
+| Ablative Armor Remaining?                         |
+| -&gt; YES: Absorb via Segment Damage Reduction       |
+| -&gt; NO: Pass unmitigated damage directly to HP     |
++---------------------------------------------------+
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">Armor Damage Reduction Formula</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <p>$$D_{\text{applied}} = D_{\text{raw}} \times \left(1.0 - \text{Clamp}\left(\frac{\text{Armor}<em>{\text{current}}}{\text{Armor}</em>{\text{max}}} \times R_{\text{mitigation}}, , 0.0, , 0.85\right)\right)$$</p>
+<p>Where $R_{\text{mitigation}}$ is the class base mitigation coefficient (Nominal: $0.65$; Heavy Gunner: $0.80$).</p>
+<ul>
+<li><strong>Directional Armor Plating:</strong> Armor is split into four distinct quadrants: <em>Frontal Torso</em>, <em>Rear Torso</em>, <em>Left Flank</em>, and <em>Right Flank</em>. Attacks from the rear bypass $50%$ of remaining armor points directly to HP.</li>
+<li><strong>Depletion &amp; Shield-Gate:</strong> When an armor quadrant hits $0 \text{ pts}$, a $0.25\text{-second}$ invulnerability window (Shield-Gate) triggers, preventing fatal one-shot damage spikes from high-tier alien attacks.</li>
+<li><strong>Field Repair:</strong> Armor does not regenerate automatically. Players must use Field Welding Torches or pick up Nanite Armor Cores from supply crates.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-brand-primary mt-0 mb-3">2.3 Class Kits &amp; Specifications</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <pre><code>+-------------------------------------------------------------------------------------------------------------------------------+
+| CLASS SPECIFICATION MATRIX                                                                                                    |
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+| Class             | Armor   | Health | Passive Ability                    | Tactical Ability         | Ultimate Ability       |
+|                   | Points  | Points |                                    | (Cooldown)               | (Charge Requirement)   |
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+| 1. Tactician      | 200 pts | 100 HP | Target Priority Scanner:           | Pulse Sonar Beacon       | Orbital Lance Beacon   |
+|                   |         |        | High-threat units take +15% damage | (30s CD): Pings all      | (1000 Kills/Buff Pts): |
+|                   |         |        | from all squad members in 20m.     | enemies in 25m for 8s.   | Penetrating kinetic strike.|
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+| 2. Heavy Gunner   | 350 pts | 150 HP | Gyroscopic Stabilizer:             | Hardpoint Shield Deploy  | Overdrive Venting      |
+|                   |         |        | Weapon spread bloom is reduced by  | (45s CD): Frontal arc    | (1200 Kills/Buff Pts): |
+|                   |         |        | 40% when stationary or crouched.   | barrier absorbing 1500dmg| Infinite ammo for 10s. |
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+| 3. Demolitionist  | 250 pts | 100 HP | Blast Padding: 50% resistance to   | Proximity Mine Cluster   | Thermite Barrage Pod   |
+|                   |         |        | self/friendly explosive damage;    | (25s CD): Deploys 3      | (900 Kills/Buff Pts):  |
+|                   |         |        | +25% explosive blast radius.       | sensor-detonated mines.  | Carpet-saturates 15m zone.|
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+| 4. Field Medic    | 180 pts | 120 HP | Combat Triage: Revive downed       | Nanite Stim Dart         | Defibrillator Field    |
+|                   |         |        | allies 50% faster; reviving        | (20s CD, 3 Charges):     | (800 Kills/Buff Pts):  |
+|                   |         |        | restores 50% armor instantly.      | Heals 40 HP over 4s.     | AOE revive all downeds.|
++-------------------+---------+--------+------------------------------------+--------------------------+------------------------+
+</code></pre>
+<pre><code>+-------------------------------------------------------------------------------------------------------------------------------+
+| CLASS TALENT TREES (Branch Paths: Tier 1 -&gt; Tier 2 -&gt; Tier 3 Mastery)                                                        |
++-------------------+---------------------------------------+-----------------------------------+-------------------------------+
+| Class             | Offensive Branch                      | Defensive/Support Branch          | Utility/Tech Branch           |
++-------------------+---------------------------------------+-----------------------------------+-------------------------------+
+| 1. Tactician      | Mark Vulnerability (+25% Crit Damage) | Squad Radio Link (+10% Movement)  | Ammo Fabricator (+20% Resup)  |
+| 2. Heavy Gunner   |
+</code></pre>
+
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-pitch" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Pitch Deck</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-8 border-t border-brand-border"><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 1: Title Slide</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h1>SPACE MARINES</h1>
+<h3>Gritty, High-Stakes Co-op Horde Survival</h3>
+<ul>
+<li><strong>Genre:</strong> Tactical Co-op First-Person Shooter (FPS)</li>
+<li><strong>Target Platforms:</strong> PC | PlayStation 5 | Xbox Series X|S</li>
+<li><strong>Core Vision:</strong> An intense, claustrophobic squad survival experience pitting heavy armor and heavy firepower against relentless, high-density alien swarms inside dark industrial corridors.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 2: The Problem</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>The Gap in Co-op Horde Shooters</h3>
+<ul>
+<li><strong>Compromised Swarm Density:</strong> Existing co-op shooters routinely cap active enemy counts or retreat to wide-open arenas to manage AI overhead, diluting the visceral dread of fighting an overwhelming biomass in tight spaces.</li>
+<li><strong>Loss of Claustrophobic Tension:</strong> Modern shooters emphasize high-mobility kite mechanics over heavy, grounded squad defense, leaving players without a true dark, corridor-based &quot;last stand&quot; survival horror experience.</li>
+<li><strong>Superficial Swarm Mechanics:</strong> High-count enemy games often sacrifice individual combat reactivity, hit responsiveness, and close-quarters threat dynamics just to keep frame rates stable.</li>
+<li><strong>The Unmet Desire:</strong> Players want the immediate, heavy impact of first-person gunplay and tactical squad coordination against 250+ relentless enemies bearing down narrow industrial chokepoints without technical compromises.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 3: The Solution: Your Project</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>High Concept Pitch</h3>
+<p><strong>Space Marines</strong> is a gritty, high-stakes co-op first-person shooter delivering an intense horde-survival experience. Players don heavy armor and wield overwhelming firepower to mount desperate, back-to-back last stands against high-density alien swarms deep within dark, industrial corridors.</p>
+<h3>The Core Pillars</h3>
+<ul>
+<li><strong>Visceral First-Person Combat:</strong> Heavy, responsive gunplay and immediate physical feedback engineered for close-quarters firefights.</li>
+<li><strong>Claustrophobic Survival Horror:</strong> Dark, narrow industrial environments that cultivate relentless tension, tactical flashlight discipline, and panic-inducing chokepoints.</li>
+<li><strong>High-Density Horde Warfare:</strong> Groundbreaking macro-to-micro horde architecture delivering 250–300 simultaneous on-screen enemies without sacrificing performance.</li>
+<li><strong>High-Stakes Squad Co-op:</strong> Coordinated defensive holding lines, shared firing lanes, and synchronized resource management across PC, PS5, and Xbox Series X|S (Target: 1080p @ 60 FPS).</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 4: Core Features &amp; Loop</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>The Core Engagement Loop</h3>
+<ul>
+<li><strong>Infiltrate &amp; Secure:</strong> Squads navigate dark, claustrophobic industrial corridors with limited visibility and scarce resources.</li>
+<li><strong>Hold &amp; Coordinate:</strong> Establish defensive choke points and coordinate overlapping fire zones as threat levels spike.</li>
+<li><strong>Survive the Swarm:</strong> Repel 250–300 simultaneous active alien bio-threats through sustained, back-to-back combat.</li>
+<li><strong>Extract / Push Forward:</strong> Clean up surviving close-quarters targets and advance deeper into infested territory.</li>
+</ul>
+<h3>Key Mechanics &amp; Features</h3>
+<ul>
+<li><strong>Seamless Macro-to-Micro Horde Combat:</strong> Flow-field AI navigates massive swarms down tight corridors, dynamically converting to individual NavMesh attack agents within 15 meters for direct melee engagement.</li>
+<li><strong>Visceral Kinetic Gunplay:</strong> Heavy firepower paired with immediate physical responsiveness, supported by client-side ragdoll physics, dismemberment bitmasks, and impact gore.</li>
+<li><strong>High-Tension Claustrophobic Defense:</strong> Tight corridor layouts force rigid squad formations, tactical flashlight/lighting discipline, and relentless choke-point management.</li>
+<li><strong>Responsive Co-Op Shooting:</strong> Low-bandwidth, client-predicted hit registration backed by server-side validation guarantees instant feedback against high-volume target packs.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 5: Unique Selling Proposition</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>What Sets <em>Space Marines</em> Apart</h3>
+<ul>
+<li><p><strong>Macro-Scale Density in Claustrophobic Spaces</strong></p>
+<ul>
+<li>Simulates <strong>250–300 simultaneous active enemies</strong> inside tight industrial corridors, blending flow-field swarm flocking with individual micro-NavMesh combatants within 15 meters.</li>
+<li>Achieves massive visual density via GPU-instanced Vertex Animation Textures (VATs) without sacrificing 60 FPS performance.</li>
+</ul>
+</li>
+<li><p><strong>Zero Dedicated Server Hosting Costs</strong></p>
+<ul>
+<li>Utilizes a proprietary <strong>Tiered Spatial LOD Listen-Server Architecture</strong>.</li>
+<li>Distant hordes simulate deterministically via sparse client vectors, while proximal targets (&lt;15m) synchronize at 20Hz—delivering authoritative co-op combat without expensive recurring server infrastructure.</li>
+</ul>
+</li>
+<li><p><strong>Visceral, High-Tension First-Person Immersion</strong></p>
+<ul>
+<li>Shifts the horde-survival paradigm from open-field arenas to dark, claustrophobic corridors using Clustered Forward lighting (muzzle flashes, flashlights).</li>
+<li>Features deterministic, server-validated hit registration paired with client-side reactive dismemberment and gore physics.</li>
+</ul>
+</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 6: Target Audience</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>Ideal Player Profile</h3>
+<ul>
+<li><strong>The Tactical Co-op Enthusiast:</strong> Squad-oriented gamers who thrive on high-stakes communication, holding defensive perimeters, and overcoming overwhelming odds alongside friends.</li>
+<li><strong>The Visceral Action &amp; Survival Fan:</strong> Players drawn to gritty, industrial sci-fi atmospheres, heavy armor combat, and intense, panic-inducing horde survival against 250–300 relentless alien hostiles.</li>
+<li><strong>Core Competency:</strong> Mid-core to hardcore FPS players seeking mechanically deep gunplay, tactical positioning, and reactive dismemberment combat.</li>
+</ul>
+<h3>Market Reach &amp; Hardware Accessibility</h3>
+<ul>
+<li><strong>Platform Footprint:</strong> Multiplatform release spanning <strong>PC, PlayStation 5, and Xbox Series X|S</strong>, capturing the active current-gen co-op multiplayer audience.</li>
+<li><strong>Broad Hardware Penetration:</strong> Highly optimized baseline (1080p @ 60 FPS on GTX 1060 / Ryzen 5 1600 via DLSS/FSR) ensures low barrier-to-entry for mid-spec PC players without sacrificing visual fidelity.</li>
+<li><strong>Frictionless Community Growth:</strong> Client-hosted listen-server architecture enables global squad formation and frictionless multiplayer access across all target platforms.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 7: Art &amp; Style</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>Visual Direction: Industrial Realism Meets Visceral Bio-Horror</h3>
+<ul>
+<li><strong>Claustrophobic Industrial Environments:</strong> Decaying mega-structures, cramped metallic corridors, exposed conduit, and grinding bulkheads slowly being consumed by aggressive organic hive matter.</li>
+<li><strong>Bulky, Mechanized Soldier Aesthetic:</strong> Functional, heavy-duty ballistic armor with scratched plating, tactical wear, and utilitarian weapon designs that emphasize mechanical recoil, mass, and kinetic power.</li>
+<li><strong>High-Contrast Tactical Lighting:</strong> Pitch-black sectors pierced by weapon-mounted flashlights, emergency strobe beacons, and muzzle flashes—leveraging clustered forward lighting to amplify tension and dread.</li>
+<li><strong>Visceral Biological Gore:</strong> Distinctive, glistening chitinous alien designs with dynamic client-side dismemberment, acid spray, and layered blood decals that visually reinforce heavy weapon impact.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 8: The Team</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>Built to Deliver High-Density, High-Performance Co-Op</h3>
+<ul>
+<li><p><strong>Lead Game Director &amp; Combat Designer</strong>  </p>
+<ul>
+<li>12+ years of experience leading AAA/AA first-person shooter combat design.  </li>
+<li>Specializes in tight gunplay mechanics, claustrophobic pacing, and squad-based horde survival systems.</li>
+</ul>
+</li>
+<li><p><strong>Lead Technical Architect (AI &amp; Networking)</strong>  </p>
+<ul>
+<li>Expert in scalable multiplayer systems and data-oriented design.  </li>
+<li>Designed the proprietary flow-field horde AI (250–300 entities) and bandwidth-efficient listen-server tiered replication architecture.</li>
+</ul>
+</li>
+<li><p><strong>Principal Graphics &amp; Technical Artist</strong>  </p>
+<ul>
+<li>Veteran in multiplatform optimization across PC, PlayStation 5, and Xbox Series X|S.  </li>
+<li>Implemented the Clustered Forward rendering pipeline, GPU-instanced VAT animation systems, and dynamic lighting optimization.</li>
+</ul>
+</li>
+<li><p><strong>Executive Producer</strong>  </p>
+<ul>
+<li>Proven track record managing multiplatform milestones and budget-disciplined production pipelines from concept through launch.</li>
+</ul>
+</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 9: The Ask &amp; Roadmap</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>What We Are Seeking</h3>
+<ul>
+<li><strong>Publishing Partnership &amp; Production Funding:</strong> Capital and publishing support to drive full-scale production, QA, multiplatform certification, and global go-to-market execution.</li>
+<li><strong>Strategic Support:</strong> Platform co-marketing and distribution support for simultaneous release on PC, PlayStation 5, and Xbox Series X|S.</li>
+</ul>
+<h3>Budget Allocation</h3>
+<ul>
+<li><strong>Content &amp; Level Production (45%):</strong> Infested industrial environments, class-specific heavy weaponry, and alien horde archetype expansion.</li>
+<li><strong>Engineering &amp; Optimization (25%):</strong> Horde VAT pipeline, listen-server replication hardening, and DLSS/FSR integration targeting 1080p @ 60 FPS across all platforms.</li>
+<li><strong>QA, Network Testing &amp; Certification (20%):</strong> Stress-testing 300-enemy networked simulations, console platform compliance, and security validation.</li>
+<li><strong>Marketing &amp; Launch Operations (10%):</strong> Community engagement, beta test management, and storefront asset production.</li>
+</ul>
+<h3>Production Roadmap</h3>
+<ul>
+<li><strong>Phase 1: Core Tech Validation (Current Milestone)</strong><ul>
+<li>Macro flow-field simulation &amp; micro NavMesh handoff validated at 250–300 entities.</li>
+<li>Client-side cosmetic dismemberment and hit-payload verification implemented.</li>
+</ul>
+</li>
+<li><strong>Phase 2: Alpha — Gameplay &amp; Systems Complete (6 Months)</strong><ul>
+<li>Full 4-player co-op mission loop and industrial corridor environments.</li>
+<li>Tiered spatial LOD networking and listen-server validation finalized.</li>
+</ul>
+</li>
+<li><strong>Phase 3: Beta — Multiplatform Optimization &amp; Cert (4 Months)</strong><ul>
+<li>Console certification pass (PS5, Xbox Series X|S).</li>
+<li>Performance benchmarking: 1080p @ 60 FPS target lock on minimum PC spec (GTX 1060 / Ryzen 5 1600) and consoles.</li>
+</ul>
+</li>
+<li><strong>Phase 4: Commercial Launch</strong><ul>
+<li>Simultaneous global release on PC, PlayStation 5, and Xbox Series X|S.</li>
+</ul>
+</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div><div class="bg-brand-bg border border-brand-border rounded-lg overflow-hidden flex flex-col min-h-[500px]">
+                        <div class="px-6 py-4 bg-brand-surface/50 border-b border-brand-border">
+                            <h4 class="text-xl font-bold text-brand-primary">SLIDE 10: Contact Information</h4>
+                        </div>
+                        <div class="flex flex-col md:flex-row flex-grow">
+                            
+                                <div class="w-full p-12 flex items-center justify-center text-center">
+                                    <div class="prose prose-invert prose-2xl max-w-none">
+                                        <h3>Connect &amp; Follow-Up</h3>
+<p>For technical deep-dives, playable prototype demonstrations, and partnership inquiries regarding <strong>Space Marines</strong>:</p>
+<ul>
+<li><strong>Production &amp; Executive Inquiries:</strong> <code>[Project Lead / Studio Inquiries]</code></li>
+<li><strong>Technical &amp; Architecture Review:</strong> <code>[Technical Lead / Engineering Inquiries]</code></li>
+<li><strong>Data Room &amp; Materials Access:</strong> <code>[Investor Portal / Pitch Inquiries]</code></li>
+</ul>
+<h3>Available Due Diligence Materials</h3>
+<ul>
+<li><strong>Technical Architecture Whitepaper:</strong> Detailed breakdown of flow-field macro AI, quantized network snapshotting, and GPU-instanced VAT rendering.</li>
+<li><strong>Performance &amp; Hardware Benchmarks:</strong> Profile captures validating target 1080p @ 60 FPS performance baselines across PC, PlayStation 5, and Xbox Series X|S.</li>
+<li><strong>Production Roadmap &amp; Milestone Schedule:</strong> Timeline covering pre-production through cross-platform commercial deployment.</li>
+</ul>
+
+                                    </div>
+                                </div>
+                            
+                        </div>
+                    </div></div></details>
+<details id="section-mvp" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">MVP Definition</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border">
+                        <div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                            <h3 class="text-lg font-bold text-brand-primary mb-2">Summary</h3>
+                            <p class="text-brand-text-muted">The MVP targets a playable 4-player co-op vertical slice on PC that validates the core game loop: a corridor push, an objective lockdown wave defense, and a high-intensity retreat to extraction. It retains the signature weighty kinematic movement, directional quadrant armor mechanics, and baseline 4-class tactical synergy while cutting progression trees, secondary platforms, and multi-biome content.</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-4 bg-green-900/10 rounded-lg border border-green-500/30">
+                                <h3 class="text-lg font-bold text-green-400 mb-3">In Scope</h3>
+                                <ul class="space-y-2">
+                                    <li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> **Core 3-Phase Mission Loop:** One claustrophobic industrial facility corridor map supporting the full &quot;Corridor Push $\rightarrow$ Objective Lockdown $\rightarrow$ Desperate Retreat&quot; cycle with flow-field alien horde pathing.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> **4-Class Baseline Roster:** Implementation of Tactician, Heavy Gunner, Demolitionist, and Field Medic with their default weapon kits, passive perks, tactical abilities, and ultimate abilities.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> **Weighty Kinematic Movement System:** Marine movement state machine including Tactical Jog, directional Combat Sprint with stamina drain and inertia caps, Tactical Slide with hip-fire dispersion, and vertical mantle/vault mechanics.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> **Quadrant Ablative Armor &amp; Health Model:** Directional 4-quadrant armor simulation (front, rear, flanks) with rear-bypass math, 0.25s shield-gate invulnerability windows, and manual nanite/welder repair mechanics.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-green-400">✓</span> **PC Steam Multiplayer Baseline:** 4-player networked co-op targeting the PC hardware baseline (GTX 1060 / Ryzen 5 1600).</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-red-900/10 rounded-lg border border-red-500/30">
+                                <h3 class="text-lg font-bold text-red-400 mb-3">Out of Scope</h3>
+                                <ul class="space-y-2">
+                                    <li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> **Multi-Branch Class Talent Trees:** Tier 1–3 mastery customization branches (Offensive, Defensive/Support, Utility/Tech) for all classes.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> **Console Platform Releases:** Development, platform SDK integrations, and compliance testing for PlayStation 5 and Xbox Series X|S.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> **Multiple Environment Biomes:** Deep-space mining outposts, derelict naval flagships, and dynamic multi-lane map variants.</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-red-400">✕</span> **Advanced Upscaling Integration:** Vendor-specific temporal upscaling pipelines (NVIDIA DLSS 3.7 / AMD FSR 3.1 frame generation suites).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+<details id="section-tdd-specs" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">MVP Feature Specifications</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Core 3-Phase Mission Loop and Flow-Field Horde Pathing</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a Space Marine squad operative, I want to advance through tight industrial corridors, defend a central terminal during lockdown, and fight through pursuing alien swarms to extraction, so that my squad experiences a complete, escalating tactical mission loop.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Phase state is server-authoritative and synchronized via network bitmasks. Flow-field implementation uses an Eikonal/Dijkstra cost-field updated on a 10 Hz tick rate across a 2D tile proxy overlaid on Sub-Level 04 navmesh, with unit steering and separation forces computed via SIMD/Boids evaluation at 30 Hz. Alien horde simulation CPU budget must not exceed 3.5ms per frame on the AMD Ryzen 5 1600 baseline.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Baseline 4-Class Tactical Combat Roster (Tactician, Heavy Gunner, Demolitionist, Field Medic)</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a co-op squad player, I want to select and deploy as one of four distinct baseline classes—Tactician, Heavy Gunner, Demolitionist, or Field Medic—equipped with fixed default weapon kits, signature passives, tactical cooldown abilities, and high-impact ultimate abilities, so that our four-player squad can synergize directional armor defense, crowd control, fire support, and team sustainment during the mission loop.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Class state, weapon inventory, ability timers, and charge pools are defined via static data assets (DataTables) with talent trees stripped out for MVP. Networking follows a client-prediction / server-authoritative replication model using Unreal Engine Gameplay Ability System (GAS) concepts: ability inputs trigger local visual prediction cues, while cooldown deducts, projectile spawning, and buff/debuff tags (e.g., &#39;State.Debuff.TargetMarked&#39;) are validated and replicated by the listen-server host at 30Hz minimum. Replicated class struct size is constrained under 128 bytes per player to maintain low network overhead on baseline broadband connections.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Weighty Kinematic Movement System</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a Marine combat operator, I want a grounded, physics-informed locomotion system with momentum constraints, directional sprinting, tactical sliding, and contextual mantling, so that positioning in claustrophobic corridors feels deliberate, weighty, and mechanically tactical.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Implemented via a C++ Character Movement Component sub-state machine (Idle, Tactical Jog, Combat Sprint, Tactical Slide, Mantle/Vault). Kinematic sweep traces (forward forward-box trace 0.8m x 1.2m, downward ledge trace) execute at 60Hz. Networked co-op uses standard client-side prediction with server replay buffers (sending sprint/slide timestamps and compressed input vectors). Dynamic inertia caps limit maximum yaw angular acceleration based on class mass multiplier to preserve heavy armor physical sensation on the GTX 1060 / Ryzen 5 1600 hardware baseline.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Quadrant Ablative Armor &amp; Health Model</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a Space Marine player, I want incoming damage resolved against four discrete directional armor quadrants (Front, Rear, Left Flank, Right Flank) with shield gating and manual nanite repair mechanics, so that positioning, squad facing, and active field maintenance dictate tactical survival.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Directional resolution calculated via 2D horizontal plane dot/cross product: cosTheta = Dot(MarineForward2D, Normalize(AttackerPosition2D - MarinePosition2D)). Damage replication uses bit-packed quadrant flags and uint8 health/armor deltas to minimize bandwidth. Shield-gate state is managed as an authoritative server timer; client predicts armor visual decay but cannot predict gate health invulnerability. Welder tool raycasts against four parented capsule colliders mapping directly to quadrant IDs.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">PC Steam Multiplayer Baseline &amp; Hardware Performance Optimization</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border/30 bg-brand-surface/30">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">User Stories & Criteria</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>As a Space Marine squad leader, I want to create, join, and synchronize 4-player co-op sessions via Steamworks with authoritative state replication on hardware equivalent to a GTX 1060 and Ryzen 5 1600, so that our squad can execute corridor-to-extraction tactical missions at stable 1080p 60 FPS without networking desync or frame spikes.</p>
+</div></div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-brand-primary mb-3 pb-2 border-b border-brand-border">Technical Specifications</h4>
+                                    <div class="space-y-2"><div class="prose prose-invert prose-sm max-w-none"><p>Built on Steamworks SDK v1.58+ using ISteamNetworkingSockets with Valve P2P relays (SDR). Topology is listen-server authoritative (Host Marine simulates horde navigation, flow fields, and hit validation). Quadrant armor updates utilize delta-encoded bitmasks (8-bit quadrant ID + 16-bit fixed-point float for health/armor pool values). Horde network serialization uses hierarchical entity batching (position quantization to 16-bit ints, 8-bit yaw) updating at 15 Hz for distant enemies and 30 Hz for proximate enemies within 15 meters of any Marine. Memory and draw call budgets optimized for Pascal architecture: max 2,200 draw calls per frame, 1080p target rendering with static cascade shadow maps.</p>
+</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-tdd-final" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Technical Design Document (TDD)</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">1. System Overview &amp; Core Engine Architecture</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none font-mono">
+                                <h3>1.1 Architectural Vision &amp; Engine Framework</h3>
+<p>The <em>Space Marines</em> engine architecture is built upon a hybrid Object-Oriented/Data-Oriented design pattern leveraging Unreal Engine 5.4 C++ with a custom Data-Oriented Technology stack for dense entity operations. The system isolates high-frequency simulations (horde pathing, steering, and hit detection) into memory-contiguous, Cache-friendly Structures of Arrays (SoA), while player mechanics, tactical abilities, and mission flow leverage a decoupled, event-driven architecture using lightweight Gameplay Ability System (GAS) primitives.</p>
+<pre><code>+--------------------------------------------------------------------------------------+
+|                                 SpaceMarines Game Engine                             |
++--------------------------------------------------------------------------------------+
+| [Core Systems]                                                                       |
+|  +---------------------------+   +----------------------------+   +----------------+ |
+|  |   Mission Director FSM    |--&gt;| Class &amp; GAS Ability Engine |--&gt;| Player Pawns   | |
+|  +---------------------------+   +----------------------------+   +----------------+ |
+|                |                               |                           |         |
+|                v                               v                           v         |
+|  +---------------------------------------------------------------------------------+ |
+|  |                     Kinematic Character Movement Component                      | |
+|  +---------------------------------------------------------------------------------+ |
+|                                                |                                     |
+| [Horde &amp; Simulation Core]                      v                                     |
+|  +---------------------------+   +----------------------------+   +----------------+ |
+|  | Flow-Field Grid (Eikonal) |--&gt;|   SIMD Steering / Flocking |--&gt;| Promotion FSM  | |
+|  +---------------------------+   +----------------------------+   +----------------+ |
+|                                                |                   (&lt;15m NavMesh)    |
+|                                                v                                     |
+| [Networking &amp; Rendering Pipelines]                                                   |
+|  +---------------------------+   +----------------------------+   +----------------+ |
+|  | Steamworks SDR P2P Relay  |   | Clustered Forward Shading  |   | GPU-Instanced  | |
+|  | Listen-Server Authority   |   | Fixed Cascade Shadow Maps  |   | VAT Mesh Batch | |
+|  +---------------------------+   +----------------------------+   +----------------+ |
++--------------------------------------------------------------------------------------+
+</code></pre>
+<h3>1.2 Subsystem Dependencies and Memory Layout</h3>
+<p>To satisfy the 16GB total system RAM constraint and AMD Ryzen 5 1600 processing budget, dynamic allocations in the game tick are prohibited. Subsystems register with a central <code>USpaceMarineEngineSubsystem</code> singleton managing linear scratchpad allocators and pre-allocated object pools:</p>
+<ul>
+<li><strong>Horde Memory Arena:</strong> 32MB contiguous buffer housing <code>FMacroSwarmEntity</code> structs (300 max instances at 64 bytes aligned = 19.2 KB active dataset; remaining reserved for spatial hash cells and potential field buffers).</li>
+<li><strong>Spatial Tile Proxy Grid:</strong> 512x512 grid cells (256m x 256m play area at 0.5m resolution), 8-bit cost field, 16-bit integration field, 16-bit packed vector flow field = 1.25MB contiguous SRAM cache footprint.</li>
+<li><strong>Replication Delta Buffer:</strong> 4MB circular ring buffer per client for delta-compression and packet replay validation.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">2. High-Density Horde Simulation &amp; Flow-Field Navigation</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none font-mono">
+                                <h3>2.1 Eikonal / Dijkstra Flow-Field Architecture</h3>
+<p>The macro horde pathing bypasses standard A* per-agent calculation in favor of a 2D tile proxy grid overlaid directly on the corridor geometry. The navigation is divided into two phases: <strong>Cost Field Generation</strong> (static geometry + dynamic obstacles) and <strong>Integration/Vector Field Evaluation</strong> solved at 10 Hz.</p>
+<pre><code>+-----------------------+     +------------------------+     +-------------------------+
+| Level Collision Mesh  | --&gt; | Static Cost Field Grid | --&gt; | Dynamic Obstacle Layer  |
++-----------------------+     +------------------------+     +-------------------------+
+                                                                          |
+                                                                          v
++-----------------------+     +------------------------+     +-------------------------+
+| Output Vector Field   | &lt;-- | 8-Directional Vector   | &lt;-- | Dijkstra / Eikonal      |
+| (X: int8, Y: int8)    |     | Normalization (SIMD)   |     | Wavefront Integration   |
++-----------------------+     +------------------------+     +-------------------------+
+</code></pre>
+<h4>Cost Field and Vector Field Generation Algorithm</h4>
+<pre><code class="language-cpp">struct alignas(64) FFlowFieldTile {
+    static constexpr uint32_t GRID_DIM = 512;
+    static constexpr float CELL_SIZE = 50.0f; // 50cm per cell
+
+    uint8_t  CostField[GRID_DIM * GRID_DIM];          // 0xFF = Impassable, 1-254 = Cost
+    uint16_t IntegrationField[GRID_DIM * GRID_DIM];   // Distance potential
+    int8_t   VectorFieldX[GRID_DIM * GRID_DIM];       // Normalized direction [-127, 127]
+    int8_t   VectorFieldY[GRID_DIM * GRID_DIM];
+};
+
+void UpdateIntegrationField(FFlowFieldTile&amp; Grid, const TArray&lt;FVector2D&gt;&amp; TargetPositions) {
+    std::fill(std::begin(Grid.IntegrationField), std::end(Grid.IntegrationField), 0xFFFF);
+    
+    // Min-Heap priority queue driven by a circular bucket array
+    TArray&lt;uint32_t&gt; OpenQueue;
+    OpenQueue.Reserve(4096);
+
+    for (const FVector2D&amp; Target : TargetPositions) {
+        uint32_t CellX = FMath::Clamp(static_cast&lt;uint32_t&gt;(Target.X / Grid.CELL_SIZE), 0u, Grid.GRID_DIM - 1);
+        uint32_t CellY = FMath::Clamp(static_cast&lt;uint32_t&gt;(Target.Y / Grid.CELL_SIZE), 0u, Grid.GRID_DIM - 1);
+        uint32_t CellIndex = CellY * Grid.GRID_DIM + CellX;
+        
+        Grid.IntegrationField[CellIndex] = 0;
+        OpenQueue.Add(CellIndex);
+    }
+
+    // 8-neighbor offsets and base distances (fixed point 1.0 and 1.414)
+    static const int32_t DX[8] = { 0, 1, 0, -1, 1, -1, 1, -1 };
+    static const int32_t DY[8] = { 1, 0, -1, 0, 1, 1, -1, -1 };
+    static const uint16_t StepCost[8] = { 10, 10, 10, 10, 14, 14, 14, 14 };
+
+    int32_t Head = 0;
+    while (Head &lt; OpenQueue.Num()) {
+        uint32_t Current = OpenQueue[Head++];
+        uint32_t CurX = Current % Grid.GRID_DIM;
+        uint32_t CurY = Current / Grid.GRID_DIM;
+        uint16_t CurCost = Grid.IntegrationField[Current];
+
+        for (int32_t i = 0; i &lt; 8; ++i) {
+            int32_t NX = static_cast&lt;int32_t&gt;(CurX) + DX[i];
+            int32_t NY = static_cast&lt;int32_t&gt;(CurY) + DY[i];
+
+            if (NX &gt;= 0 &amp;&amp; NX &lt; Grid.GRID_DIM &amp;&amp; NY &gt;= 0 &amp;&amp; NY &lt; Grid.GRID_DIM) {
+                uint32_t NeighborIdx = NY * Grid.GRID_DIM + NX;
+                uint8_t TerrainCost = Grid.CostField[NeighborIdx];
+                if (TerrainCost == 0xFF) continue;
+
+                uint16_t NewCost = CurCost + StepCost[i] + TerrainCost;
+                if (NewCost &lt; Grid.IntegrationField[NeighborIdx]) {
+                    Grid.IntegrationField[NeighborIdx] = NewCost;
+                    OpenQueue.Add(NeighborIdx);
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h3>2.2 SIMD / AVX2 Steering and Flocking Pipeline (30 Hz Tick)</h3>
+<p>Macro entities update positions via an AVX2-optimized structure-of-arrays (SoA) evaluation loop executing within a 3.5ms CPU budget on the AMD Ryzen 5 1600:</p>
+<pre><code class="language-cpp">struct alignas(32) FMacroSwarmSoA {
+    float PosX[320];
+    float PosY[320];
+    float PosZ[320];
+    float VelX[320];
+    float VelY[320];
+    float VelZ[320];
+    uint16_t EntityID[320];
+    uint8_t  StateFlags[320]; // 0x01: Active, 0x02: Promoted, 0x04: Stunned
+};
+
+void ExecuteFlockingSIMD(FMacroSwarmSoA&amp; Swarm, const FFlowFieldTile&amp; Grid, float DeltaTime, int32_t EntityCount) {
+    __m256 vDT = _mm256_set1_ps(DeltaTime);
+    __m256 vMaxSpeed = _mm256_set1_ps(650.0f); // 6.5 m/s swarm rush speed
+    __m256 vCellInv = _mm256_set1_ps(1.0f / Grid.CELL_SIZE);
+
+    for (int32_t i = 0; i &lt; EntityCount; i += 8) {
+        __m256 pX = _mm256_load_ps(&amp;Swarm.PosX[i]);
+        __m256 pY = _mm256_load_ps(&amp;Swarm.PosY[i]);
+        
+        // Convert World Position to Grid Indices
+        __m256 gX = _mm256_floor_ps(_mm256_mul_ps(pX, vCellInv));
+        __m256 gY = _mm256_floor_ps(_mm256_mul_ps(pY, vCellInv));
+        
+        // Vector field sampling and linear integration...
+        __m256 vX = _mm256_load_ps(&amp;Swarm.VelX[i]);
+        __m256 vY = _mm256_load_ps(&amp;Swarm.VelY[i]);
+        
+        pX = _mm256_fmadd_ps(vX, vDT, pX);
+        pY = _mm256_fmadd_ps(vY, vDT, pY);
+        
+        _mm256_store_ps(&amp;Swarm.PosX[i], pX);
+        _mm256_store_ps(&amp;Swarm.PosY[i], pY);
+    }
+}
+</code></pre>
+<h3>2.3 Macro-to-Micro Promotion System (&lt;15m Dynamic Transition)</h3>
+<ul>
+<li><strong>Promotion Trigger:</strong> When Euclidean distance <code>|EntityPos - PlayerPos| &lt; 1500.0f</code> (15m), the entity state flag shifts from <code>Macro</code> to <code>MicroNavMeshAgent</code>.</li>
+<li><strong>Micro Promotion Routine:</strong><ol>
+<li>Entity index removed from <code>FMacroSwarmSoA</code> active SIMD buffer.</li>
+<li>An instance from the pre-allocated <code>AAlienWarriorMicroPool</code> (capacity: 64 actors) is assigned.</li>
+<li>Transforms, linear velocities, and current blackboard states are copied.</li>
+<li>Micro Agent initializes its dedicated hitboxes (<code>Head</code>, <code>Torso</code>, <code>LeftLeg</code>, <code>RightLeg</code>, <code>LeftArm</code>, <code>RightArm</code>) and binds to the Unreal standard Recast NavMesh for root-motion attacks and local RVO avoidance.</li>
+</ol>
+</li>
+<li><strong>Demotion Routine:</strong> If distance exceeds 18m (3m hysteresis buffer) and no active line-of-sight/attack state is executing, the actor is recycled back to the pool, and an entry is re-injected into the <code>FMacroSwarmSoA</code>.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h4 class="text-lg font-semibold text-brand-text mt-0 mb-2">3. Authoritative Networking &amp; Steamworks SDR Pipeline</h4>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none font-mono">
+                                <h3>3.1 Network Topology &amp; Session Routing</h3>
+<p>The networking architecture operates on a pure Listen-Server authority model using Valve&#39;s Steam Datagram Relay (<code>ISteamNetworkingSockets</code> v1.58+). This routes UDP traffic through Valve&#39;s secure point-of-presence (PoP) edge network, mitigating host IP exposure and utilizing optimal P2P packet routing.</p>
+
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-assets" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Asset List</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border"><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">Key Screens &amp; UI Setups</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Main Menu &amp; Mission Selection Interface</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Squad Assembly &amp; Class Loadout Lobby Screen</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Primary Gameplay Tactical HUD Overlay</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Class Talent Tree &amp; Progression Menu Screen</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Tactical Field Map &amp; Objective Radar Overlay</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Mission Victory &amp; Extraction Debrief Screen</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Squad Wipe / Mission Failure Screen</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> System Settings &amp; Keybinds Configuration Menu</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">2D Sprites &amp; Character Assets</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Class Portrait &amp; Status Avatars (Tactician, Heavy Gunner, Demolitionist, Field Medic)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Downed / Incapacitated Ally State Badge Sprites</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Dynamic Crosshairs &amp; Bloom Reticle Sprites (Standard, Hipfire, Gyro ADS, Slide)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Directional Quadrant Damage Indicator Arcs (Front, Rear, Left Flank, Right Flank)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Minimap Radar Icons (Squadmates, Ammo Crates, Swarm Entity Blips, Objectives)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Interactable World Prompt Glyphs (Weld Door, Resupply Ammo, Nanite Core, Revive)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Environmental Surface Decals (Biomechanical Alien Creep, Acid Burns, Blood Splatters)</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">Audio &amp; Sound Effects (SFX)</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Marine Kinematic Movement SFX (Heavy Armored Footsteps, Sprint Exertion, Slide Skid, Mantle Grunt, Hard Landing Shock)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Armor Ablation &amp; Shield SFX (Plating Impact, Quadrant Depletion Crack, Shield-Gate Trigger Chime, Welding Torch Repair Loop)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Tactician Ability SFX (Target Priority Scanner Tag, Sonar Pulse Echo, Orbital Lance Kinetic Impact)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Heavy Gunner Ability SFX (Hardpoint Barrier Deployment Hum, Overdrive Venting Steam Release &amp; Sustained Fire)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Demolitionist Ability SFX (Proximity Mine Deploy/Arming Beep, Detonation Blast, Thermite Barrage Incendiary Burn Loop)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Field Medic Ability SFX (Nanite Stim Dart Pneumatic Fire, Vitality Inject Hiss, Defibrillator Charge &amp; Discharge Pulse)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Dynamic Swarm &amp; Ambience SFX (Chittering Skittering Hordes, Distant Screeches, Low-Light Facility Atmospheric Drone)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Diegetic Tactical UI SFX (Low Health Heartbeat, Ability Cooldown Ready Tone, Objective Update Ping, Extraction Siren)</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">VFX &amp; Particle Animations</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Directional Kinetic Barrier &amp; Hardpoint Shield Hex-Grid Energy Distortion VFX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Ablative Armor Quadrant Break Sparks &amp; Fragment Shatter FX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Pulse Sonar Wave Expansion &amp; High-Threat Unit Highlight VFX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Orbital Lance Kinetic Strike Laser Guidance &amp; High-Velocity Ground Impact Explosion</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Thermite Barrage Incendiary Ground Fire Splatter &amp; Flame Area Denial FX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Proximity Mine Proximity-Sensor Ring &amp; Shrapnel Blast Cone FX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Nanite Stim Healing Mist Spray &amp; Defibrillator Field AOE Electric Arc Burst</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Tactical Slide Floor Friction Sparks &amp; Plasma Arc Welding Seam FX</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Biomechanical Alien Disseverment, Fluid Spray, &amp; Severed Gib Physics VFX</li>
+                        </ul>
+                    </div><div class="p-4 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-lg font-bold text-brand-primary mb-3 uppercase tracking-wider">HUD &amp; Icon Components</h3>
+                        <ul class="space-y-2">
+                            <li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Four-Quadrant Armor Integrity Gauge (Front, Rear, Left, Right)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Vitality Health Bar &amp; Sprint Stamina Wheel Meter</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Class Tactical Ability Cooldown Gauges &amp; Ultimate Point Charge Meters</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Class Ability Icons (Pulse Sonar, Orbital Lance, Hardpoint Shield, Overdrive, Proximity Mine, Thermite Barrage, Stim Dart, Defibrillator)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Talent Tree Node Icons (Offensive, Defensive, and Utility/Tech Mastery Branches)</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Weapon Magazine Counter, Reserve Pool Meter, &amp; Dynamic Reload Alerts</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Squad Health, Armor, &amp; Ammo Status Companion Cards</li><li class="text-brand-text-muted flex items-start gap-2"><span class="text-brand-primary">•</span> Objective Directional Compass Markers &amp; Distance Waypoint Indicators</li>
+                        </ul>
+                    </div></div></details>
+<details id="section-briefs" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Freelance Briefs</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-4 border-t border-brand-border"><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Gameplay Programmer – Marine Kinematic Movement &amp; Locomotion System</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 text-brand-text-muted border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <h2>Scope of Work</h2>
+<p>Implement the complete Marine Kinematic Movement State Machine for a 4-player co-op FPS, translating physical weight, inertia, and tactical agility into deterministic character controllers across PC, PS5, and Xbox Series X|S.</p>
+<h2>Deliverables</h2>
+<ul>
+<li><strong>State Machine &amp; Kinematic Controller:</strong> Implementation of states (<code>Idle</code>, <code>Tactical Jog</code>, <code>Combat Sprint</code>, <code>Tactical Slide</code>, <code>Mantle &amp; Vault</code>, and <code>Inertial Landing Damping</code>).</li>
+<li><strong>Locomotion Mechanics:</strong><ul>
+<li><em>Tactical Jog (Base):</em> Forward velocity $V_{\text{max}} = 4.2\text{ m/s}$, Strafe/Backwards $V_{\text{strafe}} = 3.2\text{ m/s}$, Acceleration $a = 18.0\text{ m/s}^2$, Deceleration damping $d = 12.0\text{ m/s}^2$.</li>
+<li><em>Combat Sprint:</em> Forward-only velocity $V_{\text{sprint}} = 6.8\text{ m/s}$, Stamina pool consumption ($100\text{ units}$ drained at $15\text{ units/s}$), Angular velocity turn cap $\omega_{\text{max}} = 120^\circ/\text{s}$.</li>
+<li><em>Tactical Slide:</em> Crouch-while-sprinting trigger, initial impulse $7.5\text{ m/s}$ non-linearly decaying over $1.2\text{ s}$ to crouch ($2.0\text{ m/s}$), enabling high-dispersion hip fire.</li>
+<li><em>Mantle &amp; Vault:</em> Dynamic trace sweeps detecting ledges between $0.5\text{m}$ and $2.1\text{m}$, root-motion vaulting at $2.2\text{ m/s}$ with primary weapon fire lock.</li>
+<li><em>Inertial Landing Damping:</em> Impact state for vertical falls $&gt; 3.5\text{m}$, reducing movement speed by $40%$ for $0.6\text{ s}$ with procedural vertical camera displacement.</li>
+</ul>
+</li>
+</ul>
+<h2>Dependencies</h2>
+<ul>
+<li>Character collision mesh and animation assets (root motion and mantle animations).</li>
+<li>Camera sub-system for procedural vertical landing displacement.</li>
+</ul>
+<h2>Constraints &amp; Performance Budgets</h2>
+<ul>
+<li>Execution time must strictly fit within the <strong>1.80 ms CPU</strong> and <strong>0.50 ms GPU</strong> substepping budget allocated for Character Movement &amp; Physics.</li>
+<li>Must support network serialization and delta snapshot constraints (allocated <strong>1.20 ms CPU</strong> for network overhead).</li>
+</ul>
+<h2>Acceptance Criteria</h2>
+<ul>
+<li>State machine transitions precisely per the GDD state flow.</li>
+<li>Sprint turn-rate clamp strictly limits yaw angular velocity to $120^\circ/\text{s}$.</li>
+<li>Mantle detection cleanly triggers only within $0.5\text{m} - 2.1\text{m}$ obstacles without clipping.</li>
+<li>Falls $&gt; 3.5\text{m}$ apply exact $40%$ speed reduction for $0.6\text{s}$ alongside camera bump.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details><details class="group border border-brand-border/50 rounded-lg overflow-hidden">
+                        <summary class="list-none p-4 bg-brand-bg/50 cursor-pointer hover:bg-brand-border/20 transition-colors flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-brand-primary">Systems Programmer – Damage Pipeline, Armor Integrity &amp; Vitality Systems</h3>
+                            <span class="text-brand-text-muted group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 text-brand-text-muted border-t border-brand-border">
+                            <div class="prose prose-invert prose-sm max-w-none">
+                                <h2>Scope of Work</h2>
+<p>Architect and implement the two-tier defense model (Ablative Power Armor and Biological Vitality), directional quadrant damage evaluation, damage mitigation formulas, and field repair systems.</p>
+<h2>Deliverables</h2>
+<ul>
+<li><strong>Damage Resolution Pipeline:</strong> Implement incoming damage flow evaluating Directional Kinetic Barriers, Ablative Plating, and raw HP.</li>
+<li><strong>Damage Reduction Formula:</strong> Implement exact formula:
+$$D_{\text{applied}} = D_{\text{raw}} \times \left(1.0 - \text{Clamp}\left(\frac{\text{Armor}<em>{\text{current}}}{\text{Armor}</em>{\text{max}}} \times R_{\text{mitigation}}, 0.0, 0.85\right)\right)$$
+with $R_{\text{mitigation}} = 0.65$ (Nominal) and $0.80$ (Heavy Gunner).</li>
+<li><strong>Directional Plating:</strong> 4 quadrants (<em>Frontal Torso</em>, <em>Rear Torso</em>, <em>Left Flank</em>, <em>Right Flank</em>). Rear impacts bypass $50%$ of remaining armor points directly to HP.</li>
+<li><strong>Shield-Gate Protection:</strong> $0.25\text{-second}$ invulnerability window triggered upon any armor quadrant reaching $0\text{ pts}$ to prevent one-shot fatal kills.</li>
+<li><strong>Field Repair Mechanics:</strong> Disable passive armor regeneration; implement repair interactions via Field Welding Torches and Nanite Armor Cores.</li>
+</ul>
+<h2>Dependencies</h2>
+<ul>
+<li>Marine character class data structures and hit-box directional quadrant setup.</li>
+<li>Supply crate inventory logic for Nanite Armor Cores.</li>
+</ul>
+<h2>Constraints &amp; Performance Budgets</h2>
+<ul>
+<li>Logic execution must operate within the <strong>1.50 ms CPU</strong> budget for Game Logic, Weapon Traces, and Abilities.</li>
+<li>Dynamic gibbing and damage events must be server-validated.</li>
+</ul>
+
+                            </div>
+                        </div>
+                    </details></div></details>
+<details id="section-scope" class="group mb-4 bg-brand-surface rounded-xl border border-brand-border overflow-hidden shadow-lg">
+                    <summary class="list-none p-6 bg-brand-secondary/10 cursor-pointer hover:bg-brand-secondary/20 transition-colors flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-brand-secondary">Scope Critical Review</h2>
+                        <span class="text-brand-text-muted group-open:rotate-180 transition-transform text-2xl">▼</span>
+                    </summary>
+                    <div class="p-6 space-y-6 border-t border-brand-border"><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">Simultaneous Multi-Platform Launch (PC, PS5, Xbox Series X|S)</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Targeting a simultaneous launch across three major platforms introduces massive console compliance (TRC/TCR) overhead, platform-specific optimization passes, and divergent certification cycles that crush indie velocity.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Pivot to a PC-first Early Access release on Steam. Defer console ports until post-launch once the core loop, netcode, and performance profiles are validated.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Saves hundreds of engineering hours on platform SDK updates and compliance testing, and allows rapid daily/weekly hotfixing that is impossible under console certification pipelines.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">4-Quadrant Directional Armor Plating System</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Calculating dynamic directional damage across four isolated quadrants (Front, Rear, Left, Right) with individual bypass formulas in a 360-degree high-density swarm creates unnecessary combat telemetry, netcode replication overhead, and severe HUD/UI complexity.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Flatten armor into a single unified ablative bar with a simple binary positional modifier (e.g., flat 1.5x damage taken from behind).</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Preserves the tactical threat of getting flanked while eliminating complex hitbox quadrant checks, net replication payloads, and HUD clutter.</p>
+                            </div>
+                        </div>
+                    </div><div class="p-6 bg-brand-bg/50 rounded-lg border border-brand-border">
+                        <h3 class="text-xl font-bold text-brand-primary mb-2">3-Branch Mastery Talent Trees (4 Classes x 3 Trees)</h3>
+                        <div class="mb-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase bg-red-500/20 text-red-400 border border-red-500/30">Severity: High</span>
+                        </div>
+                        <div class="grid gap-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Critique</h4>
+                                <p class="text-brand-text-muted">Designing, scripting, and balancing 12 distinct talent trees (36+ individual mastery perks) for V1 creates an exponential combinatorial balancing problem and heavy UI requirement before the core combat loop is even proven.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Suggestion</h4>
+                                <p class="text-brand-text-muted">Cut the branching talent trees for V1. Ship each class with their fixed Passive, Tactical, and Ultimate, plus a single row of 3 mutually exclusive perk choices at max level.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-brand-text uppercase tracking-wider mb-1">Reasoning</h4>
+                                <p class="text-brand-text-muted">Reduces ability balancing, QA matrix complexity, and UI implementation overhead by over 70%, letting the team focus on weapon feel and horde behavior.</p>
+                            </div>
+                        </div>
+                    </div></div></details>
+    </main>
+    
+    <footer class="mt-12 pt-8 border-t border-brand-border text-center text-brand-text-muted text-sm">
+        Generated by Dev Doctor AI &bull; 15/08/2026
+    </footer>
+</body>
+</html>

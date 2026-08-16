@@ -1,4 +1,6 @@
 import { classifyServiceError, createRequestId, createServiceError, logger } from './logger';
+import { buildOpenAICompatibleRequestBody, StructuredOutputSchema } from './structuredOutputContract';
+export type { StructuredOutputSchema } from './structuredOutputContract';
 
 export type AIProviderId = 'lmstudio' | 'openai' | 'openai-compatible' | 'gemini' | 'anthropic';
 
@@ -37,6 +39,7 @@ const OPENAI_MODEL_SAFE_TPM_BUDGET = 150_000;
 const RATE_WINDOW_MS = 60_000;
 const CLOUD_REQUEST_TIMEOUT_MS = 90_000;
 const LOCAL_REQUEST_TIMEOUT_MS = 360_000;
+const LOCAL_TRANSIENT_RETRIES = 2;
 const openAIModelReservations: Array<{ timestamp: number; tokens: number }> = [];
 let openAIModelQueue: Promise<void> = Promise.resolve();
 
@@ -153,12 +156,22 @@ const buildOpenAIHeaders = (config: AIProviderConfig): Record<string, string> =>
   ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
 });
 
+const isTransientLocalProviderError = (error: unknown, provider: AIProviderId): boolean => {
+  if (provider !== 'lmstudio') return false;
+  if (error instanceof TypeError) return true;
+  const candidate = error as { code?: string; message?: string } | null;
+  return candidate?.code === 'LM_STUDIO_UNREACHABLE'
+    || /network_io_suspended|network request failed|failed to fetch|socket hang up|econnreset/i.test(candidate?.message || '');
+};
+
 const parseOpenAIResponse = async (response: Response, providerLabel: string): Promise<ProviderResponse> => {
   const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
   const content = payload.choices?.[0]?.message?.content;
   if (!content) throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', `${providerLabel} returned no assistant content.`);
   return { content, promptTokens: payload.usage?.prompt_tokens, completionTokens: payload.usage?.completion_tokens };
 };
+
+const usesMaxCompletionTokens = (model: string): boolean => /^(?:o\d|gpt-5(?:\.|-|$))/i.test(model.trim());
 
 const providerHttpError = async (response: Response, providerLabel: string): Promise<never> => {
   // Clone the response so reading here does not consume the original body for callers that need it.
@@ -181,11 +194,17 @@ const providerHttpError = async (response: Response, providerLabel: string): Pro
   throw error;
 };
 
-const requestOpenAICompatible = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal): Promise<ProviderResponse> => {
+const requestOpenAICompatible = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal, structuredOutput?: StructuredOutputSchema): Promise<ProviderResponse> => {
   const response = await fetch(config.endpoint, {
     method: 'POST',
     headers: buildAuthHeaders(config),
-    body: JSON.stringify({ model: config.model, messages, temperature: 0.7, top_p: 0.95, max_tokens: maxTokens, stream: false }),
+    body: JSON.stringify(buildOpenAICompatibleRequestBody({
+      model: config.model,
+      messages,
+      maxTokens,
+      structuredOutput,
+      tokenParameter: config.provider === 'openai-compatible' && usesMaxCompletionTokens(config.model) ? 'max_completion_tokens' : 'max_tokens',
+    })),
     signal,
   });
   if (!response.ok) await providerHttpError(response, getProviderOption(config.provider).label);
@@ -265,7 +284,7 @@ const requestAnthropic = async (messages: ProviderMessage[], config: AIProviderC
   return { content, promptTokens: payload.usage?.input_tokens, completionTokens: payload.usage?.output_tokens };
 };
 
-export const requestWithProvider = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, operation: string): Promise<ProviderResponse> => {
+export const requestWithProvider = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, operation: string, structuredOutput?: StructuredOutputSchema): Promise<ProviderResponse> => {
   const requestId = createRequestId();
   const startedAt = Date.now();
   const requestCharacters = messages.reduce((total, message) => total + message.content.length, 0);
@@ -289,7 +308,7 @@ export const requestWithProvider = async (messages: ProviderMessage[], config: A
         ? await requestGemini(messages, effectiveConfig, maxTokens, controller.signal)
         : effectiveConfig.provider === 'anthropic'
           ? await requestAnthropic(messages, effectiveConfig, maxTokens, controller.signal)
-          : await requestOpenAICompatible(messages, effectiveConfig, maxTokens, controller.signal);
+          : await requestOpenAICompatible(messages, effectiveConfig, maxTokens, controller.signal, structuredOutput);
     } finally {
       clearTimeout(timeoutId);
     }
@@ -297,9 +316,20 @@ export const requestWithProvider = async (messages: ProviderMessage[], config: A
   try {
     let result: ProviderResponse;
     try {
-      result = effectiveConfig.provider === 'openai' && RATE_LIMITED_OPENAI_MODELS.has(effectiveConfig.model)
-        ? await scheduleRateLimitedOpenAIModelRequest(messages, maxTokens, runRequest)
-        : await runRequest();
+      let attempt = 0;
+      while (true) {
+        try {
+          result = effectiveConfig.provider === 'openai' && RATE_LIMITED_OPENAI_MODELS.has(effectiveConfig.model)
+            ? await scheduleRateLimitedOpenAIModelRequest(messages, maxTokens, runRequest)
+            : await runRequest();
+          break;
+        } catch (error) {
+          if (!isTransientLocalProviderError(error, effectiveConfig.provider) || attempt >= LOCAL_TRANSIENT_RETRIES) throw error;
+          attempt += 1;
+          logger.warn('lm_local_transient_retry', { requestId, operation, model: effectiveConfig.model, retryAttempt: attempt, maxRetries: LOCAL_TRANSIENT_RETRIES, errorCode: 'LM_STUDIO_UNREACHABLE', errorMessage: error instanceof Error ? error.message : String(error) });
+          await sleep(1_000 * attempt);
+        }
+      }
     } catch (error) {
       const rateLimited = error as Partial<RateLimitError>;
       if (effectiveConfig.provider === 'openai' && RATE_LIMITED_OPENAI_MODELS.has(effectiveConfig.model) && rateLimited.status === 429 && rateLimited.retryAfterMs) {

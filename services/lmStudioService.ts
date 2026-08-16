@@ -1,11 +1,17 @@
 import {
   AssetList, AttachedFile, CritiquePoint, FreelanceBrief, GDDSection,
-  GeneratedImages, LensType, MVPDefinition, MVPFeatureSpec, PitchDeckSlide, TDDFeature,
-  TechnicalDesignSection,
+  GeneratedImages, LensType, MVPDefinition, MVPFeatureSpec, MVPFeatureSpecValidationOutcome, PitchDeckSlide, TDDFeature,
+  TechnicalDesignSection, TechnicalSpecification, ProductionBrief, MemoryEntry, ConciergeMode, UserProxyRecord, RiskCritiqueRecord, SynthesisRecord,
 } from '../types';
 import { classifyServiceError, createServiceError, logger } from './logger';
-import { AIProviderConfig, createDefaultAIProviderConfig, requestWithProvider } from './aiProvider';
+import { AIProviderConfig, createDefaultAIProviderConfig, requestWithProvider, StructuredOutputSchema } from './aiProvider';
 import { calculateTokenCostUSD, getModelPricing, DetailedCostReport } from './tokenPricing';
+import { BDDFeatureValidationResult, formatMVPFeatureSpecRepairIssues, mvpFeatureSpecNeedsRepair, omitOptionalGenericFiller, parseMVPFeatureSpecResponse, validateMVPFeatureSpec } from './bddFeatureValidator';
+import { parseTechnicalSpecificationResponse, prepareTechnicalDesignInputs, validateTechnicalSpecification } from './technicalSpecContract';
+import { normalizeProductionBrief, normalizeRelatedBriefReferences, parseAssetMetadataResponse, parseProductionBriefsResponse, parseVisualPromptResponse, projectAssetMetadataToLegacyList, projectProductionBriefsToLegacy, projectVisualPromptsToLegacyMap, validateProductionBriefs } from './productionHandoffContract';
+import { normalizeCritiquePoint, normalizePitchSlide, omitInvalidPitchClaims, validatePitchSlides, validateScopeReview } from './scopePitchContract';
+import { conciergeModeGuidance, normalizeMemoryEntries, validateMemoryEntries } from './memoryPersonaContract';
+import { validateRiskCritique, validateSynthesis, validateUserProxy } from './memoryPersonaContract';
 
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type VisualAsset = { key: string; description: string; aspectRatio?: string };
@@ -17,6 +23,149 @@ let sessionCost = 0;
 let sessionPromptTokens = 0;
 let sessionCompletionTokens = 0;
 let sessionCachedTokens = 0;
+
+const stringArraySchema = { type: 'array', items: { type: 'string', minLength: 1 } };
+const mvpFeatureSpecStructuredOutput: StructuredOutputSchema = {
+  name: 'mvp_feature_specification',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      id: { type: 'string', minLength: 1 },
+      feature: { type: 'string', minLength: 1 },
+      userStory: { type: 'string', minLength: 1 },
+      scenarios: {
+        type: 'array', minItems: 2,
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: {
+            id: { type: 'string', minLength: 1 },
+            type: { type: 'string', enum: ['happy-path', 'edge-case', 'failure', 'boundary', 'offline'] },
+            title: { type: 'string', minLength: 1 },
+            given: stringArraySchema,
+            when: stringArraySchema,
+            then: stringArraySchema,
+            notes: { type: 'string' },
+          },
+          required: ['id', 'type', 'title', 'given', 'when', 'then'],
+        },
+      },
+      invalidInputs: stringArraySchema,
+      boundaryConditions: stringArraySchema,
+      offlineBehavior: { type: 'string' },
+      accessibility: stringArraySchema,
+      acceptanceCriteria: stringArraySchema,
+      failureStates: stringArraySchema,
+      telemetry: stringArraySchema,
+      securityConsiderations: stringArraySchema,
+      performanceTargets: stringArraySchema,
+      technicalNotes: { type: 'string', minLength: 1 },
+      dependencies: stringArraySchema,
+    },
+    required: ['id', 'feature', 'userStory', 'scenarios', 'technicalNotes'],
+  },
+};
+
+const technicalSpecificationStructuredOutput: StructuredOutputSchema = {
+  name: 'technical_specification',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      featureId: { type: 'string', minLength: 1 },
+      feature: { type: 'string', minLength: 1 },
+      userStory: { type: 'string', minLength: 1 },
+      dataModels: {
+        type: 'array', minItems: 1,
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: {
+            name: { type: 'string', minLength: 1 }, purpose: { type: 'string', minLength: 1 },
+            fields: {
+              type: 'array', minItems: 1,
+              items: {
+                type: 'object', additionalProperties: false,
+                properties: { name: { type: 'string', minLength: 1 }, type: { type: 'string', minLength: 1 }, required: { type: 'boolean' }, description: { type: 'string' } },
+                required: ['name', 'type', 'required'],
+              },
+            },
+            constraints: stringArraySchema,
+          },
+          required: ['name', 'purpose', 'fields', 'constraints'],
+        },
+      },
+      apiContracts: {
+        type: 'array', minItems: 1,
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: {
+            name: { type: 'string', minLength: 1 }, method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'EVENT'] }, path: { type: 'string', minLength: 1 },
+            request: { type: 'string' }, response: { type: 'string' }, errors: stringArraySchema, authentication: { type: 'string' },
+          },
+          required: ['name', 'method', 'path', 'request', 'response', 'errors', 'authentication'],
+        },
+      },
+      stateTransitions: {
+        type: 'array', minItems: 1,
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: { from: { type: 'string', minLength: 1 }, event: { type: 'string', minLength: 1 }, to: { type: 'string', minLength: 1 }, guard: { type: 'string' }, effects: stringArraySchema },
+          required: ['from', 'event', 'to', 'guard', 'effects'],
+        },
+      },
+      dependencies: stringArraySchema,
+      acceptanceCriteria: stringArraySchema,
+    },
+    required: ['featureId', 'feature', 'userStory', 'dataModels', 'apiContracts', 'stateTransitions', 'dependencies', 'acceptanceCriteria'],
+  },
+};
+
+const technicalDesignDocumentStructuredOutput: StructuredOutputSchema = {
+  name: 'technical_design_document',
+  schema: {
+    type: 'array',
+    minItems: 1,
+    maxItems: 8,
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        title: { type: 'string', minLength: 1 },
+        content: { type: 'string', minLength: 1, maxLength: 1600 },
+      },
+      required: ['title', 'content'],
+    },
+  },
+};
+
+const productionBriefsStructuredOutput: StructuredOutputSchema = {
+  name: 'production_briefs',
+  schema: {
+    type: 'array',
+    minItems: 1,
+    maxItems: 10,
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        id: { type: 'string', minLength: 1 },
+        title: { type: 'string', minLength: 1 },
+        role: { type: 'string', minLength: 1 },
+        category: { type: 'string', enum: ['creative', 'technical', 'production', 'audio', 'design'] },
+        taskOverview: { type: 'string', minLength: 1, maxLength: 800 },
+        scopeOfWork: { ...stringArraySchema, minItems: 1, maxItems: 12 },
+        deliverables: { ...stringArraySchema, minItems: 1, maxItems: 12 },
+        acceptanceCriteria: { ...stringArraySchema, minItems: 1, maxItems: 12 },
+        dependencies: { ...stringArraySchema, maxItems: 12 },
+        relatedBriefs: { ...stringArraySchema, maxItems: 12 },
+        constraints: { ...stringArraySchema, maxItems: 12 },
+        outOfScope: { ...stringArraySchema, maxItems: 12 },
+        sourceReferences: { ...stringArraySchema, maxItems: 12 },
+      },
+      required: ['id', 'title', 'role', 'category', 'taskOverview', 'scopeOfWork', 'deliverables', 'acceptanceCriteria', 'dependencies', 'relatedBriefs', 'constraints', 'outOfScope', 'sourceReferences'],
+    },
+  },
+};
 
 const extractJson = (text: string): unknown => {
   const clean = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
@@ -156,9 +305,9 @@ const generateRichFallbackGDD = (sourceText: string, toc: string[], projectName:
     return { title, content };
   });
 };
-const request = async (messages: ChatMessage[], model = activeProviderConfig.model, maxTokens = 4096, operation = 'lm_request'): Promise<string> => {
+const request = async (messages: ChatMessage[], model = activeProviderConfig.model, maxTokens = 4096, operation = 'lm_request', structuredOutput?: StructuredOutputSchema): Promise<string> => {
   const config = { ...activeProviderConfig, model };
-  const result = await requestWithProvider(messages, config, maxTokens, operation);
+  const result = await requestWithProvider(messages, config, maxTokens, operation, structuredOutput);
   const promptTokens = result.promptTokens || 0;
   const completionTokens = result.completionTokens || 0;
   sessionPromptTokens += promptTokens;
@@ -169,8 +318,8 @@ const request = async (messages: ChatMessage[], model = activeProviderConfig.mod
   return result.content;
 };
 
-const ask = (prompt: string, system = 'You are a precise project-development assistant.', maxTokens = 4096, operation = 'lm_request'): Promise<string> =>
-  request([{ role: 'system', content: system }, { role: 'user', content: prompt }], activeProviderConfig.model, maxTokens, operation);
+const ask = (prompt: string, system = 'You are a precise project-development assistant.', maxTokens = 4096, operation = 'lm_request', structuredOutput?: StructuredOutputSchema): Promise<string> =>
+  request([{ role: 'system', content: system }, { role: 'user', content: prompt }], activeProviderConfig.model, maxTokens, operation, structuredOutput);
 const withFallback = async <T>(operation: () => Promise<T>, fallback: T): Promise<T> => {
   try { return await operation(); } catch (error) { console.error('[LM Studio Service Error]', error); return fallback; }
 };
@@ -185,6 +334,12 @@ export const compactConversation = (conversationText: string, maxCharacters = PE
   let recent = lines.slice(2).join('\n');
   if (recent.length > suffixBudget) recent = recent.slice(-suffixBudget);
   return `${opening}\n[Earlier conversation omitted to preserve context window]\n${recent}`;
+};
+
+export const buildRoleRelevantPersonaContext = (conversationText: string, memoryEntries: MemoryEntry[] = [], maxCharacters = PERSONA_CONTEXT_LIMIT): string => {
+  const memory = memoryEntries.filter(entry => entry.status !== 'rejected').map(entry => `[${entry.kind}/${entry.status}] ${entry.text}`).join('\n');
+  const conversation = compactConversation(conversationText, Math.max(1000, maxCharacters - memory.length - 80));
+  return memory ? `Structured memory:\n${memory}\n\nRecent conversation:\n${conversation}` : conversation;
 };
 
 export const calculateTokens = (text: string): number => Math.ceil(text.length / 4);
@@ -316,9 +471,16 @@ RESPONSE CONSTRAINT:
 - Maximum 2 to 3 sentences total.
 - Never output lists, bullet points, or paragraphs of explanation.`;
 
-export const getNextConversationStep = async (conversationText: string, file?: AttachedFile | null): Promise<string> => {
-  const context = compactConversation(conversationText);
-  const prompt = `Continue the project discovery conversation as the Concierge mentor. Guide the user gently, celebrate what they shared, expand with common industry practices, and ask ONE guiding question to help them imagine the next piece. ${file ? `The user provided an attached file "${file.name}" with content: ${file.data?.slice(0, 2000)}; factor this in as project truth.` : ''}\n\nConversation so far:\n${context}`;
+export const getNextConversationStep = async (conversationText: string, file?: AttachedFile | null, mode: ConciergeMode = 'information-gatherer', memoryEntries: MemoryEntry[] = []): Promise<string> => {
+  const context = buildRoleRelevantPersonaContext(conversationText, memoryEntries);
+  const prompt = `Continue the project discovery conversation as the Concierge mentor. Guide the user gently, celebrate what they shared, expand with common industry practices, and ask ONE guiding question to help them imagine the next piece.
+
+Selected Concierge mode: ${mode}
+Mode guidance: ${conciergeModeGuidance(mode)}
+${file ? `The user provided an attached file "${file.name}" with content: ${file.data?.slice(0, 2000)}; factor this in as project truth.` : ''}
+
+Conversation and relevant memory:
+${context}`;
   const fallbackQuestions = [
     "I love where this is headed! What's the main feeling or experience you want someone to have within their first 30 seconds?",
     "That sounds fantastic! Who do you imagine playing or using this the most — casual players, friends together, or someone on the go?",
@@ -332,6 +494,71 @@ export const getNextConversationStep = async (conversationText: string, file?: A
   );
 };
 
+export interface MemoryExtractionResult { entries: MemoryEntry[]; errors: string[]; warnings: string[]; repaired: boolean; }
+
+export const extractStructuredMemory = async (conversationText: string, existingEntries: MemoryEntry[] = []): Promise<MemoryExtractionResult> => {
+  const shape = `[{"id":"stable-memory-id","kind":"fact|proposal|decision|question|constraint","text":"specific project fact or decision","status":"confirmed|accepted|rejected|unresolved|active","sourceReferences":["conversation"]}]`;
+  const response = await ask(`Extract only durable project memory from this conversation. Do not summarize every turn.
+
+Return JSON only in this shape:
+${shape}
+
+Capture confirmed facts, proposals, accepted/rejected decisions, unresolved questions, and constraints. Use sourceReferences to identify the conversation or message context. Preserve supported existing entries and do not invent facts.
+
+Existing memory:
+${JSON.stringify(existingEntries)}
+
+Conversation:
+${conversationText}`, 'You are a structured memory archivist for a project-development conversation.', 4096, 'extract_structured_memory');
+  const parse = (raw: unknown): MemoryExtractionResult => {
+    const entries = normalizeMemoryEntries(raw);
+    const validation = validateMemoryEntries(entries);
+    return { entries: validation.valid ? entries : [], errors: validation.errors, warnings: validation.warnings, repaired: false };
+  };
+  const parsed = parse(extractJson(response));
+  if (parsed.entries.length || !parsed.errors.length) return parsed;
+  const repairedResponse = await ask(`Repair the attempted memory extraction into valid JSON only.
+
+Required shape:
+${shape}
+
+Repair targets:
+${parsed.errors.map(error => `- ${error}`).join('\n')}
+
+Attempted response:
+${response}`, 'You repair structured memory without inventing unsupported facts.', 4096, 'repair_structured_memory');
+  const repaired = parse(extractJson(repairedResponse));
+  return { ...repaired, repaired: true };
+};
+
+const structuredRepair = async <T>(response: string, shape: string, operation: string, parse: (value: unknown) => T | null, validate: (value: T) => { valid: boolean; errors: string[] }): Promise<T> => {
+  const first = parse(extractJson(response));
+  if (first && validate(first).valid) return first;
+  const repairedResponse = await ask(`Repair the attempted structured response into valid JSON only.\n\nRequired shape:\n${shape}\n\nRepair targets:\n${first ? validate(first).errors.join('; ') : 'Response was not parseable JSON.'}\n\nAttempted response:\n${response}`, 'You repair structured persona outputs without inventing unsupported project facts.', 4096, operation);
+  const repaired = parse(extractJson(repairedResponse));
+  if (!repaired || !validate(repaired).valid) invalidResponse(operation);
+  return repaired;
+};
+
+export const generateUserProxy = async (context: string): Promise<UserProxyRecord> => {
+  const shape = '{"perspective":"...","priorities":["..."],"concerns":["..."],"sourceReferences":["..."]}';
+  const response = await ask(`Act as the User Proxy. Represent the likely player/customer perspective using only this project context. Return JSON only:\n${shape}\nContext:\n${context}`, 'You are a careful User Proxy preserving the creator’s stated audience and priorities.', 2048, 'generate_user_proxy');
+  return structuredRepair(response, shape, 'repair_user_proxy', value => value && typeof value === 'object' ? value as UserProxyRecord : null, value => validateUserProxy(value));
+};
+
+export const generateRiskCritique = async (context: string): Promise<RiskCritiqueRecord> => {
+  const shape = '{"risks":[{"id":"risk-id","risk":"...","consequence":"...","decision":"...","questions":["..."],"severity":"High|Medium|Low","sourceReferences":["..."]}]}';
+  const response = await ask(`Act as an adversarial Senior Technical Analyst. Identify concrete risks, consequences, decisions, and unresolved questions. Return JSON only:\n${shape}\nContext:\n${context}`, 'You are an adversarial Senior Technical Analyst; challenge assumptions without inventing facts.', 4096, 'generate_risk_critique');
+  return structuredRepair(response, shape, 'repair_risk_critique', value => value && typeof value === 'object' ? value as RiskCritiqueRecord : null, value => validateRiskCritique(value));
+};
+
+export const generateSynthesis = async (context: string, outputReferences: string[]): Promise<SynthesisRecord> => {
+  const shape = '{"summary":"...","acceptedDecisions":["..."],"unresolvedQuestions":["..."],"outputReferences":["..."]}';
+  const response = await ask(`Synthesize these validated project records into JSON only. Preserve accepted decisions and unresolved questions. Required output references: ${JSON.stringify(outputReferences)}\n${shape}\nContext:\n${context}`, 'You are a project synthesis editor; preserve traceability and do not invent decisions.', 4096, 'generate_synthesis');
+  const synthesis = await structuredRepair(response, shape, 'repair_synthesis', value => value && typeof value === 'object' ? value as SynthesisRecord : null, value => validateSynthesis(value));
+  return { ...synthesis, outputReferences: outputReferences.length ? outputReferences : synthesis.outputReferences };
+};
+
 export const getChatSuggestion = (conversationText: string): Promise<string> => withFallback(
   () => withRetry(() => ask(
     `You are the creator/founder's co-pilot and helper in Dev Doctor AI.
@@ -340,6 +567,7 @@ Task: Provide a concrete, imaginative, and appropriate answer that the creator c
 Rules:
 - Speak in the FIRST PERSON ("I want...", "We should...", "Let's make it...").
 - Do NOT ask questions back to the Concierge. Provide a direct, definitive answer.
+- Return only the answer the creator should submit. Do not greet, acknowledge the Concierge, repeat the question, mention Dev Doctor, or add a preamble.
 - Ground the answer in the project's vision, genre, and audience.
 - Keep it natural, enthusiastic, and 1-2 sentences.
 
@@ -382,7 +610,7 @@ Instructions:
   })(),
 );
 
-export const generateFullPitchDeck = async (sourceText: string, projectName: string, slidesConfig: SlideConfig[] = []): Promise<PitchDeckSlide[]> => {
+export const generateFullPitchDeck = async (sourceText: string, projectName: string, slidesConfig: SlideConfig[] = [], sourceIds: string[] = []): Promise<PitchDeckSlide[]> => {
   if (!slidesConfig.length) invalidResponse('pitch deck configuration');
   const slides: PitchDeckSlide[] = [];
   for (let index = 0; index < slidesConfig.length; index += 1) {
@@ -390,11 +618,7 @@ export const generateFullPitchDeck = async (sourceText: string, projectName: str
     const parsePitchSlide = (response: string): PitchDeckSlide | null => {
       const parsed = extractJson(response) as Partial<PitchDeckSlide> | null;
       if (parsed && isNonEmptyString(parsed.title) && isNonEmptyString(parsed.content)) {
-        return {
-          title: parsed.title.trim(),
-          content: parsed.content.trim(),
-          visualPrompt: isNonEmptyString(parsed.visualPrompt) ? parsed.visualPrompt.trim() : slide.visual,
-        };
+        return { ...normalizePitchSlide(parsed)!, visualPrompt: isNonEmptyString(parsed.visualPrompt) ? parsed.visualPrompt.trim() : slide.visual };
       }
       const markdown = response.trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/\s*```$/i, '');
       const content = markdown.replace(new RegExp(`^#{1,4}\\s+${slide.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n+`, 'i'), '').trim();
@@ -412,9 +636,9 @@ Project source:
 ${sourceText}
 
 Return JSON only in this exact shape:
-{"title":"${slide.title}","content":"Detailed, project-specific slide copy in Markdown.","visualPrompt":"A project-specific visual direction prompt."}
+{\"title\":\"${slide.title}\",\"content\":\"Detailed, project-specific slide copy in Markdown.\",\"visualPrompt\":\"A project-specific visual direction prompt.\",\"claims\":[{\"text\":\"A claim stated by this slide\",\"sourceReferences\":[\"${sourceIds[0] || 'source-reference'}\"],\"grounded\":true}]}
 
-Do not add markdown fences, explanations, other slides, unsupported market claims, or contact details that were not supplied.`, 'You are a creative pitch-deck writer who produces concise, investor-ready, project-specific slides.', 2048, 'generate_pitch_slide');
+Do not add markdown fences, explanations, other slides, unsupported market claims, or contact details that were not supplied. Every claim must be supported by one of the supplied source IDs: ${JSON.stringify(sourceIds)}.`, 'You are a creative pitch-deck writer who produces concise, investor-ready, project-specific slides.', 2048, 'generate_pitch_slide');
     let parsed = parsePitchSlide(response);
     if (!parsed) {
       const repairedResponse = await ask(`Convert the attempted pitch-deck slide below into JSON only.
@@ -429,11 +653,145 @@ ${response}`, 'You repair response formatting without inventing unsupported fact
     if (!parsed) invalidResponse(`pitch deck slide ${index + 1}`);
     slides.push(parsed);
   }
+  let validation = validatePitchSlides(slides, slidesConfig.map(slide => slide.title), sourceIds, sourceIds.length > 0);
+  if (!validation.valid) {
+    const configuredTitles = slidesConfig.map(slide => slide.title);
+    const configuredShape = slidesConfig.map(slide => ({
+      title: slide.title,
+      objective: slide.prompt || 'Explain this part of the project story.',
+      visualPrompt: slide.visual || null,
+    }));
+    const parsePitchDeck = (response: string): PitchDeckSlide[] | null => {
+      const parsed = extractJson(response);
+      if (!Array.isArray(parsed)) return null;
+      return parsed.flatMap((value, index) => {
+        const normalized = normalizePitchSlide(value);
+        const configuredSlide = slidesConfig[index];
+        return normalized && isNonEmptyString(normalized.title) && isNonEmptyString(normalized.content)
+          ? [{ ...normalized, visualPrompt: normalized.visualPrompt || configuredSlide?.visual }]
+          : [];
+      });
+    };
+    const completeMissingSlides = async (candidateSlides: PitchDeckSlide[]): Promise<PitchDeckSlide[]> => {
+      const byTitle = new Map(candidateSlides.map(slide => [slide.title.trim().toLowerCase(), slide]));
+      for (const configuredSlide of slidesConfig) {
+        const key = configuredSlide.title.trim().toLowerCase();
+        if (byTitle.has(key)) continue;
+        let response = await ask(`Create the missing pitch-deck slide below as JSON only.
+
+Exact title: ${configuredSlide.title}
+Objective: ${configuredSlide.prompt || 'Explain this part of the project story.'}
+Visual prompt: ${configuredSlide.visual || 'none'}
+
+Return exactly:
+{"title":"${configuredSlide.title}","content":"Project-specific Markdown content grounded in the source.","visualPrompt":"A project-specific visual direction prompt."}
+
+Omit claims unless they are directly supported by supplied source IDs. Do not invent contact details, market facts, statistics, or unsupported project facts.
+
+Project source:
+${sourceText}
+
+Allowed source IDs:
+${JSON.stringify(sourceIds)}`, 'You complete one missing pitch-deck slide without inventing unsupported facts.', 2048, 'repair_missing_pitch_slide');
+        let normalized = normalizePitchSlide(extractJson(response));
+        if (!normalized || !isNonEmptyString(normalized.content)) {
+          response = await ask(`Retry the missing pitch-deck slide as JSON only.
+
+Exact title: ${configuredSlide.title}
+Return non-empty project-specific content. Omit claims and do not invent unsupported contact details, market facts, or statistics.
+
+Attempted response:
+${response}`, 'You complete a missing configured pitch slide with minimal valid project-specific content.', 2048, 'retry_missing_pitch_slide');
+          normalized = normalizePitchSlide(extractJson(response));
+        }
+        if (normalized && isNonEmptyString(normalized.content)) {
+          byTitle.set(key, { ...normalized, title: configuredSlide.title, visualPrompt: normalized.visualPrompt || configuredSlide.visual });
+        }
+      }
+      return slidesConfig.flatMap(configuredSlide => {
+        const slide = byTitle.get(configuredSlide.title.trim().toLowerCase());
+        return slide ? [slide] : [];
+      });
+    };
+    const repairWholeDeck = async (attempt: number): Promise<PitchDeckSlide[] | null> => {
+      const repairedResponse = await ask(`Repair the complete pitch deck into JSON only.
+
+Return exactly ${slidesConfig.length} slides, in this exact configured order and with these exact titles:
+${JSON.stringify(configuredShape)}
+
+Every slide requires project-specific Markdown content. Omit the claims array unless every claim is directly supported by one or more supplied source IDs. If claims are present, every claim must have grounded=true and non-empty sourceReferences using only supplied source IDs.
+Do not invent market facts, unsupported features, statistics, contact details, or source references. Do not omit, duplicate, or rename slides.
+
+Supplied source IDs:
+${JSON.stringify(sourceIds)}
+
+Validation errors from the attempted deck:
+${validation.errors.join('\n')}
+
+Repair attempt: ${attempt}
+
+Attempted complete deck:
+${JSON.stringify(slides)}`, 'You repair the complete pitch deck as a strict schema-constrained editor. Preserve traceability and omit unsupported claims.', 8192, 'repair_pitch_deck_whole');
+      const parsedDeck = parsePitchDeck(repairedResponse);
+      return parsedDeck ? completeMissingSlides(parsedDeck) : null;
+    };
+    for (let attempt = 1; attempt <= 2 && !validation.valid; attempt += 1) {
+      const repairedDeck = await repairWholeDeck(attempt);
+      if (!repairedDeck) continue;
+      slides.splice(0, slides.length, ...repairedDeck);
+      validation = validatePitchSlides(slides, configuredTitles, sourceIds, sourceIds.length > 0);
+    }
+    if (!validation.valid) {
+      const sanitizedSlides = omitInvalidPitchClaims(slides, sourceIds);
+      const sanitizedValidation = validatePitchSlides(sanitizedSlides, configuredTitles, sourceIds, sourceIds.length > 0);
+      slides.splice(0, slides.length, ...sanitizedSlides);
+      validation = sanitizedValidation;
+    }
+  }
+  if (!validation.valid) invalidResponse(`pitch deck (${validation.errors.join('; ')})`);
   return slides;
 };
+export const generateVisualPromptContracts = async (sourceText: string, assets: Array<{ id: string; description: string; aspectRatio?: VisualAsset['aspectRatio']; sourceReferences?: string[] }>) => {
+  const shape = `[{"assetId":"stable-asset-id","prompt":"Detailed project-specific image-generation direction","aspectRatio":"16:9","styleConstraints":["..."],"sourceReferences":["asset or brief reference"]}]`;
+  const response = await ask(`Create asset-linked visual prompt contracts. Do not generate images.
+
+Return JSON only in this shape:
+${shape}
+
+Every prompt must reference exactly one supplied asset ID, preserve its aspect ratio when provided, and include project/style source references. Do not create prompts for unknown assets.
+
+Source:
+${sourceText}
+Assets:
+${JSON.stringify(assets)}`, 'You are a Creative Art Director creating traceable visual production prompts.', 4096, 'generate_visual_prompt_contracts');
+  const assetIds = assets.map(asset => asset.id);
+  let parsed = parseVisualPromptResponse(extractJson(response), assetIds);
+  for (let attempt = 1; attempt <= 2 && !parsed.validation.valid; attempt += 1) {
+    const repairedResponse = await ask(`Repair the complete visual prompt contract set into JSON only.
+
+Required shape:
+${shape}
+
+Return exactly one prompt for every valid asset ID, with no duplicates and no unknown IDs.
+Valid asset IDs:
+${JSON.stringify(assetIds)}
+
+Validation errors to fix:
+${parsed.validation.errors.join('\n')}
+
+Repair attempt: ${attempt}
+
+Attempted response:
+${response}`, 'You repair visual prompt contracts without inventing asset IDs or unsupported project facts.', 4096, 'repair_visual_prompt_contracts');
+    parsed = parseVisualPromptResponse(extractJson(repairedResponse), assetIds);
+  }
+  if (!parsed.validation.valid || !parsed.prompts.length) invalidResponse(`visual prompt contracts (${parsed.validation.errors.join('; ')})`);
+  return parsed.prompts;
+};
+
 export const generateAllVisualPrompts = async (sourceText: string, assets: VisualAsset[]): Promise<GeneratedImages> => withFallback(async () => {
-  const parsed = extractJson(await ask(`Create a JSON object mapping each asset key to a detailed image-generation prompt. Do not generate images.\nSource:\n${sourceText}\nAssets:\n${JSON.stringify(assets)}`));
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as GeneratedImages : {};
+  const prompts = await generateVisualPromptContracts(sourceText, assets.map(asset => ({ id: asset.key, description: asset.description, aspectRatio: asset.aspectRatio, sourceReferences: [asset.key] })));
+  return projectVisualPromptsToLegacyMap(prompts);
 }, Object.fromEntries(assets.map(asset => [asset.key, `Concept art prompt for ${asset.description}.`])));
 export const generateImage = async (_prompt: string, _aspectRatio?: string): Promise<string> => 'Image generation coming soon';
 
@@ -494,68 +852,249 @@ ${response}`, 'You repair response formatting without inventing unsupported scop
 };
 export const generateUserStoriesAndAcceptanceCriteria = (feature: string, projectName: string): Promise<string> => withFallback(() => ask(`Write user stories and acceptance criteria in Markdown for feature "${feature}" in project "${projectName}".`), `## ${feature}\n\nAs a user, I want to use ${feature} so that the project delivers its intended value.\n\n### Acceptance Criteria\n- The feature is accessible from the primary user flow.\n- Valid input produces the expected result.\n- Invalid input produces a clear error message.`);
 export const generateTechnicalSpecs = async (feature: string, userStories: string, projectName: string, _mvp: MVPDefinition): Promise<TDDFeature['technicalSpecs']> => withFallback(() => ask(`Write technical specifications in Markdown for feature "${feature}" in "${projectName}".\nUser stories:\n${userStories}`), 'Define data models, state transitions, validation, dependencies, and failure handling.');
-export const generateMVPFeatureSpec = async (feature: string, projectName: string, mvp: MVPDefinition): Promise<MVPFeatureSpec> => {
-  const parseFeatureSpec = (response: string): MVPFeatureSpec | null => {
-    const parsed = extractJson(response) as Partial<MVPFeatureSpec> | null;
-    if (!parsed || !isNonEmptyString(parsed.id) || !isNonEmptyString(parsed.feature) || !isNonEmptyString(parsed.userStory) || !isNonEmptyString(parsed.technicalNotes) || !Array.isArray(parsed.scenarios) || parsed.scenarios.length === 0) return null;
-    const scenarios = parsed.scenarios.map((scenario: any) => ({
-      title: isNonEmptyString(scenario?.title) ? scenario.title : undefined,
-      given: Array.isArray(scenario?.given) ? scenario.given.filter(isNonEmptyString).map(String) : [],
-      when: Array.isArray(scenario?.when) ? scenario.when.filter(isNonEmptyString).map(String) : [],
-      then: Array.isArray(scenario?.then) ? scenario.then.filter(isNonEmptyString).map(String) : [],
-      notes: isNonEmptyString(scenario?.notes) ? scenario.notes : undefined,
-    })).filter(scenario => scenario.given.length && scenario.when.length && scenario.then.length);
-    if (!scenarios.length) return null;
-    return {
-      id: parsed.id.trim(),
-      feature: parsed.feature.trim(),
-      userStory: parsed.userStory.trim(),
-      scenarios,
-      invalidInputs: Array.isArray(parsed.invalidInputs) ? parsed.invalidInputs.filter(isNonEmptyString).map(String) : undefined,
-      boundaryConditions: Array.isArray(parsed.boundaryConditions) ? parsed.boundaryConditions.filter(isNonEmptyString).map(String) : undefined,
-      offlineBehavior: isNonEmptyString(parsed.offlineBehavior) ? parsed.offlineBehavior : undefined,
-      accessibility: Array.isArray(parsed.accessibility) ? parsed.accessibility.filter(isNonEmptyString).map(String) : undefined,
-      technicalNotes: parsed.technicalNotes.trim(),
-      dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies.filter(isNonEmptyString).map(String) : undefined,
-    };
+export interface MVPFeatureSpecGenerationResult {
+  featureSpec: MVPFeatureSpec | null;
+  outcome: MVPFeatureSpecValidationOutcome;
+}
+
+const featureSpecGenerationResult = (
+  requestedFeature: string,
+  featureSpec: MVPFeatureSpec | null,
+  validation: BDDFeatureValidationResult,
+  parseErrors: string[],
+  repaired: boolean,
+): MVPFeatureSpecGenerationResult => ({
+  featureSpec,
+  outcome: {
+    requestedFeature,
+    featureId: featureSpec?.id,
+    valid: featureSpec !== null && validation.valid && parseErrors.length === 0,
+    errors: validation.errors,
+    warnings: validation.warnings,
+    parseErrors,
+    repaired,
+  },
+});
+
+export const generateMVPFeatureSpec = async (feature: string, projectName: string, mvp: MVPDefinition): Promise<MVPFeatureSpecGenerationResult> => {
+  const logRepairDiagnostic = (attempt: number, responseText: string, parsed: ReturnType<typeof parseMVPFeatureSpecResponse>) => {
+    logger.warn('mvp_feature_spec_repair_diagnostic', {
+      operation: 'generate_mvp_feature_spec',
+      retryAttempt: attempt,
+      maxRetries: 4,
+      responseCharacters: responseText.length,
+      errorMessage: [...parsed.parseErrors, ...parsed.validation.errors, ...parsed.validation.warnings].join(' | ') || undefined,
+      metadata: {
+        feature,
+        normalizedFeaturePresent: parsed.featureSpec !== null,
+        parseErrorCount: parsed.parseErrors.length,
+        validationErrorCount: parsed.validation.errors.length,
+        warningCount: parsed.validation.warnings.length,
+      },
+    });
   };
   const prompt = `Create one production-ready MVP feature specification for "${feature}" in "${projectName}".
 
 Project MVP:
 ${JSON.stringify(mvp)}
 
-Return valid JSON only using this shape:
+Return valid JSON only. Do not include Markdown fences, commentary, or fields outside this shape:
 {
   "id": "stable-kebab-case-id",
   "feature": "specific feature name",
   "userStory": "As a <role>, I want <goal>, so that <benefit>.",
-  "scenarios": [{"title":"Happy path","given":["..."],"when":["..."],"then":["..."]}, {"title":"Invalid or edge case","given":["..."],"when":["..."],"then":["..."]}],
-  "invalidInputs": ["..."],
-  "boundaryConditions": ["..."],
-  "offlineBehavior": "...",
-  "accessibility": ["..."],
+  "scenarios": [
+    {"id":"stable-kebab-case-scenario-id","type":"happy-path","title":"specific scenario title","given":["concrete project state"],"when":["concrete user action or system event"],"then":["observable project-specific result"]},
+    {"id":"stable-kebab-case-scenario-id","type":"failure | boundary | edge-case | offline","title":"specific non-happy-path title","given":["concrete project state"],"when":["concrete invalid action, boundary, failure, or offline event"],"then":["observable project-specific result"]}
+  ],
+  "acceptanceCriteria": ["testable feature-level outcome"],
+  "failureStates": ["specific failed state and expected handling"],
+  "invalidInputs": ["specific invalid input or invalid state and expected handling"],
+  "boundaryConditions": ["specific limit, threshold, capacity, timer, rate, or size boundary"],
+  "offlineBehavior": "specific behavior when the required service or connection is unavailable",
+  "accessibility": ["specific accessible interaction or presentation requirement"],
+  "telemetry": ["specific event, metric, or diagnostic signal"],
+  "securityConsiderations": ["specific authorization, abuse, or trust-boundary consideration"],
+  "performanceTargets": ["specific measurable latency, rate, memory, frame-time, or capacity target"],
   "technicalNotes": "Concrete state, validation, performance, and integration requirements.",
   "dependencies": ["..."]
 }
 
-Make every field specific to this feature and project. Do not reuse generic text from another feature.`;
-  const response = await ask(prompt, 'You are a senior product manager and technical architect who writes precise, testable feature specifications.', 4096, 'generate_mvp_feature_spec');
-  const featureSpec = parseFeatureSpec(response);
-  if (featureSpec) return featureSpec;
+Requirements:
+- Use a unique kebab-case feature ID and unique kebab-case scenario IDs.
+- Provide one concrete user story and at least two scenarios. Every scenario must use one of: "happy-path", "edge-case", "failure", "boundary", or "offline" for its type.
+- Include at least one "happy-path" scenario and at least one non-happy-path scenario of type "edge-case", "failure", "boundary", or "offline".
+- Treat Given as a concrete precondition or state, When as an action or event, and Then as an observable result. Name actual project entities, roles, rules, and states rather than using generic actors or systems.
+- Preserve relevant measurable constraints from the project, such as counts, timers, distances, capacities, rates, sizes, or latency. Make Then outcomes measurable whenever project constraints exist.
+- Describe project-specific invalid inputs, boundaries, accessibility, offline behavior, dependencies, technical notes, and applicable acceptance, failure, telemetry, security, and performance requirements.
+- Do not use generic filler such as "the system behaves as expected", "an appropriate error message is displayed", "standard implementation", "TBD", or "handle invalid input accordingly".
+- Omit an optional array when no project-specific item is supported. Do not invent requirements solely to fill a field.
 
-  const repairedResponse = await ask(`Convert the attempted MVP feature specification below into valid JSON only.
+Formatting-only Gherkin semantics example; replace every entity, state, action, and outcome with this project's own details:
+Given a named actor is in a named project state
+And a relevant project constraint is satisfied
+When the actor performs a named action or a named event occurs
+Then a named observable result occurs
+And any relevant state, limit, or user-visible outcome is updated
+
+Make every supplied field specific to this feature and project. Do not reuse generic text from another feature.`;
+  const response = await ask(prompt, 'You are a senior product manager and technical architect who writes precise, testable feature specifications.', 4096, 'generate_mvp_feature_spec', mvpFeatureSpecStructuredOutput);
+  const parsedFeatureSpec = parseMVPFeatureSpecResponse(response, true);
+  if (mvpFeatureSpecNeedsRepair(parsedFeatureSpec)) logRepairDiagnostic(0, response, parsedFeatureSpec);
+  if (parsedFeatureSpec.featureSpec && parsedFeatureSpec.validation.warnings.length === 0) {
+    return featureSpecGenerationResult(feature, parsedFeatureSpec.featureSpec, parsedFeatureSpec.validation, parsedFeatureSpec.parseErrors, false);
+  }
+
+  let latestResponse = response;
+  let repairedFeatureSpec = parsedFeatureSpec;
+  for (let attempt = 1; attempt <= 4 && mvpFeatureSpecNeedsRepair(repairedFeatureSpec); attempt += 1) {
+    const repairIssues = formatMVPFeatureSpecRepairIssues(repairedFeatureSpec);
+    const repairedResponse = await ask(`Repair the attempted MVP feature specification below into valid JSON only. Preserve supported project facts and valid optional fields; do not replace them with generic content.
 
 Required shape:
-{"id":"stable-kebab-case-id","feature":"specific feature name","userStory":"As a <role>, I want <goal>, so that <benefit>.","scenarios":[{"title":"Happy path","given":["concrete precondition"],"when":["concrete action"],"then":["concrete expected result"]}],"technicalNotes":"Concrete project-specific state, validation, performance, and integration requirements."}
+{"id":"stable-kebab-case-id","feature":"specific feature name","userStory":"As a <role>, I want <goal>, so that <benefit>.","scenarios":[{"id":"unique-scenario-id","type":"happy-path","title":"specific title","given":["concrete precondition"],"when":["concrete action"],"then":["observable result"]},{"id":"unique-non-happy-path-id","type":"failure | boundary | edge-case | offline","title":"specific non-happy-path title","given":["concrete state"],"when":["concrete event"],"then":["observable result"]}],"technicalNotes":"Concrete project-specific state, validation, performance, and integration requirements."}
 
-Every scenario must include non-empty given, when, and then arrays. Preserve supported project details; do not invent generic placeholder content.
+Repair targets:
+${repairIssues}
+
+Repair attempt: ${attempt}
+
+If the previous response had no scenarios, this attempt must include exactly two concrete scenarios: one happy-path and one failure, edge-case, boundary, or offline scenario. Both scenarios must have non-empty Given, When, and Then arrays, and technicalNotes must be non-empty.
+
+Original project context:
+Project name: ${projectName}
+Requested MVP feature: ${feature}
+Project MVP: ${JSON.stringify(mvp)}
+
+Every scenario must include non-empty Given, When, and Then arrays. Include at least two scenarios: one happy-path and one typed non-happy path. Preserve valid scenario IDs/types and additive requirement categories (acceptanceCriteria, failureStates, telemetry, securityConsiderations, performanceTargets) when supported. Do not invent generic placeholder content.
 
 Attempted response:
-${response}`, 'You repair response formatting without inventing unsupported project facts.', 4096, 'repair_mvp_feature_spec');
-  const repairedFeatureSpec = parseFeatureSpec(repairedResponse);
-  if (!repairedFeatureSpec) invalidResponse('MVP feature specification');
-  return repairedFeatureSpec;
+${latestResponse}`, 'You repair MVP feature specifications against the supplied project context without inventing unsupported project facts.', 4096, 'repair_mvp_feature_spec', mvpFeatureSpecStructuredOutput);
+    latestResponse = repairedResponse;
+    repairedFeatureSpec = parseMVPFeatureSpecResponse(repairedResponse, true);
+    if (mvpFeatureSpecNeedsRepair(repairedFeatureSpec)) logRepairDiagnostic(attempt, repairedResponse, repairedFeatureSpec);
+  }
+  if (repairedFeatureSpec.featureSpec && repairedFeatureSpec.validation.warnings.length > 0) {
+    const cleanedFeatureSpec = omitOptionalGenericFiller(repairedFeatureSpec.featureSpec);
+    const cleanedValidation = validateMVPFeatureSpec(cleanedFeatureSpec, { requireStrongContract: true });
+    repairedFeatureSpec = {
+      featureSpec: cleanedValidation.valid ? cleanedFeatureSpec : null,
+      parseErrors: repairedFeatureSpec.parseErrors,
+      validation: cleanedValidation,
+    };
+  }
+  return featureSpecGenerationResult(
+    feature,
+    repairedFeatureSpec.validation.warnings.length === 0 ? repairedFeatureSpec.featureSpec : null,
+    repairedFeatureSpec.validation,
+    repairedFeatureSpec.parseErrors,
+    true,
+  );
 };
+
+export interface TechnicalSpecificationGenerationResult {
+  specification: TechnicalSpecification | null;
+  featureId: string;
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  parseErrors: string[];
+  repaired: boolean;
+}
+
+const technicalSpecificationResult = (
+  feature: MVPFeatureSpec,
+  parsed: { specification: TechnicalSpecification | null; parseErrors: string[]; validation: { errors: string[]; warnings: string[] } },
+  repaired: boolean,
+): TechnicalSpecificationGenerationResult => ({
+  specification: parsed.specification,
+  featureId: feature.id,
+  valid: parsed.specification !== null && parsed.parseErrors.length === 0,
+  errors: parsed.validation.errors,
+  warnings: parsed.validation.warnings,
+  parseErrors: parsed.parseErrors,
+  repaired,
+});
+
+/** Generates the architect-owned technical fields while source BDD traceability stays authoritative. */
+export const generateTechnicalSpecification = async (
+  feature: MVPFeatureSpec,
+  projectText = '',
+): Promise<TechnicalSpecificationGenerationResult> => {
+  const sourceContext = JSON.stringify({
+    featureId: feature.id,
+    feature: feature.feature,
+    userStory: feature.userStory,
+    scenarios: feature.scenarios,
+    dependencies: feature.dependencies ?? [],
+    acceptanceCriteria: feature.acceptanceCriteria ?? [],
+    technicalNotes: feature.technicalNotes ?? '',
+  });
+  const shape = `{"featureId":"${feature.id}","feature":"${feature.feature}","userStory":"${feature.userStory}","dataModels":[{"name":"...","purpose":"...","fields":[{"name":"...","type":"...","required":true,"description":"..."}],"constraints":[]}],"apiContracts":[{"name":"...","method":"EVENT","path":"...","request":"...","response":"...","errors":[],"authentication":"..."}],"stateTransitions":[{"from":"...","event":"...","to":"...","guard":"...","effects":[]}],"dependencies":[],"acceptanceCriteria":[]}`;
+  const prompt = `Design the implementation-ready technical specification for this validated MVP feature.
+
+Return JSON only in this shape:
+${shape}
+
+The feature ID, feature name, user story, and scenarios are authoritative source fields. Do not remove or rewrite scenarios.
+Create concrete project-specific data models, API or event contracts, and state transitions. Include validation, failure behavior, dependencies, and measurable constraints when supported. Do not use placeholders or generic architecture.
+
+Project context:
+${projectText}
+
+Validated BDD source:
+${sourceContext}`;
+  const response = await ask(prompt, 'You are a Software Architect translating validated BDD features into precise, traceable technical specifications.', 4096, 'generate_technical_specification', technicalSpecificationStructuredOutput);
+  const parsed = parseTechnicalSpecificationResponse(extractJson(response));
+  const sourcePreserving = parsed.specification ? {
+    ...parsed.specification,
+    featureId: feature.id,
+    feature: feature.feature,
+    userStory: feature.userStory,
+    scenarios: feature.scenarios,
+    source: 'bdd-feature-spec' as const,
+  } : null;
+  const validation = sourcePreserving ? validateTechnicalSpecification(sourcePreserving, { requireArchitectFields: true }) : parsed.validation;
+  if (sourcePreserving && validation.valid && parsed.parseErrors.length === 0) {
+    return technicalSpecificationResult(feature, { specification: sourcePreserving, parseErrors: [], validation }, false);
+  }
+
+  let latestResponse = response;
+  let latestParsed = parsed;
+  let latestSource = sourcePreserving;
+  let latestValidation = validation;
+  for (let attempt = 1; attempt <= 2 && (!latestSource || !latestValidation.valid || latestParsed.parseErrors.length > 0); attempt += 1) {
+    const repairIssues = [...latestParsed.parseErrors, ...latestValidation.errors, ...latestValidation.warnings].map(issue => `- ${issue}`).join('\n') || '- Missing architect contract fields.';
+    const repairedResponse = await ask(`Repair this attempted technical specification into valid JSON only.
+
+Repair targets:
+${repairIssues}
+
+Repair attempt: ${attempt}
+
+Required shape:
+${shape}
+
+Preserve these authoritative fields exactly, including every BDD scenario:
+${sourceContext}
+
+Attempted response:
+${latestResponse}`, 'You repair technical specifications without inventing unsupported project facts or changing BDD traceability.', 4096, 'repair_technical_specification', technicalSpecificationStructuredOutput);
+    latestResponse = repairedResponse;
+    latestParsed = parseTechnicalSpecificationResponse(extractJson(repairedResponse));
+    latestSource = latestParsed.specification ? {
+      ...latestParsed.specification,
+      featureId: feature.id,
+      feature: feature.feature,
+      userStory: feature.userStory,
+      scenarios: feature.scenarios,
+      source: 'bdd-feature-spec' as const,
+    } : null;
+    latestValidation = latestSource ? validateTechnicalSpecification(latestSource, { requireArchitectFields: true }) : latestParsed.validation;
+  }
+  return technicalSpecificationResult(feature, { specification: latestValidation.valid ? latestSource : null, parseErrors: latestParsed.parseErrors, validation: latestValidation }, true);
+};
+
 export const generateTechnicalDesignDocument = async (projectText: string, specs: TDDFeature[]): Promise<TechnicalDesignSection[]> => {
   const parseTechnicalDesign = (response: string): TechnicalDesignSection[] => {
     const parsed = extractJson(response);
@@ -570,6 +1109,7 @@ export const generateTechnicalDesignDocument = async (projectText: string, specs
       ? [{ title, content }]
       : [];
   };
+  const technicalDesignInputs = prepareTechnicalDesignInputs(specs);
   const response = await ask(`Create a production-ready technical design document for this project and its validated MVP feature specifications.
 
 Return JSON only as an array:
@@ -579,7 +1119,9 @@ Project context:
 ${projectText}
 
 Feature specifications:
-${JSON.stringify(specs)}`, 'You are a principal software architect producing an implementation-ready technical design document.', 4096, 'generate_technical_design_document');
+${JSON.stringify(technicalDesignInputs)}
+
+Use the structured technicalSpecification object as the authoritative source when present. It contains data models, API/event contracts, state transitions, dependencies, acceptance criteria, and the original BDD scenarios. Preserve every featureId and scenario ID in the resulting document. For legacy entries with no technicalSpecification, use the supplied userStories and legacyTechnicalSpecs fields without inventing structured fields.`, 'You are a principal software architect producing an implementation-ready technical design document.', 4096, 'generate_technical_design_document', technicalDesignDocumentStructuredOutput);
   const sections = parseTechnicalDesign(response);
   if (sections.length) return sections;
 
@@ -588,36 +1130,63 @@ ${JSON.stringify(specs)}`, 'You are a principal software architect producing an 
 Required shape:
 [{"title":"Architecture section title","content":"Detailed project-specific Markdown content."}]
 
-Preserve supported project details and do not add generic placeholder content.
+Preserve supported project details and do not add generic placeholder content. Retain every featureId and BDD scenario ID from the supplied feature specifications.
+
+Structured feature specifications:
+${JSON.stringify(technicalDesignInputs)}
 
 Attempted response:
-${response}`, 'You repair response formatting without inventing unsupported project facts.', 4096, 'repair_technical_design_document');
+${response}`, 'You repair response formatting without inventing unsupported project facts.', 4096, 'repair_technical_design_document', technicalDesignDocumentStructuredOutput);
   const repairedSections = parseTechnicalDesign(repairedResponse);
   if (!isSectionArray(repairedSections)) invalidResponse('technical design document');
   return repairedSections;
 };
 
-export const generateAssetList = async (gddText: string, projectName = 'Project'): Promise<AssetList> => {
-  const prompt = `You are a Technical Art Director. Analyze this GDD and create a production asset list for "${projectName}".
-Deconstruct what assets are required across:
-1. "Key Screens & UI Setups" (e.g. Main Game HUD, Thought Bubble Overlay, Menu Screen, Victory Screen)
-2. "2D Sprites & Character Assets" (e.g. Squishy Monster Base, Mouth Chomping State, Spitting State, Shapes)
-3. "Audio & Sound Effects (SFX)" (e.g. Hungry Grumble, Happy Chomp, Squeak Drag, Loud Burp/Fart, Victory Jingles)
-4. "VFX & Particle Animations" (e.g. Food Chomping Stars, Spurt Puffs, Pipe Dispense Dust)
-5. "HUD & Icon Components" (e.g. Shape Indicators, Audio Toggle, Pause Button)
+export const generateAssetMetadata = async (gddText: string, projectName = 'Project', handoffContext = '') => {
+  const shape = `[{"id":"stable-asset-kebab-case-id","category":"UI|character|environment|audio|VFX|technical|marketing","name":"Specific asset name","purpose":"Why it exists","quantity":"1","format":"SVG|PNG|WAV|...","resolution":"...","dependencies":["..."],"ownerRole":"Named production role","acceptanceCriteria":["Testable acceptance criterion"],"sourceReferences":["GDD/TDD/brief reference"]}]`;
+  const response = await ask(`Create structured production asset metadata for "${projectName}".
 
-Return a valid JSON object where every key is an asset category and every value is an array of specific asset strings.
-Context:
-${gddText}`;
-  const parsed = extractJson(await ask(prompt, 'You are a Production Art Director and Game Asset Pipeline Specialist.')) as any;
-  if (!isAssetObject(parsed)) invalidResponse('asset list');
-  return Object.fromEntries(Object.entries(parsed).map(([key, value]) => [key, Array.isArray(value) ? value.map(String) : [String(value)]]));
+Return JSON only in this shape:
+${shape}
+
+Use stable unique asset IDs. Include owner role, purpose, dependencies, applicable format/resolution, acceptance criteria, and source references. Do not use generic placeholders.
+
+GDD:
+${gddText}
+
+Production handoff context:
+${handoffContext}`, 'You are a Production Art Director and Asset Cataloger creating traceable asset metadata.', 4096, 'generate_asset_metadata');
+  const parsed = parseAssetMetadataResponse(extractJson(response));
+  if (parsed.assets.length) return parsed.assets;
+  const repairedResponse = await ask(`Repair the attempted asset metadata into valid JSON only.
+
+Required shape:
+${shape}
+
+Attempted response:
+${response}`, 'You repair asset metadata without inventing unsupported project facts.', 4096, 'repair_asset_metadata');
+  const repaired = parseAssetMetadataResponse(extractJson(repairedResponse));
+  if (!repaired.assets.length) invalidResponse('asset metadata');
+  return repaired.assets;
+};
+
+export const generateAssetList = async (gddText: string, projectName = 'Project'): Promise<AssetList> => {
+  const assets = await generateAssetMetadata(gddText, projectName);
+  return projectAssetMetadataToLegacyList(assets);
 };
 
 export const generateScopeReview = async (projectDescription: string, lens: LensType): Promise<CritiquePoint[]> => {
+  const lensGuidance: Record<LensType, string> = {
+    studio: 'Evaluate AAA-scale staffing, certification, platform scalability, live operations, content volume, budget, and timeline exposure. Do not recommend indie shortcuts as the primary analysis.',
+    indie: 'Evaluate feasibility for a 1–5 person team. Prioritize scope cuts, reusable systems, prototype-first delivery, and preservation of the project’s unique hook.',
+    freelance: 'Evaluate contractor modularity, ownership, deliverable boundaries, integration contracts, acceptance criteria, dependencies, and communication bottlenecks.',
+    gamejam: 'Reduce the project to a playable 48-hour proof of fun. Identify the minimum fun loop, what can be mocked, what must be cut, and what must be playable immediately.',
+  };
   const prompt = `You are an elite Producer and Scope Controller conducting a ${lens} critical review for this project.
 Your primary objective is to PREVENT SCOPE CREEP — the silent killer of great ideas.
-Analyze the project strictly through the lens of a ${lens} (e.g., resources, budget, timelines, and technical debt).
+Analyze the project strictly through the ${lens} lens.
+Lens-specific contract:
+${lensGuidance[lens]}
 Identify:
 1. Feature bloat or hidden complexities that should be cut from V1.
 2. Underestimated technical tasks (e.g. physics edge cases, cross-device touch latency, build pipeline).
@@ -633,8 +1202,8 @@ Return a valid JSON array of objects with:
 Project Context:
 ${projectDescription}`;
   const response = await ask(prompt, `You are a ruthless game producer and scope guardian conducting a ${lens} review.`, 2048, 'generate_scope_review');
-  const review = parseScopeReview(response);
-  if (review.length) return review;
+  const review = parseScopeReview(response).map(point => normalizeCritiquePoint(point, lens)).filter((point): point is CritiquePoint => point !== null);
+  if (review.length && validateScopeReview(review, lens).valid) return review;
 
   const repairedResponse = await ask(`Convert the attempted scope review below into JSON only.
 
@@ -643,33 +1212,67 @@ Required shape:
 
 Attempted response:
 ${response}`, 'You repair response formatting without inventing unsupported project facts.', 2048, 'repair_scope_review');
-  const repairedReview = parseScopeReview(repairedResponse);
-  if (!isCritiqueArray(repairedReview)) invalidResponse('scope review');
+  const repairedReview = parseScopeReview(repairedResponse).map(point => normalizeCritiquePoint(point, lens)).filter((point): point is CritiquePoint => point !== null);
+  const validation = validateScopeReview(repairedReview, lens);
+  if (!validation.valid) invalidResponse(`scope review (${validation.errors.join('; ')})`);
   return repairedReview;
 };
-export const generateModularBreakdown = async (gddText: string, projectName: string): Promise<FreelanceBrief[]> => {
-  const response = await ask(`Break "${projectName}" into role-specific, production-ready freelance briefs based only on the GDD below.
+export const generateProductionBriefs = async (gddText: string, projectName: string, handoffContext = ''): Promise<ProductionBrief[]> => {
+  const shape = `[{"id":"role-specific-kebab-case-id","title":"Role-specific brief title","role":"Named owner role","category":"creative|technical|production|audio|design","taskOverview":"Project-specific task overview","scopeOfWork":["Concrete work item"],"deliverables":["Named deliverable"],"acceptanceCriteria":["Testable acceptance criterion"],"dependencies":["Brief or artifact dependency"],"relatedBriefs":["Related brief ID"],"constraints":["Project constraint"],"outOfScope":["Explicit exclusion"],"sourceReferences":["GDD/TDD/asset reference"]}]`;
+  const response = await ask(`Break "${projectName}" into role-specific, production-ready structured freelance briefs.
 
-Return JSON only as an array with one object per role:
-[{"title":"Role-specific brief title","content":"Detailed Markdown brief covering scope, deliverables, dependencies, constraints, and acceptance criteria."}]
+Return JSON only in this shape:
+${shape}
+
+Create non-overlapping briefs for real project roles. Include concrete scope, deliverables, acceptance criteria, dependencies, constraints, and out-of-scope boundaries. Keep creative, technical, production, audio, and design responsibilities separate. IDs must be unique kebab-case values. Do not use generic placeholders or invent unsupported project facts.
 
 GDD:
-${gddText}`, 'You are a technical project manager preparing precise, project-specific freelance briefs.', 4096, 'generate_modular_breakdown');
-  const briefs = parseFreelanceBriefs(response);
-  if (briefs.length) return briefs;
+${gddText}
 
-  const repairedResponse = await ask(`Convert the attempted freelance-brief response below into JSON only.
+Validated handoff context:
+${handoffContext}`, 'You are a technical project manager preparing precise, project-specific freelance briefs.', 4096, 'generate_production_briefs', productionBriefsStructuredOutput);
+  let latestResponse = response;
+  let parsed = parseProductionBriefsResponse(extractJson(response));
+  for (let attempt = 1; attempt <= 2 && !parsed.briefs.length; attempt += 1) {
+    const repairIssues = [...parsed.validation.errors, ...parsed.validation.warnings].map(issue => `- ${issue}`).join('\n') || '- The response did not satisfy the structured production brief contract.';
+    const repairedResponse = await ask(`Repair the attempted structured freelance briefs below into valid JSON only.
 
 Required shape:
-[{"title":"Role-specific brief title","content":"Detailed project-specific Markdown brief."}]
+${shape}
 
-Preserve all supported project details and do not add generic placeholder content.
+Repair targets:
+${repairIssues}
+
+Repair attempt: ${attempt}
+
+Preserve supported project details, keep roles non-overlapping, and do not add generic placeholder content.
 
 Attempted response:
-${response}`, 'You repair response formatting without inventing unsupported project facts.', 4096, 'repair_modular_breakdown');
-  const repairedBriefs = parseFreelanceBriefs(repairedResponse);
-  if (!isFreelanceBriefArray(repairedBriefs)) invalidResponse('modular breakdown');
-  return repairedBriefs;
+${latestResponse}`, 'You repair structured production briefs without inventing unsupported project facts.', 4096, 'repair_production_briefs', productionBriefsStructuredOutput);
+    latestResponse = repairedResponse;
+    parsed = parseProductionBriefsResponse(extractJson(repairedResponse));
+  }
+  if (!parsed.briefs.length) {
+    const normalized = extractJson(latestResponse);
+    if (Array.isArray(normalized)) {
+      const candidateBriefs = normalized.flatMap(value => {
+        const candidate = normalizeProductionBrief(value);
+        return candidate ? [candidate] : [];
+      });
+      if (candidateBriefs.length === normalized.length) {
+        const resolvedBriefs = normalizeRelatedBriefReferences(candidateBriefs);
+        const resolvedValidation = validateProductionBriefs(resolvedBriefs);
+        if (resolvedValidation.valid) parsed = { briefs: resolvedBriefs, validation: resolvedValidation };
+      }
+    }
+  }
+  if (!parsed.briefs.length) invalidResponse(`production briefs (${parsed.validation.errors.join('; ')})`);
+  return parsed.briefs;
+};
+
+export const generateModularBreakdown = async (gddText: string, projectName: string): Promise<FreelanceBrief[]> => {
+  const structuredBriefs = await generateProductionBriefs(gddText, projectName);
+  return projectProductionBriefsToLegacy(structuredBriefs);
 };
 export const refineGDD = (gddText: string, _toc: unknown, projectName: string, instruction: string): Promise<GDDSection[]> => withFallback(async () => {
   const prompt = `Refine this GDD for ${projectName} based on the instruction: "${instruction}"\n\nGDD Source:\n${gddText}`;

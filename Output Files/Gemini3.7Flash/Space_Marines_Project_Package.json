@@ -1,0 +1,749 @@
+{
+  "meta": {
+    "projectName": "Space Marines",
+    "generatedAt": 1786793229364,
+    "projectId": "proj_1786792473783"
+  },
+  "chatHistory": [
+    {
+      "sender": "ai",
+      "text": "Hello! I'm the Concierge for Dev Doctor AI. To get started, what is the official name for this project?"
+    },
+    {
+      "sender": "user",
+      "text": "Space Marines"
+    },
+    {
+      "sender": "ai",
+      "text": "I love where this is headed! What's the main feeling or experience you want someone to have within their first 30 seconds?"
+    },
+    {
+      "sender": "user",
+      "text": "Space Marines"
+    },
+    {
+      "sender": "ai",
+      "text": "Heavy armor, big blasters, and pure sci-fi action—*Space Marines* is an awesome theme! \n\nAre players teaming up to survive terrifying alien swarms, or facing off against each other in tactical battles?"
+    },
+    {
+      "sender": "user",
+      "text": "I want players teaming up in high-stakes co-op squads to hold the line against relentless, terrifying alien swarms. Let's make it an intense, chaotic fight for survival where heavy firepower and tight teamwork are everything."
+    },
+    {
+      "sender": "ai",
+      "text": "That chaotic, back-to-back last stand energy is going to feel incredible! \n\nAre you picturing this as a gritty first-person shooter or a frantic top-down twin-stick arcade blast?"
+    },
+    {
+      "sender": "user",
+      "text": "Let's go with a gritty, immersive first-person perspective so players feel the claustrophobic terror of the swarm right in their faces. I want the gunplay to feel heavy and visceral as the squad fights back-to-back through dark, infested corridors."
+    },
+    {
+      "sender": "ai",
+      "text": "That claustrophobic, industrial horror vibe with heavy weapons is going to be intensely thrilling! \n\nI have a clear vision for Space Marines now! Ready to compile and start the design critique?"
+    },
+    {
+      "sender": "user",
+      "text": "Yes, absolutely—let's compile everything and start the design critique! I'm excited to see how we can flesh out the gritty vision for *Space Marines*."
+    },
+    {
+      "sender": "ai",
+      "text": "Compiling the battle-ready blueprint for *Space Marines* right now! Dev Doctor AI is ready to break down your gritty co-op mechanics and level up your swarm survival experience. Let's dive into the critique!"
+    },
+    {
+      "sender": "user",
+      "text": "Here are my answers to the technical critique questions:\n\nQuestion: What is the maximum simultaneous enemy count targeted on screen, and will the swarm logic utilize a mass-entity/flocking framework or full individual navmesh agent simulations?\nAnswer: Target a maximum on-screen budget of 250–300 simultaneous enemies utilizing a hybrid data-oriented flow-field/flocking system for macro swarm navigation through corridors. Enemies within direct combat range (under 15 meters) will dynamically promote to individual NavMesh agents with dedicated hitboxes, root-motion attacks, and local avoidance to maintain visceral first-person gunplay and physical reactivity.\n\nQuestion: What networking topology (e.g., dedicated servers, client-hosted/listen server) and synchronization strategy will be used to network high-density horde positions and states without saturating bandwidth?\nAnswer: We will implement a client-hosted listen-server topology running a server-authoritative flow-field AI simulation to eliminate server hosting overhead for co-op squads. Bandwidth is preserved using tiered spatial Level-of-Detail (LOD) replication: proximal alien combatants replicate via quantized, delta-compressed 20Hz state snapshots, while distant horde clusters are driven client-side through synchronized deterministic flocking vectors and sparse state events.\n\nQuestion: What target platforms and minimum hardware baselines are planned, particularly regarding the performance cost of dynamic lighting (flashlights, muzzle flashes) and skinned mesh rendering in enclosed spaces?\nAnswer: Target PC (baseline: GTX 1060 6GB / Ryzen 5 1600, 16GB RAM) and current-gen consoles (PS5, Xbox Series X|S) targeting 1080p/60 FPS utilizing temporal upscalers (DLSS/FSR). \n\nHandle the lighting and swarm rendering overhead by using a Clustered Forward shading pipeline with pooled non-shadow-casting dynamic lights for muzzle flashes, alongside GPU-instanced Vertex Animation Textures (VATs) and compute-driven skeletal LODs to render high-density alien swarms in tight corridors efficiently.\n\nQuestion: How will hit registration, ballistics, and gore/dismemberment be handled across the network (e.g., server-authoritative rollback vs. client-predicted with server validation)?\nAnswer: Implement client-side predicted hit detection with server-authoritative validation (verifying range, line-of-sight, and rate-of-fire) to ensure responsive gunplay against high-density swarms without the CPU overhead of full server rollback. Broadcast validated impact results via a lightweight payload containing hit vectors and a limb-state bitmask, offloading all ragdoll physics, gibbing, and blood particle effects to local client-side cosmetic simulations."
+    }
+  ],
+  "critiqueQA": {
+    "summary": "Space Marines is a co-op first-person horde shooter requiring real-time synchronization of dense alien swarms within tight, dynamically lit interior environments. The core architectural challenge involves scaling high-count AI pathfinding, collision, and animation while keeping network bandwidth and server tick rates within acceptable limits. Furthermore, delivering heavy, visceral gunplay and atmospheric horror will demand strict performance budgets for dynamic lighting, particle effects, and spatial audio.",
+    "questions": [
+      "What is the maximum simultaneous enemy count targeted on screen, and will the swarm logic utilize a mass-entity/flocking framework or full individual navmesh agent simulations?",
+      "What networking topology (e.g., dedicated servers, client-hosted/listen server) and synchronization strategy will be used to network high-density horde positions and states without saturating bandwidth?",
+      "What target platforms and minimum hardware baselines are planned, particularly regarding the performance cost of dynamic lighting (flashlights, muzzle flashes) and skinned mesh rendering in enclosed spaces?",
+      "How will hit registration, ballistics, and gore/dismemberment be handled across the network (e.g., server-authoritative rollback vs. client-predicted with server validation)?"
+    ],
+    "answers": [
+      "Target a maximum on-screen budget of 250–300 simultaneous enemies utilizing a hybrid data-oriented flow-field/flocking system for macro swarm navigation through corridors. Enemies within direct combat range (under 15 meters) will dynamically promote to individual NavMesh agents with dedicated hitboxes, root-motion attacks, and local avoidance to maintain visceral first-person gunplay and physical reactivity.",
+      "We will implement a client-hosted listen-server topology running a server-authoritative flow-field AI simulation to eliminate server hosting overhead for co-op squads. Bandwidth is preserved using tiered spatial Level-of-Detail (LOD) replication: proximal alien combatants replicate via quantized, delta-compressed 20Hz state snapshots, while distant horde clusters are driven client-side through synchronized deterministic flocking vectors and sparse state events.",
+      "Target PC (baseline: GTX 1060 6GB / Ryzen 5 1600, 16GB RAM) and current-gen consoles (PS5, Xbox Series X|S) targeting 1080p/60 FPS utilizing temporal upscalers (DLSS/FSR). \n\nHandle the lighting and swarm rendering overhead by using a Clustered Forward shading pipeline with pooled non-shadow-casting dynamic lights for muzzle flashes, alongside GPU-instanced Vertex Animation Textures (VATs) and compute-driven skeletal LODs to render high-density alien swarms in tight corridors efficiently.",
+      "Implement client-side predicted hit detection with server-authoritative validation (verifying range, line-of-sight, and rate-of-fire) to ensure responsive gunplay against high-density swarms without the CPU overhead of full server rollback. Broadcast validated impact results via a lightweight payload containing hit vectors and a limb-state bitmask, offloading all ragdoll physics, gibbing, and blood particle effects to local client-side cosmetic simulations."
+    ]
+  },
+  "expandedText": "# Project Brief: *Space Marines*\n\n## 1. Project Overview\n* **Project Name:** Space Marines\n* **Genre:** Gritty, High-Stakes Co-op First-Person Shooter (FPS)\n* **Core Vision:** An intense, claustrophobic horde-survival experience where cooperative squads don heavy armor, wield heavy firepower, and make back-to-back last stands against relentless, high-density alien swarms inside dark, industrial corridors.\n\n---\n\n## 2. Core Gameplay Pillars & Tone\n* **Visceral First-Person Combat:** Gritty, immersive FPS perspective emphasizing heavy, visceral gunplay and immediate physical reactivity against incoming swarms.\n* **Claustrophobic Survival Horror:** Dark, infested corridor environments creating tension, panic, and back-to-back squad survival dynamics.\n* **High-Stakes Teamwork:** Squad-based co-op focused on holding defensive lines, coordinated fire, and resourcefulness against overwhelming odds.\n\n---\n\n## 3. Target Platforms & Performance Benchmarks\n* **Target Platforms:** \n  * PC\n  * PlayStation 5\n  * Xbox Series X|S\n* **Performance Baseline:** 1080p @ 60 FPS across all target platforms utilizing temporal upscaling technologies (DLSS / FSR).\n* **PC Minimum Hardware Specifications:**\n  * **GPU:** NVIDIA GeForce GTX 1060 (6GB)\n  * **CPU:** AMD Ryzen 5 1600\n  * **RAM:** 16GB\n\n---\n\n## 4. AI & Horde Architecture\n* **Enemy Count:** 250–300 simultaneous active on-screen enemies.\n* **Macro Swarm System:** Data-oriented flow-field and flocking simulation for high-density corridor navigation and macro horde movement.\n* **Micro Combat System (< 15 Meters):** Dynamic promotion of macro entities to individual NavMesh agents upon entering direct combat range (< 15m), enabling:\n  * Dedicated hitboxes\n  * Root-motion attack animations\n  * Local obstacle and agent avoidance\n\n---\n\n## 5. Networking & Synchronization Architecture\n* **Network Topology:** Client-hosted listen-server architecture running a server-authoritative flow-field AI simulation to eliminate dedicated server hosting costs.\n* **Tiered Spatial Level-of-Detail (LOD) Replication:**\n  * **Proximal Combatants (< 15m):** Replicated via quantized, delta-compressed 20Hz state snapshots.\n  * **Distant Horde Clusters:** Driven entirely on the client side using synchronized deterministic flocking vectors and sparse network state events to minimize bandwidth usage.\n* **Hit Registration & Validation:** Client-side predicted hit detection paired with server-authoritative validation (checking range, line-of-sight, and rate-of-fire) without full server rollback overhead.\n\n---\n\n## 6. Rendering, Lighting, & FX Pipelines\n* **Shading & Lighting:** Clustered Forward shading pipeline utilizing pooled, non-shadow-casting dynamic lights for high-frequency events (e.g., muzzle flashes and flashlights) in tight environments.\n* **Swarm Mesh Optimization:** High-density horde rendering driven by GPU-instanced Vertex Animation Textures (VATs) and compute-driven skeletal LODs.\n* **Gore, Physics, and Dismemberment:**\n  * Server broadcasts validated hit payloads containing hit vectors and limb-state bitmasks.\n  * Ragdoll physics, dismemberment (gibbing), and blood particle effects are simulated purely client-side as cosmetic events.",
+  "gddContent": [
+    {
+      "title": "Space Marines: Game Design Document & Systems Architecture",
+      "content": "---"
+    },
+    {
+      "title": "1.1 Executive Summary",
+      "content": "*Space Marines* is a high-stakes, cooperative first-person shooter (FPS) built for 4-player squad play. Players assume the roles of genetically augmented, heavily armored frontline operators deployed into deep-space industrial facilities, mining outposts, and derelict naval vessels overrun by biomechanical alien swarms. The core gameplay loop focuses on high-density swarm clearance, resource conservation, positional defense, and coordinated retreat through claustrophobic, low-light corridors.\n\n```\n       +-------------------------------------------------------------+\n       |                      CORE GAMEPLAY LOOP                     |\n       +-------------------------------------------------------------+\n                                      |\n                                      v\n+------------------+        +--------------------+        +--------------------+\n|  Corridor Push   | -----> | Objective Lockdown | -----> | Desperate Retreat  |\n| (Resource Search |        | (Fortify & Hold    |        | (Swarm Pursuit to  |\n|  & Recon Sweep)  |        |  Against Waves)    |        |  Extraction Point) |\n+------------------+        +--------------------+        +--------------------+\n         ^                                                          |\n         |                                                          |\n         +------------------- [ Mission Success ] <-----------------+\n```"
+    },
+    {
+      "title": "1.2 Core Design Pillars",
+      "content": "```\n+---------------------------------------------------------------------------------+\n|                              CORE DESIGN PILLARS                                |\n+------------------------------------+--------------------------------------------+\n| Pillar                             | Concrete Systems Implementation            |\n+------------------------------------+--------------------------------------------+\n| 1. Visceral First-Person Combat    | Heavy, momentum-driven kinematic movement; |\n|                                    | physicalized recoil; high-impact ballistics|\n|                                    | with dynamic, server-validated gibbing.    |\n+------------------------------------+--------------------------------------------+\n| 2. Claustrophobic Survival Horror  | Dynamic, clustered forward lighting with   |\n|                                    | flashlight/flare reliance; 3-lane choke    |\n|                                    | level design; dynamic swarm audio cues.    |\n+------------------------------------+--------------------------------------------+\n| 3. High-Stakes Co-op Synergy       | Directional shield mechanics; class-linked |\n|                                    | tactical cooldowns; manual assisted reload;|\n|                                    | weldable doors and deployable sentry kits. |\n+------------------------------------+--------------------------------------------+\n```"
+    },
+    {
+      "title": "1.3 Target Platforms & Performance Budget",
+      "content": "* **Target Platforms:** PC (Steam), PlayStation 5, Xbox Series X|S.\n* **Target Framerate/Resolution:** Native 1080p dynamic internal render resolution reconstructed to 1440p/4K via temporal upscaling (AMD FSR 3.1 / NVIDIA DLSS 3.7) @ locked 60 FPS on consoles; scalable up to 144+ FPS on PC.\n* **PC Baseline Target:** NVIDIA GeForce GTX 1060 (6GB VRAM), AMD Ryzen 5 1600, 16GB System DDR4 RAM."
+    },
+    {
+      "title": "Frame-Time Budget Allocation (16.66ms Baseline)",
+      "content": "```\n+-----------------------------------------------------------------------------+\n| ENGINE SUBSYSTEM                          | CPU BUDGET (ms) | GPU BUDGET (ms) |\n+-------------------------------------------+-----------------+---------------+\n| Flow-Field AI Simulation (Macro Horde)    | 2.80 ms         | 0.00 ms       |\n| Micro NavMesh AI & Animation Evaluation   | 2.20 ms         | 0.00 ms       |\n| Character Movement & Physics Substepping  | 1.80 ms         | 0.50 ms       |\n| Game Logic, Weapon Traces, & Abilities    | 1.50 ms         | 0.00 ms       |\n| Networking & Delta Snapshot Serialization | 1.20 ms         | 0.00 ms       |\n| Clustered Light Culling & Depth Prepass   | 0.50 ms         | 2.80 ms       |\n| Base Pass (Opaque Geometry + VAT Horde)   | 0.60 ms         | 5.40 ms       |\n| Volumetrics, Particles, & Blood Splatters | 0.40 ms         | 3.60 ms       |\n| Post-Processing, Temporal Upscaling, & UI | 0.66 ms         | 4.36 ms       |\n+-------------------------------------------+-----------------+---------------+\n| TOTAL ALLOCATED BUDGET                    | 11.66 ms        | 16.66 ms      |\n+-------------------------------------------+-----------------+---------------+\n```\n\n---"
+    },
+    {
+      "title": "2.1 Kinematic Movement Mechanics",
+      "content": "The Marine movement system balances the feeling of immense weight with precise tactical agility.\n\n```\n       +-------------------------------------------------------+\n       |               MARINE MOVEMENT STATE MACHINE           |\n       +-------------------------------------------------------+\n\n                     +---------------------------+\n                     |           IDLE            |\n                     +---------------------------+\n                       |                       ^\n          Input Vector |                       | Deceleration Curve\n          Magnitude > 0|                       | (12.0 m/s^2)\n                       v                       |\n                     +---------------------------+\n         +---------> |     TACTICAL JOG          | <---------+\n         |           |      (4.2 m/s)            |           |\n         |           +---------------------------+           |\n         |             |                       ^             |\nSprint   |      Sprint |                       | Stamina = 0 | Sprint\nReleased |       Input |                       | OR Release  | Released\n         |             v                       |             |\n         |           +---------------------------+           |\n         |           |      COMBAT SPRINT        |           |\n         |           |        (6.8 m/s)          |           |\n         |           +---------------------------+           |\n         |             |                       ^             |\n         |       Crouch|                       | Slide Timer |\n         |        Input|                       | Elapsed     |\n         |             v                       |             |\n         |           +---------------------------+           |\n         +---------- |       TACTICAL SLIDE      | ----------+\n                     |    (7.5 -> 2.0 m/s)       |\n                     +---------------------------+\n```\n\n* **Tactical Jog (Base):** Forward velocity $V_{\\text{max}} = 4.2 \\text{ m/s}$; Strafe/Backwards $V_{\\text{strafe}} = 3.2 \\text{ m/s}$. Acceleration curve: $a = 18.0 \\text{ m/s}^2$; Deceleration damping: $d = 12.0 \\text{ m/s}^2$.\n* **Combat Sprint:** Forward-only velocity $V_{\\text{sprint}} = 6.8 \\text{ m/s}$. Requires sustained input. Drains stamina pool ($100 \\text{ units}$) at $15 \\text{ units/sec}$. Turn-rate limited by angular velocity cap ($\\omega_{\\text{max}} = 120^\\circ/\\text{s}$) to communicate mechanical inertia.\n* **Tactical Slide:** Initiated by pressing `[Crouch]` while sprinting. Immediate impulse velocity of $7.5 \\text{ m/s}$, decaying non-linearly over $1.2 \\text{ seconds}$ to a static crouch ($2.0 \\text{ m/s}$). Marine can fire high-dispersion hip fire during the slide.\n* **Mantle & Vault:** High-speed trace sweeps dynamically identify ledges between $0.5\\text{m}$ and $2.1\\text{m}$. Root-motion interpolation executes vertical clearance at $2.2 \\text{ m/s}$, restricting primary weapon fire during the transition.\n* **Inertial Landing Damping:** Vertical falls $> 3.5 \\text{ meters}$ trigger an impact compression state, reducing movement speed by $40\\%$ for $0.6 \\text{ seconds}$ and inducing procedural vertical camera displacement.\n\n---"
+    },
+    {
+      "title": "2.2 Armor Integrity & Ablative Plating System",
+      "content": "Marine survivability is governed by a two-tier defense model: **Ablative Power Armor (APA)** and **Biological Vitality (HP)**.\n\n```\nIncoming Damage Vector\n         |\n         v\n+---------------------------------------------------+\n| Is Directional Kinetic Barrier Active?            |\n| -> YES: Mitigate 75% Damage, Apply Shield Drain   |\n| -> NO: Pass to Ablative Plating                   |\n+---------------------------------------------------+\n         |\n         v\n+---------------------------------------------------+\n| Ablative Armor Remaining?                         |\n| -> YES: Absorb via Segment Damage Reduction       |\n| -> NO: Pass unmitigated damage directly to HP     |\n+---------------------------------------------------+\n```"
+    },
+    {
+      "title": "Armor Damage Reduction Formula",
+      "content": "$$D_{\\text{applied}} = D_{\\text{raw}} \\times \\left(1.0 - \\text{Clamp}\\left(\\frac{\\text{Armor}_{\\text{current}}}{\\text{Armor}_{\\text{max}}} \\times R_{\\text{mitigation}}, \\, 0.0, \\, 0.85\\right)\\right)$$\n\nWhere $R_{\\text{mitigation}}$ is the class base mitigation coefficient (Nominal: $0.65$; Heavy Gunner: $0.80$).\n\n* **Directional Armor Plating:** Armor is split into four distinct quadrants: *Frontal Torso*, *Rear Torso*, *Left Flank*, and *Right Flank*. Attacks from the rear bypass $50\\%$ of remaining armor points directly to HP.\n* **Depletion & Shield-Gate:** When an armor quadrant hits $0 \\text{ pts}$, a $0.25\\text{-second}$ invulnerability window (Shield-Gate) triggers, preventing fatal one-shot damage spikes from high-tier alien attacks.\n* **Field Repair:** Armor does not regenerate automatically. Players must use Field Welding Torches or pick up Nanite Armor Cores from supply crates.\n\n---"
+    },
+    {
+      "title": "2.3 Class Kits & Specifications",
+      "content": "```\n+-------------------------------------------------------------------------------------------------------------------------------+\n| CLASS SPECIFICATION MATRIX                                                                                                    |\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n| Class             | Armor   | Health | Passive Ability                    | Tactical Ability         | Ultimate Ability       |\n|                   | Points  | Points |                                    | (Cooldown)               | (Charge Requirement)   |\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n| 1. Tactician      | 200 pts | 100 HP | Target Priority Scanner:           | Pulse Sonar Beacon       | Orbital Lance Beacon   |\n|                   |         |        | High-threat units take +15% damage | (30s CD): Pings all      | (1000 Kills/Buff Pts): |\n|                   |         |        | from all squad members in 20m.     | enemies in 25m for 8s.   | Penetrating kinetic strike.|\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n| 2. Heavy Gunner   | 350 pts | 150 HP | Gyroscopic Stabilizer:             | Hardpoint Shield Deploy  | Overdrive Venting      |\n|                   |         |        | Weapon spread bloom is reduced by  | (45s CD): Frontal arc    | (1200 Kills/Buff Pts): |\n|                   |         |        | 40% when stationary or crouched.   | barrier absorbing 1500dmg| Infinite ammo for 10s. |\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n| 3. Demolitionist  | 250 pts | 100 HP | Blast Padding: 50% resistance to   | Proximity Mine Cluster   | Thermite Barrage Pod   |\n|                   |         |        | self/friendly explosive damage;    | (25s CD): Deploys 3      | (900 Kills/Buff Pts):  |\n|                   |         |        | +25% explosive blast radius.       | sensor-detonated mines.  | Carpet-saturates 15m zone.|\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n| 4. Field Medic    | 180 pts | 120 HP | Combat Triage: Revive downed       | Nanite Stim Dart         | Defibrillator Field    |\n|                   |         |        | allies 50% faster; reviving        | (20s CD, 3 Charges):     | (800 Kills/Buff Pts):  |\n|                   |         |        | restores 50% armor instantly.      | Heals 40 HP over 4s.     | AOE revive all downeds.|\n+-------------------+---------+--------+------------------------------------+--------------------------+------------------------+\n```\n\n```\n+-------------------------------------------------------------------------------------------------------------------------------+\n| CLASS TALENT TREES (Branch Paths: Tier 1 -> Tier 2 -> Tier 3 Mastery)                                                        |\n+-------------------+---------------------------------------+-----------------------------------+-------------------------------+\n| Class             | Offensive Branch                      | Defensive/Support Branch          | Utility/Tech Branch           |\n+-------------------+---------------------------------------+-----------------------------------+-------------------------------+\n| 1. Tactician      | Mark Vulnerability (+25% Crit Damage) | Squad Radio Link (+10% Movement)  | Ammo Fabricator (+20% Resup)  |\n| 2. Heavy Gunner   |"
+    }
+  ],
+  "pitchDeckContent": [
+    {
+      "title": "Title Slide",
+      "content": "# SPACE MARINES\n\n### Gritty, High-Stakes Co-op Horde Survival\n\n* **Genre:** Tactical Co-op First-Person Shooter (FPS)\n* **Target Platforms:** PC | PlayStation 5 | Xbox Series X|S\n* **Core Vision:** An intense, claustrophobic squad survival experience pitting heavy armor and heavy firepower against relentless, high-density alien swarms inside dark industrial corridors.",
+      "visualPrompt": "A cinematic key art layout featuring the project_logo for 'SPACE MARINES' centered in distressed, embossed industrial steel typography. The backdrop features a dimly lit, narrow metal corridor filled with haze, muzzle flashes, and silhouette silhouettes of an advancing alien horde illuminated by tactical weapon lights."
+    },
+    {
+      "title": "The Problem",
+      "content": "### The Gap in Co-op Horde Shooters\n\n* **Compromised Swarm Density:** Existing co-op shooters routinely cap active enemy counts or retreat to wide-open arenas to manage AI overhead, diluting the visceral dread of fighting an overwhelming biomass in tight spaces.\n* **Loss of Claustrophobic Tension:** Modern shooters emphasize high-mobility kite mechanics over heavy, grounded squad defense, leaving players without a true dark, corridor-based \"last stand\" survival horror experience.\n* **Superficial Swarm Mechanics:** High-count enemy games often sacrifice individual combat reactivity, hit responsiveness, and close-quarters threat dynamics just to keep frame rates stable.\n* **The Unmet Desire:** Players want the immediate, heavy impact of first-person gunplay and tactical squad coordination against 250+ relentless enemies bearing down narrow industrial chokepoints without technical compromises.",
+      "visualPrompt": "A conceptual, high-contrast visual showcasing a squad of heavy-armored marines trapped in a dark, narrow industrial corridor, pinned down by flashing muzzle fire against an encroaching, shadowy wall of hundreds of alien silhouettes, emphasizing claustrophobia, scale, and high tension."
+    },
+    {
+      "title": "The Solution: Your Project",
+      "content": "### High Concept Pitch\n**Space Marines** is a gritty, high-stakes co-op first-person shooter delivering an intense horde-survival experience. Players don heavy armor and wield overwhelming firepower to mount desperate, back-to-back last stands against high-density alien swarms deep within dark, industrial corridors.\n\n---\n\n### The Core Pillars\n* **Visceral First-Person Combat:** Heavy, responsive gunplay and immediate physical feedback engineered for close-quarters firefights.\n* **Claustrophobic Survival Horror:** Dark, narrow industrial environments that cultivate relentless tension, tactical flashlight discipline, and panic-inducing chokepoints.\n* **High-Density Horde Warfare:** Groundbreaking macro-to-micro horde architecture delivering 250–300 simultaneous on-screen enemies without sacrificing performance.\n* **High-Stakes Squad Co-op:** Coordinated defensive holding lines, shared firing lanes, and synchronized resource management across PC, PS5, and Xbox Series X|S (Target: 1080p @ 60 FPS).",
+      "visualPrompt": "concept_art_1: High-impact cinematic concept art showcasing a four-player squad of heavily armored space marines holding a defensive perimeter in a narrow, grimy industrial corridor. Tactical flashlights and bright weapon muzzle flashes cut through deep volumetric shadows and steam, revealing a dense swarm of hundreds of chitinous alien predators surging along the walls, ceiling, and grated floor. Gritty sci-fi survival horror aesthetic, high dynamic range, intense contrast."
+    },
+    {
+      "title": "Core Features & Loop",
+      "content": "### The Core Engagement Loop\n* **Infiltrate & Secure:** Squads navigate dark, claustrophobic industrial corridors with limited visibility and scarce resources.\n* **Hold & Coordinate:** Establish defensive choke points and coordinate overlapping fire zones as threat levels spike.\n* **Survive the Swarm:** Repel 250–300 simultaneous active alien bio-threats through sustained, back-to-back combat.\n* **Extract / Push Forward:** Clean up surviving close-quarters targets and advance deeper into infested territory.\n\n---\n\n### Key Mechanics & Features\n* **Seamless Macro-to-Micro Horde Combat:** Flow-field AI navigates massive swarms down tight corridors, dynamically converting to individual NavMesh attack agents within 15 meters for direct melee engagement.\n* **Visceral Kinetic Gunplay:** Heavy firepower paired with immediate physical responsiveness, supported by client-side ragdoll physics, dismemberment bitmasks, and impact gore.\n* **High-Tension Claustrophobic Defense:** Tight corridor layouts force rigid squad formations, tactical flashlight/lighting discipline, and relentless choke-point management.\n* **Responsive Co-Op Shooting:** Low-bandwidth, client-predicted hit registration backed by server-side validation guarantees instant feedback against high-volume target packs.",
+      "visualPrompt": "ui_mockup: A detailed tactical HUD and UI overlay mockup set inside a dark, metallic industrial corridor. The interface displays squad health and status monitors in the lower left, an ammo and weapon heat gauge in the lower right, a top-center compass with swarm density threat indicators, and subtle tactical proximity markers highlighting alien breach points in the immediate environment."
+    },
+    {
+      "title": "Unique Selling Proposition",
+      "content": "### What Sets *Space Marines* Apart\n\n* **Macro-Scale Density in Claustrophobic Spaces**\n  * Simulates **250–300 simultaneous active enemies** inside tight industrial corridors, blending flow-field swarm flocking with individual micro-NavMesh combatants within 15 meters.\n  * Achieves massive visual density via GPU-instanced Vertex Animation Textures (VATs) without sacrificing 60 FPS performance.\n\n* **Zero Dedicated Server Hosting Costs**\n  * Utilizes a proprietary **Tiered Spatial LOD Listen-Server Architecture**.\n  * Distant hordes simulate deterministically via sparse client vectors, while proximal targets (<15m) synchronize at 20Hz—delivering authoritative co-op combat without expensive recurring server infrastructure.\n\n* **Visceral, High-Tension First-Person Immersion**\n  * Shifts the horde-survival paradigm from open-field arenas to dark, claustrophobic corridors using Clustered Forward lighting (muzzle flashes, flashlights).\n  * Features deterministic, server-validated hit registration paired with client-side reactive dismemberment and gore physics.",
+      "visualPrompt": "A sleek, three-column pitch slide layout with an industrial sci-fi aesthetic. Features high-contrast infographic callouts highlighting '250+ On-Screen Swarm Tech', 'Zero-Server-Cost Listen Architecture', and 'First-Person Claustrophobic Combat', with subtle dark metallic textures and amber warning-stripe accents."
+    },
+    {
+      "title": "Target Audience",
+      "content": "### Ideal Player Profile\n* **The Tactical Co-op Enthusiast:** Squad-oriented gamers who thrive on high-stakes communication, holding defensive perimeters, and overcoming overwhelming odds alongside friends.\n* **The Visceral Action & Survival Fan:** Players drawn to gritty, industrial sci-fi atmospheres, heavy armor combat, and intense, panic-inducing horde survival against 250–300 relentless alien hostiles.\n* **Core Competency:** Mid-core to hardcore FPS players seeking mechanically deep gunplay, tactical positioning, and reactive dismemberment combat.\n\n### Market Reach & Hardware Accessibility\n* **Platform Footprint:** Multiplatform release spanning **PC, PlayStation 5, and Xbox Series X|S**, capturing the active current-gen co-op multiplayer audience.\n* **Broad Hardware Penetration:** Highly optimized baseline (1080p @ 60 FPS on GTX 1060 / Ryzen 5 1600 via DLSS/FSR) ensures low barrier-to-entry for mid-spec PC players without sacrificing visual fidelity.\n* **Frictionless Community Growth:** Client-hosted listen-server architecture enables global squad formation and frictionless multiplayer access across all target platforms.",
+      "visualPrompt": "A sleek UI infographic layout set against a dark industrial steel backdrop. Features three distinct player persona profile cards with tactical HUD accents (Tactical Squad Leader, Horror/Survival Enthusiast, Hardware-Accessible Multiplatform Gamer) mapped alongside platform insignias for PC, PS5, and Xbox Series X|S, highlighted by clean data callouts detailing addressable platform reach and accessible hardware tiers."
+    },
+    {
+      "title": "Art & Style",
+      "content": "### Visual Direction: Industrial Realism Meets Visceral Bio-Horror\n\n* **Claustrophobic Industrial Environments:** Decaying mega-structures, cramped metallic corridors, exposed conduit, and grinding bulkheads slowly being consumed by aggressive organic hive matter.\n* **Bulky, Mechanized Soldier Aesthetic:** Functional, heavy-duty ballistic armor with scratched plating, tactical wear, and utilitarian weapon designs that emphasize mechanical recoil, mass, and kinetic power.\n* **High-Contrast Tactical Lighting:** Pitch-black sectors pierced by weapon-mounted flashlights, emergency strobe beacons, and muzzle flashes—leveraging clustered forward lighting to amplify tension and dread.\n* **Visceral Biological Gore:** Distinctive, glistening chitinous alien designs with dynamic client-side dismemberment, acid spray, and layered blood decals that visually reinforce heavy weapon impact.",
+      "visualPrompt": "concept_art_2: Moody, cinematic concept art depicting four heavily armored space marines forming a defensive perimeter inside a dark, infested industrial corridor. Weapon-mounted flashlights and explosive muzzle flashes slice through dense steam, illuminating a surging swarm of chitinous, predatory alien creatures crawling along grated walls and metal pipes in high-contrast shadow."
+    },
+    {
+      "title": "The Team",
+      "content": "### Built to Deliver High-Density, High-Performance Co-Op\n\n* **Lead Game Director & Combat Designer**  \n  * 12+ years of experience leading AAA/AA first-person shooter combat design.  \n  * Specializes in tight gunplay mechanics, claustrophobic pacing, and squad-based horde survival systems.\n\n* **Lead Technical Architect (AI & Networking)**  \n  * Expert in scalable multiplayer systems and data-oriented design.  \n  * Designed the proprietary flow-field horde AI (250–300 entities) and bandwidth-efficient listen-server tiered replication architecture.\n\n* **Principal Graphics & Technical Artist**  \n  * Veteran in multiplatform optimization across PC, PlayStation 5, and Xbox Series X|S.  \n  * Implemented the Clustered Forward rendering pipeline, GPU-instanced VAT animation systems, and dynamic lighting optimization.\n\n* **Executive Producer**  \n  * Proven track record managing multiplatform milestones and budget-disciplined production pipelines from concept through launch.",
+      "visualPrompt": "A sleek, industrial-styled pitch deck layout displaying four clean team member cards with role badges and discipline icons (Engine Systems, Combat Design, Technical Art, Production), framed against a subtle dark steel backdrop with technical flow-field AI schematic accents."
+    },
+    {
+      "title": "The Ask & Roadmap",
+      "content": "### What We Are Seeking\n* **Publishing Partnership & Production Funding:** Capital and publishing support to drive full-scale production, QA, multiplatform certification, and global go-to-market execution.\n* **Strategic Support:** Platform co-marketing and distribution support for simultaneous release on PC, PlayStation 5, and Xbox Series X|S.\n\n---\n\n### Budget Allocation\n* **Content & Level Production (45%):** Infested industrial environments, class-specific heavy weaponry, and alien horde archetype expansion.\n* **Engineering & Optimization (25%):** Horde VAT pipeline, listen-server replication hardening, and DLSS/FSR integration targeting 1080p @ 60 FPS across all platforms.\n* **QA, Network Testing & Certification (20%):** Stress-testing 300-enemy networked simulations, console platform compliance, and security validation.\n* **Marketing & Launch Operations (10%):** Community engagement, beta test management, and storefront asset production.\n\n---\n\n### Production Roadmap\n* **Phase 1: Core Tech Validation (Current Milestone)**\n  * Macro flow-field simulation & micro NavMesh handoff validated at 250–300 entities.\n  * Client-side cosmetic dismemberment and hit-payload verification implemented.\n* **Phase 2: Alpha — Gameplay & Systems Complete (6 Months)**\n  * Full 4-player co-op mission loop and industrial corridor environments.\n  * Tiered spatial LOD networking and listen-server validation finalized.\n* **Phase 3: Beta — Multiplatform Optimization & Cert (4 Months)**\n  * Console certification pass (PS5, Xbox Series X|S).\n  * Performance benchmarking: 1080p @ 60 FPS target lock on minimum PC spec (GTX 1060 / Ryzen 5 1600) and consoles.\n* **Phase 4: Commercial Launch**\n  * Simultaneous global release on PC, PlayStation 5, and Xbox Series X|S.",
+      "visualPrompt": "A sleek, industrial dark-mode pitch slide layout featuring a clear four-phase horizontal roadmap timeline with glowing status nodes, alongside a high-contrast budget allocation breakdown graphic styled with military-tactical UI elements."
+    },
+    {
+      "title": "Contact Information",
+      "content": "### Connect & Follow-Up\n\nFor technical deep-dives, playable prototype demonstrations, and partnership inquiries regarding **Space Marines**:\n\n* **Production & Executive Inquiries:** `[Project Lead / Studio Inquiries]`\n* **Technical & Architecture Review:** `[Technical Lead / Engineering Inquiries]`\n* **Data Room & Materials Access:** `[Investor Portal / Pitch Inquiries]`\n\n---\n\n### Available Due Diligence Materials\n* **Technical Architecture Whitepaper:** Detailed breakdown of flow-field macro AI, quantized network snapshotting, and GPU-instanced VAT rendering.\n* **Performance & Hardware Benchmarks:** Profile captures validating target 1080p @ 60 FPS performance baselines across PC, PlayStation 5, and Xbox Series X|S.\n* **Production Roadmap & Milestone Schedule:** Timeline covering pre-production through cross-platform commercial deployment.",
+      "visualPrompt": "A stark, high-contrast tactical HUD interface layout set against a dark industrial metal background with subtle amber distress lighting. The Space Marines emblem is embossed in clean metallic relief alongside organized digital data panels framing the contact and due diligence access fields."
+    }
+  ],
+  "generatedImages": {
+    "project_logo": "Image generation coming soon",
+    "concept_art_1": "Image generation coming soon",
+    "concept_art_2": "Image generation coming soon",
+    "ui_mockup": "Image generation coming soon"
+  },
+  "mvpDefinition": {
+    "summary": "The MVP targets a playable 4-player co-op vertical slice on PC that validates the core game loop: a corridor push, an objective lockdown wave defense, and a high-intensity retreat to extraction. It retains the signature weighty kinematic movement, directional quadrant armor mechanics, and baseline 4-class tactical synergy while cutting progression trees, secondary platforms, and multi-biome content.",
+    "inScope": [
+      "**Core 3-Phase Mission Loop:** One claustrophobic industrial facility corridor map supporting the full \"Corridor Push $\\rightarrow$ Objective Lockdown $\\rightarrow$ Desperate Retreat\" cycle with flow-field alien horde pathing.",
+      "**4-Class Baseline Roster:** Implementation of Tactician, Heavy Gunner, Demolitionist, and Field Medic with their default weapon kits, passive perks, tactical abilities, and ultimate abilities.",
+      "**Weighty Kinematic Movement System:** Marine movement state machine including Tactical Jog, directional Combat Sprint with stamina drain and inertia caps, Tactical Slide with hip-fire dispersion, and vertical mantle/vault mechanics.",
+      "**Quadrant Ablative Armor & Health Model:** Directional 4-quadrant armor simulation (front, rear, flanks) with rear-bypass math, 0.25s shield-gate invulnerability windows, and manual nanite/welder repair mechanics.",
+      "**PC Steam Multiplayer Baseline:** 4-player networked co-op targeting the PC hardware baseline (GTX 1060 / Ryzen 5 1600)."
+    ],
+    "outOfScope": [
+      "**Multi-Branch Class Talent Trees:** Tier 1–3 mastery customization branches (Offensive, Defensive/Support, Utility/Tech) for all classes.",
+      "**Console Platform Releases:** Development, platform SDK integrations, and compliance testing for PlayStation 5 and Xbox Series X|S.",
+      "**Multiple Environment Biomes:** Deep-space mining outposts, derelict naval flagships, and dynamic multi-lane map variants.",
+      "**Advanced Upscaling Integration:** Vendor-specific temporal upscaling pipelines (NVIDIA DLSS 3.7 / AMD FSR 3.1 frame generation suites)."
+    ]
+  },
+  "mvpFeatureSpecs": [
+    {
+      "id": "core-3-phase-mission-loop",
+      "feature": "Core 3-Phase Mission Loop and Flow-Field Horde Pathing",
+      "userStory": "As a Space Marine squad operative, I want to advance through tight industrial corridors, defend a central terminal during lockdown, and fight through pursuing alien swarms to extraction, so that my squad experiences a complete, escalating tactical mission loop.",
+      "scenarios": [
+        {
+          "title": "Full mission progression through Push, Lockdown, and Retreat to extraction",
+          "given": [
+            "A 4-player squad spawns at Insertion Point Alpha in the Sub-Level 04 Industrial Corridor map.",
+            "The Phase State Machine is initialized to 'PHASE_1_CORRIDOR_PUSH'.",
+            "Flow-field navigation grid is active with 0.5m cell resolution targeting active marine centroids."
+          ],
+          "when": [
+            "The squad advances through choke points and breaches the Primary Data Vault bulkhead.",
+            "A marine interacts with the primary console to initiate the 180-second data purge ('PHASE_2_OBJECTIVE_LOCKDOWN').",
+            "The 180-second timer reaches 0 with at least one marine alive inside the vault perimeter.",
+            "The squad reaches the Extraction Dropship ramp within the 120-second 'PHASE_3_DESPERATE_RETREAT' countdown."
+          ],
+          "then": [
+            "Transition flow-field target dynamically from marine positions to breach points during Phase 2, and to extraction interception vectors during Phase 3.",
+            "Trigger klaxon audio-visual alerts and emergency red lighting across the facility map at the start of Phase 3.",
+            "Display 'MISSION COMPLETE' debrief screen once all surviving operatives occupy the dropship extraction zone."
+          ]
+        },
+        {
+          "title": "Dynamic flow-field recalculation on corridor bulkhead obstruction",
+          "given": [
+            "The squad is in 'PHASE_1_CORRIDOR_PUSH' with an active alien horde of 150 units trailing 25 meters behind.",
+            "The flow-field integration cost map directs the horde through Corridor B-3."
+          ],
+          "when": [
+            "Demolitionist detonates the structural support charges, causing a cave-in that marks Corridor B-3 grid cells as unwalkable."
+          ],
+          "then": [
+            "The flow-field system recalculates the vector grid within 100 milliseconds.",
+            "Horde entities immediately pivot without clumping or jittering toward the secondary ventilation shafts to maintain pursuit toward the squad."
+          ]
+        },
+        {
+          "title": "Squad wipe and mission failure during Objective Lockdown",
+          "given": [
+            "The mission is in 'PHASE_2_OBJECTIVE_LOCKDOWN' at 45 seconds remaining.",
+            "Two marines are incapacitated and two are in critical health."
+          ],
+          "when": [
+            "The remaining two active marines suffer lethal damage and enter the downed state with no remaining self-revive tokens."
+          ],
+          "then": [
+            "Halt the 180-second lockdown timer immediately.",
+            "Set Phase State Machine to 'MISSION_FAILED'.",
+            "Switch alien flow-field behavior from objective harassment to aggressive feeding animations on player corpses.",
+            "Display mission failure telemetry and return squad to lobby after a 5-second defeat camera transition."
+          ]
+        }
+      ],
+      "invalidInputs": [
+        "Client attempting to send Phase 2 console interaction RPC while Phase State Machine is not in 'PHASE_1_CORRIDOR_PUSH'.",
+        "NaN or infinite coordinates passed to the flow-field cost-grid generator during dynamic obstacle placement.",
+        "Extraction zone trigger RPC sent by a player client when the Phase State Machine is not in 'PHASE_3_DESPERATE_RETREAT'."
+      ],
+      "boundaryConditions": [
+        "Maximum concurrent active alien horde entities capped at 250 units on the flow-field grid without frame drops below 60 FPS on baseline hardware.",
+        "Corridor width constraints enforced to a strict minimum of 2.2 meters and maximum of 4.5 meters to guarantee claustrophobic engagement ranges.",
+        "Extraction timer strictly bounded between 0.0s and 120.0s; at 0.00s remaining, unextracted marines are marked KIA and dropship doors seal instantly."
+      ],
+      "offlineBehavior": "When running in solo offline mode, the Phase State Machine executes locally on the standalone listen server, horde density scales down by 40% (max 150 active units), and phase interaction times are reduced by 25% (135s Lockdown, 90s Retreat).",
+      "accessibility": [
+        "Configurable full-screen flash and emergency klaxon strobe intensity sliders (0% to 100%) for Phase 3 visual alerts.",
+        "Distinct color-coded HUD waypoint icons with shape differentiation: Yellow Diamond for Push Objectives, Blue Square for Lockdown Terminals, and Green Hexagon for Extraction Dropship.",
+        "Directional closed captions with distance metrics for environmental sound cues (e.g., '[Klaxon Blaring - Vault Door Opening - 15m]')."
+      ],
+      "technicalNotes": "Phase state is server-authoritative and synchronized via network bitmasks. Flow-field implementation uses an Eikonal/Dijkstra cost-field updated on a 10 Hz tick rate across a 2D tile proxy overlaid on Sub-Level 04 navmesh, with unit steering and separation forces computed via SIMD/Boids evaluation at 30 Hz. Alien horde simulation CPU budget must not exceed 3.5ms per frame on the AMD Ryzen 5 1600 baseline.",
+      "dependencies": [
+        "pc-steam-multiplayer-baseline",
+        "weighty-kinematic-movement-system",
+        "quadrant-ablative-armor-health-model",
+        "4-class-baseline-roster"
+      ]
+    },
+    {
+      "id": "four-class-baseline-roster",
+      "feature": "Baseline 4-Class Tactical Combat Roster (Tactician, Heavy Gunner, Demolitionist, Field Medic)",
+      "userStory": "As a co-op squad player, I want to select and deploy as one of four distinct baseline classes—Tactician, Heavy Gunner, Demolitionist, or Field Medic—equipped with fixed default weapon kits, signature passives, tactical cooldown abilities, and high-impact ultimate abilities, so that our four-player squad can synergize directional armor defense, crowd control, fire support, and team sustainment during the mission loop.",
+      "scenarios": [
+        {
+          "title": "Tactician Target Designation and Combat Coordination",
+          "given": [
+            "The player is spawned as the Tactician with the default Marksman Bolter and Heavy Auto-Pistol.",
+            "The Tactician's Tactical Ability 'Targeting Uplink Dart' is fully cooled down (20s base).",
+            "The squad is engaging a heavy armored alien elite in the central industrial corridor."
+          ],
+          "when": [
+            "The Tactician fires the Targeting Uplink Dart into the target's front armor quadrant."
+          ],
+          "then": [
+            "The target is highlighted through corridor geometry for all 4 squad members for 8.0 seconds.",
+            "Damage dealt to the designated target by all squad members is increased by 20% across all armor quadrants.",
+            "The Tactician's passive perk 'Battlefield Cadence' grants +15% weapon reload speed to squad members within a 12-meter radius while the marked target lives."
+          ]
+        },
+        {
+          "title": "Heavy Gunner Suppressive Emplacement and Defensive Anchor",
+          "given": [
+            "The player is spawned as the Heavy Gunner with the default Spool-fed Rotary Cannon.",
+            "The squad is in the Objective Lockdown phase defending a tight corridor choke point.",
+            "The Heavy Gunner's Ultimate Ability 'Overdrive Fortress' meter is at 100% (1,000 Tactical Charge points earned)."
+          ],
+          "when": [
+            "The Heavy Gunner activates 'Overdrive Fortress'."
+          ],
+          "then": [
+            "A stationary deployable energy blast-shield is anchored in front of the Heavy Gunner with 2,500 hit points for 12.0 seconds.",
+            "The Rotary Cannon spool-up delay is reduced to 0.0s and heat buildup is paused for the 12.0-second duration.",
+            "The Heavy Gunner gains immunity to stagger and knockback effects while anchored behind the shield."
+          ]
+        },
+        {
+          "title": "Demolitionist Choke-Point Denial and Breaching Blast",
+          "given": [
+            "The player is spawned as the Demolitionist with the default Breaching Pump Shotgun and Concussion Launcher.",
+            "The Demolitionist has 2 charges of 'Thermite Proximity Mine' available (15s recharge per charge, max 2 deployed)."
+          ],
+          "when": [
+            "The Demolitionist deploys both mines onto the corridor bulkhead floor before an alien swarm breach."
+          ],
+          "then": [
+            "Incoming horde enemies trigger the mines within a 3.5-meter proximity radius.",
+            "Each mine detonates for 450 thermal blast damage and leaves a 4.0-second lingering fire patch dealing 60 damage/second.",
+            "The Demolitionist passive 'Blast Plating' reduces all self-inflicted and environmental explosive damage taken by 50%."
+          ]
+        },
+        {
+          "title": "Field Medic Nanite Surge and Armor Regeneration",
+          "given": [
+            "The player is spawned as the Field Medic with the default Compact Carbine and Nanite Applicator Welder.",
+            "An adjacent squad mate has depleted Front and Left quadrant armor shields during an active horde push.",
+            "The Field Medic's Tactical Ability 'Nanite Mist Canister' is off cooldown (25s base)."
+          ],
+          "when": [
+            "The Field Medic throws the Nanite Mist Canister at the damaged ally's feet."
+          ],
+          "then": [
+            "A 6-meter cloud persists for 6.0 seconds, instantly repairing 75 armor hit points across all depleted quadrants to any squad member inside.",
+            "Allies inside the cloud gain a 25% movement speed boost and immunity to the alien acid slow status effect for the duration."
+          ]
+        },
+        {
+          "title": "Ability Activation Rejection During Ineligible State",
+          "given": [
+            "The player is playing as any class and their ultimate meter is at 880/1000 charge.",
+            "The player is currently in a pinned/grabbed crowd-control state by a Lurker alien unit."
+          ],
+          "when": [
+            "The player presses the Ultimate Ability input key (Default: 'Q')."
+          ],
+          "then": [
+            "The ability activation is rejected by the server.",
+            "The ultimate meter remains at 880/1000 charge.",
+            "A localized HUD warning displays 'ABILITY SUPPRESSED / CC LOCKED' accompanied by an error audio chirp."
+          ]
+        }
+      ],
+      "invalidInputs": [
+        "Triggering tactical or ultimate ability while the Marine is in a Downed, Pinned, or Vault-climbing state.",
+        "Attempting to deploy more than 2 Demolitionist Proximity Mines simultaneously (oldest mine despawns if exceeded).",
+        "Firing Tactician Uplink Dart at friendly squad members or invalid world collision meshes outside map bounds.",
+        "Activating Field Medic Nanite Welder with zero remaining nanite battery charge."
+      ],
+      "boundaryConditions": [
+        "Ultimate meter charge caps precisely at 1,000 points; excess charge earned while full is discarded without overflow storage.",
+        "Tactical ability cooldowns must tick with millisecond precision (e.g., 20.000s) and scale accurately under server time dilation or pause states.",
+        "Tactician 'Battlefield Cadence' passive aura check boundary is hard-clamped at exactly 12.0 meters evaluated on 0.2s server ticks.",
+        "Field Medic Nanite Mist cloud vertical bounding volume is clamped to 2.5 meters high to prevent unintentional multi-floor healing in vertical shafts.",
+        "Heavy Gunner deployable shield rotation is locked to the player yaw at time of activation with 0-degree roll and pitch compliance to ground slope up to 30 degrees."
+      ],
+      "offlineBehavior": "In offline single-player vertical slice testing or during local network disconnects, the selected Marine class retains full loadout and ability mechanics. Unassigned squad slots are populated with default baseline bot Marines that execute deterministic logic (e.g., Medic bot fires nanite mist when any squad mate armor falls below 30%, Heavy bot deploys shield during Lockdown phase).",
+      "accessibility": [
+        "High-contrast color-coded HUD class indicators: Tactician (Cyan #00E5FF), Heavy Gunner (Amber #FFB300), Demolitionist (Crimson #FF1744), Field Medic (Emerald #00E676).",
+        "Screen-space ability cooldown countdown numbers displayed with scalable font sizes (14pt to 28pt) and toggleable high-contrast text backgrounds.",
+        "Distinct synthesized audio cues for Ability Ready, Ability Failed/Suppressed, and Ultimate 100% Charged states, routed through the UI sound bus with independent volume controls.",
+        "Screen-shake intensity slider (0% to 100%) for Demolitionist explosive abilities without altering explosion hitboxes or damage falloff radii."
+      ],
+      "technicalNotes": "Class state, weapon inventory, ability timers, and charge pools are defined via static data assets (DataTables) with talent trees stripped out for MVP. Networking follows a client-prediction / server-authoritative replication model using Unreal Engine Gameplay Ability System (GAS) concepts: ability inputs trigger local visual prediction cues, while cooldown deducts, projectile spawning, and buff/debuff tags (e.g., 'State.Debuff.TargetMarked') are validated and replicated by the listen-server host at 30Hz minimum. Replicated class struct size is constrained under 128 bytes per player to maintain low network overhead on baseline broadband connections.",
+      "dependencies": [
+        "weighty-kinematic-movement-system",
+        "quadrant-ablative-armor-health-model",
+        "pc-steam-multiplayer-baseline"
+      ]
+    },
+    {
+      "id": "weighty-kinematic-movement-system",
+      "feature": "Weighty Kinematic Movement System",
+      "userStory": "As a Marine combat operator, I want a grounded, physics-informed locomotion system with momentum constraints, directional sprinting, tactical sliding, and contextual mantling, so that positioning in claustrophobic corridors feels deliberate, weighty, and mechanically tactical.",
+      "scenarios": [
+        {
+          "title": "Combat Sprint to Tactical Slide transition with hip-fire weapon spread",
+          "given": [
+            "The player character is in the Tactical Jog state with stamina at 100/100 and a forward movement vector.",
+            "The player holds the sprint input within +/- 40 degrees of the forward camera vector."
+          ],
+          "when": [
+            "The Marine reaches maximum combat sprint speed of 7.2 m/s after 0.8 seconds of acceleration.",
+            "The player presses the crouch input while holding forward and fires their primary weapon."
+          ],
+          "then": [
+            "The state machine transitions to Tactical Slide, initiating a 2.5-meter deceleration slide along the current momentum vector.",
+            "Stamina is deducted by a flat 15 points on slide entry, weapon ADS is forcefully disabled, and hip-fire dispersion cone increases by +150% for the slide duration.",
+            "Upon reaching 1.2 m/s forward speed or 1.2 seconds slide duration, the character transitions smoothly to the standard crouch state."
+          ]
+        },
+        {
+          "title": "Stamina exhaustion and directional inertia clamping during high-speed sprint",
+          "given": [
+            "The Marine is actively in Combat Sprint, draining stamina at 18.0 points per second.",
+            "The player attempts a sharp 90-degree lateral turn input."
+          ],
+          "when": [
+            "Stamina reaches exactly 0.0 points, and the turn input exceeds the maximum angular yaw velocity cap."
+          ],
+          "then": [
+            "The turning rate is clamped to a maximum of 85 degrees per second due to kinematic armor inertia.",
+            "Combat Sprint forcibly drops to Tactical Jog (4.2 m/s base speed).",
+            "A 2.0-second stamina regeneration lockout timer begins, during which sprint and slide inputs are rejected."
+          ]
+        },
+        {
+          "title": "Contextual vertical vault/mantle obstacle negotiation",
+          "given": [
+            "The Marine approaches a waist-high obstacle (height: 0.9m) while in Tactical Jog or Combat Sprint with >10 stamina points."
+          ],
+          "when": [
+            "The player triggers the mantle/vault input within 0.75 meters of the obstacle face with a surface normal within 25 degrees of vertical."
+          ],
+          "then": [
+            "The state machine interrupts ground locomotion and enters the kinematic Vault state.",
+            "Weapon discharge and reload actions are suppressed for the 0.65-second root-motion transition.",
+            "The Marine is translated over the obstacle to clear ground, consuming 10 stamina points, and returns to Tactical Jog without resetting camera orientation."
+          ]
+        }
+      ],
+      "invalidInputs": [
+        "Triggering Combat Sprint while holding lateral (strafe-only) or backward movement keys (>45 degrees off forward look-vector).",
+        "Pressing Tactical Slide input while moving below 5.5 m/s or from a static/jogging stance.",
+        "Attempting a mantle action on geometry tagged as non-traversable or with ledge height exceeding 2.2 meters.",
+        "Attempting weapon Aim-Down-Sights (ADS) during an active Tactical Slide or Mantle transition."
+      ],
+      "boundaryConditions": [
+        "Sprint initiation rejected when current stamina is strictly below 5.0 points.",
+        "Tactical Slide velocity minimum cutoff evaluated at exactly 1.2 m/s; transitions to crouch if wall collision halts forward velocity.",
+        "Mantle ledge detection threshold bounded between 0.45m (minimum step-up/vault) and 2.20m (maximum jump-mantle).",
+        "Marine mass chassis scalar: Heavy Gunner suffers a 15% acceleration penalty and 20% increased slide stopping distance compared to Field Medic baseline."
+      ],
+      "offlineBehavior": "In local single-player listen-server or test sessions, kinematic movement simulation, inertia curves, and ledge raycasts run authoritatively on the local client tick without network client-side prediction reconciliations or smoothing buffers.",
+      "accessibility": [
+        "Toggle vs. Hold configuration options for Sprint, Crouch/Slide, and Mantle inputs.",
+        "Configurable camera bob and slide/mantle screen-shake scalar sliders (range: 0% to 100%).",
+        "High-contrast peripheral stamina meter anchored to screen-center reticle with optional audio cue for exhaustion/lockout recovery."
+      ],
+      "technicalNotes": "Implemented via a C++ Character Movement Component sub-state machine (Idle, Tactical Jog, Combat Sprint, Tactical Slide, Mantle/Vault). Kinematic sweep traces (forward forward-box trace 0.8m x 1.2m, downward ledge trace) execute at 60Hz. Networked co-op uses standard client-side prediction with server replay buffers (sending sprint/slide timestamps and compressed input vectors). Dynamic inertia caps limit maximum yaw angular acceleration based on class mass multiplier to preserve heavy armor physical sensation on the GTX 1060 / Ryzen 5 1600 hardware baseline.",
+      "dependencies": [
+        "Marine Class Data Assets (class mass, base speed, stamina depletion/regen curves)",
+        "Modular Corridor Collision Mesh Standards (mantleable surface tagging and collision layers)",
+        "Weapon State & Dispersion Handler (hip-fire spread modifier hooks and ADS lockout hooks)",
+        "Player HUD Stamina & Reticle Dispersion UI Components"
+      ]
+    },
+    {
+      "id": "quadrant-ablative-armor-health-model",
+      "feature": "Quadrant Ablative Armor & Health Model",
+      "userStory": "As a Space Marine player, I want incoming damage resolved against four discrete directional armor quadrants (Front, Rear, Left Flank, Right Flank) with shield gating and manual nanite repair mechanics, so that positioning, squad facing, and active field maintenance dictate tactical survival.",
+      "scenarios": [
+        {
+          "title": "Frontal armor absorption and 0.25s shield-gate activation",
+          "given": [
+            "A Marine has 100 Health and 25 Front Armor remaining",
+            "The Marine takes an incoming frontal attack dealing 50 Kinetic damage within the [-45°, +45°] forward cone",
+            "The shield-gate cooldown is currently ready"
+          ],
+          "when": [
+            "The damage packet is resolved on the authoritative host/server"
+          ],
+          "then": [
+            "Front Armor absorbs 25 damage and is reduced to exactly 0",
+            "The remaining 25 damage is absorbed by the 0.25s shield-gate invulnerability window instead of penetrating Health",
+            "Health remains at 100",
+            "A distinct directional shield-break audio cue and UI warning trigger on the front HUD indicator",
+            "The Marine becomes invulnerable to subsequent health damage for exactly 0.25 seconds (15 server ticks at 60 Hz)"
+          ]
+        },
+        {
+          "title": "Rear-bypass armor penetration math",
+          "given": [
+            "A Marine has 100 Health and 50 Rear Armor remaining",
+            "The Marine takes an incoming rear attack dealing 40 Acid/Piercing damage from an angle > 135° relative to the Marine's forward vector",
+            "The rear-bypass rule specifies 50% direct-to-health bleedthrough on rear impact vectors"
+          ],
+          "when": [
+            "The authoritative hit calculation resolves the impact angle"
+          ],
+          "then": [
+            "20 damage (50%) is applied directly to Health, reducing Health from 100 to 80",
+            "20 damage (50%) is deducted from Rear Armor, reducing Rear Armor from 50 to 30",
+            "No shield gate is triggered since Rear Armor did not fully deplete"
+          ]
+        },
+        {
+          "title": "Manual nanite welder repair on depleted flank quadrant",
+          "given": [
+            "A Marine has 0 Left Flank Armor (cap: 75) and is stationary or walking",
+            "A teammate or the self-repair nanite welder is aimed at the Left Flank quadrant hit-volume and channeled"
+          ],
+          "when": [
+            "The repair channel key is held continuously for 2.0 seconds at a restoration rate of 25 Armor/second"
+          ],
+          "then": [
+            "Left Flank Armor increases linearly by 50 points, reaching 50/75",
+            "Nanite welder resource/heat bar depletes proportionally",
+            "Taking direct damage to the Left Flank quadrant during channeling interrupts the repair and applies a 1.0s channel lockout"
+          ]
+        },
+        {
+          "title": "Edge case: Multi-hit burst during active shield-gate window",
+          "given": [
+            "A Marine's Right Flank Armor just depleted to 0, activating the 0.25s shield-gate window at timestamp T0"
+          ],
+          "when": [
+            "Three additional high-damage projectile impacts strike the Right Flank at T0 + 0.08s, T0 + 0.15s, and T0 + 0.22s"
+          ],
+          "then": [
+            "All three projectile damage payloads to Health are completely mitigated to 0",
+            "A strike occurring at T0 + 0.26s bypasses the expired gate and deals full unmitigated damage to underlying Health"
+          ]
+        }
+      ],
+      "invalidInputs": [
+        "Damage packets with negative or zero value magnitudes (rejected by server validation).",
+        "Damage vectors containing NaN, Infinity, or zero-length direction vectors (fails angle dot product; defaults to Front quadrant with error log).",
+        "Repair channel attempts initiated while the repair target quadrant is already at 100% capacity.",
+        "Repair channel attempts executed with depleted nanite canister or overheated welder tool."
+      ],
+      "boundaryConditions": [
+        "Quadrant boundary angles: Exactly ±45.0° (Front/Flank transition) and ±135.0° (Flank/Rear transition) resolve deterministically via clockwise quadrant bias [Front: >= -45° and < 45°; Right: >= 45° and < 135°; Rear: >= 135° or < -135°; Left: >= -135° and < -45°].",
+        "Shield-gate duration is strictly 0.25 seconds (minimum 15 discrete ticks at 60 Hz authoritative server rate).",
+        "Armor values are clamped strictly between 0.0 and quadrant class maximums (e.g., Heavy Gunner Front: 150.0, Rear: 75.0; Medic Front: 100.0, Rear: 50.0).",
+        "Health clamped between 0.0 and 100.0; reaching 0.0 immediately triggers the Downed/Incapacitated state regardless of active repair states."
+      ],
+      "offlineBehavior": "In offline single-player/local hosting mode, the local client acts as the authoritative simulation root, executing quadrant angle resolution, 0.25s shield-gate timer logic, and nanite repair loops directly on the local tick thread without network lag compensation.",
+      "accessibility": [
+        "High-contrast HUD widget displaying a 4-quadrant diamond overlay with distinct color-blind presets (Protanopia, Deuteranopia, Tritanopia) indicating armor depletion (solid -> cracked -> flashing red depleted).",
+        "Directional low-frequency auditory hum when any quadrant falls below 25%, paired with distinct positional audio cues for shield-gate break versus flesh hit.",
+        "Directional screen-edge vignette pulses matching the hit quadrant for deaf or hard-of-hearing players."
+      ],
+      "technicalNotes": "Directional resolution calculated via 2D horizontal plane dot/cross product: cosTheta = Dot(MarineForward2D, Normalize(AttackerPosition2D - MarinePosition2D)). Damage replication uses bit-packed quadrant flags and uint8 health/armor deltas to minimize bandwidth. Shield-gate state is managed as an authoritative server timer; client predicts armor visual decay but cannot predict gate health invulnerability. Welder tool raycasts against four parented capsule colliders mapping directly to quadrant IDs.",
+      "dependencies": [
+        "Weighty Kinematic Movement System (provides Marine transform orientation and posture state).",
+        "Baseline Class Roster (defines per-class quadrant armor maximums and welder equipment slots).",
+        "Network Replication Core (handles server-authoritative hit registration, RPCs, and timestamp synchronization)."
+      ]
+    },
+    {
+      "id": "pc-steam-multiplayer-baseline",
+      "feature": "PC Steam Multiplayer Baseline & Hardware Performance Optimization",
+      "userStory": "As a Space Marine squad leader, I want to create, join, and synchronize 4-player co-op sessions via Steamworks with authoritative state replication on hardware equivalent to a GTX 1060 and Ryzen 5 1600, so that our squad can execute corridor-to-extraction tactical missions at stable 1080p 60 FPS without networking desync or frame spikes.",
+      "scenarios": [
+        {
+          "title": "Happy path: 4-Player Steam lobby creation, connection, and full mission replication",
+          "given": [
+            "Four authenticated Steam clients are running vertical slice build version v0.1.0 on baseline PC hardware (Ryzen 5 1600, 16GB RAM, GTX 1060 6GB).",
+            "Host creates an invite-only Steam Lobby targeting 4 Marine player slots."
+          ],
+          "when": [
+            "Three squadmates accept Steam lobby invites and establish ISteamNetworkingSockets connections.",
+            "The Host initiates the vertical slice corridor mission."
+          ],
+          "then": [
+            "All 4 clients transition synchronously into the staging area within a 5-second handshake window.",
+            "Authoritative 30Hz server tick rate synchronizes marine movement, directional quadrant armor values, and flow-field horde state with client-side interpolation.",
+            "Client and host frame times remain <= 16.6ms (>= 60 FPS at native 1080p Medium preset) through all 3 mission phases."
+          ]
+        },
+        {
+          "title": "Client abrupt disconnect and slot recovery during Objective Lockdown",
+          "given": [
+            "A 4-player co-op session is active during the high-intensity Objective Lockdown horde phase.",
+            "Client 3 (Demolitionist) experiences an ungraceful network drop (packet timeout > 5000ms)."
+          ],
+          "when": [
+            "The host detects packet timeout on client 3's connection socket."
+          ],
+          "then": [
+            "Host despawns or transitions Client 3's Marine entity to an inert stasis state within 300ms without crashing the host session.",
+            "Horde flow-field aggro calculations dynamically redistribute threat across the remaining 3 active Marines.",
+            "Client 3 is permitted to reconnect via Steam Friends overlay within a 120-second grace period and restore quadrant armor/health snapshot state."
+          ]
+        },
+        {
+          "title": "Replication reconciliation under high ping and packet jitter",
+          "given": [
+            "Client 2 has an artificial network degradation of 150ms round-trip latency and 5% packet loss.",
+            "Client 2 executes a directional Combat Sprint into a Tactical Slide while taking rear quadrant fire."
+          ],
+          "when": [
+            "Host processes authoritative movement verification and projectile-to-quadrant collision calculation."
+          ],
+          "then": [
+            "Client-side prediction reconciles player transform via smooth Hermite interpolation without snap-teleporting.",
+            "Rear quadrant armor reduction and 0.25s shield-gate invulnerability triggers deterministically on both host and client within 1 tick of host confirmation."
+          ]
+        }
+      ],
+      "invalidInputs": [
+        "Connection attempts with mismatched client/server build hashes (reject with ERR_VERSION_MISMATCH).",
+        "Join requests to a full lobby exceeding 4 active client connections (reject with ERR_LOBBY_FULL).",
+        "Unauthenticated P2P connection payloads bypassing Steamworks ticket validation (reject with ERR_AUTH_FAILURE).",
+        "Packet payload size exceeding MTU clamp (>1200 bytes per individual UDP datagram packet)."
+      ],
+      "boundaryConditions": [
+        "Hard maximum of 4 connected Marine network peers per listen server.",
+        "Network tick rate clamped to 30 Hz server simulation; rendering runs uncapped/60 Hz minimum.",
+        "Per-client outbound bandwidth budget clamped to <= 128 kbps (16 KB/s) average, <= 256 kbps peak during dense horde encounters.",
+        "Hardware resource floor: VRAM usage must not exceed 4.5 GB / 6.0 GB on GTX 1060; main thread CPU budget must not exceed 11.0ms on Ryzen 5 1600."
+      ],
+      "offlineBehavior": "If Steamworks is in offline mode or network initialization fails, the game falls back to a local loopback (127.0.0.1) listen-server session. Squad matchmaking and Steam friend invites are disabled in the UI, locking the vertical slice into single-player offline exploration mode with no external network sockets opened.",
+      "accessibility": [
+        "High-contrast color indicators for network connection quality HUD (Green: <60ms, Yellow: 60-120ms, Red: >120ms/packet loss).",
+        "Non-audio visual pings and chat notification popups for player join/leave and connection state events.",
+        "Configurable UI scaling for Steam invite toasts and network diagnostic overlays (100% to 150% scale)."
+      ],
+      "technicalNotes": "Built on Steamworks SDK v1.58+ using ISteamNetworkingSockets with Valve P2P relays (SDR). Topology is listen-server authoritative (Host Marine simulates horde navigation, flow fields, and hit validation). Quadrant armor updates utilize delta-encoded bitmasks (8-bit quadrant ID + 16-bit fixed-point float for health/armor pool values). Horde network serialization uses hierarchical entity batching (position quantization to 16-bit ints, 8-bit yaw) updating at 15 Hz for distant enemies and 30 Hz for proximate enemies within 15 meters of any Marine. Memory and draw call budgets optimized for Pascal architecture: max 2,200 draw calls per frame, 1080p target rendering with static cascade shadow maps.",
+      "dependencies": [
+        "Steamworks SDK v1.58+ Integration",
+        "Directional Quadrant Ablative Armor & Health Replication Subsystem",
+        "Weighty Kinematic Movement Network Prediction & Reconciliation Controller",
+        "Horde Flow-Field Navigation & Network Quantization Batcher"
+      ]
+    }
+  ],
+  "tddContent": [
+    {
+      "feature": "Core 3-Phase Mission Loop and Flow-Field Horde Pathing",
+      "userStories": "As a Space Marine squad operative, I want to advance through tight industrial corridors, defend a central terminal during lockdown, and fight through pursuing alien swarms to extraction, so that my squad experiences a complete, escalating tactical mission loop.",
+      "technicalSpecs": "Phase state is server-authoritative and synchronized via network bitmasks. Flow-field implementation uses an Eikonal/Dijkstra cost-field updated on a 10 Hz tick rate across a 2D tile proxy overlaid on Sub-Level 04 navmesh, with unit steering and separation forces computed via SIMD/Boids evaluation at 30 Hz. Alien horde simulation CPU budget must not exceed 3.5ms per frame on the AMD Ryzen 5 1600 baseline."
+    },
+    {
+      "feature": "Baseline 4-Class Tactical Combat Roster (Tactician, Heavy Gunner, Demolitionist, Field Medic)",
+      "userStories": "As a co-op squad player, I want to select and deploy as one of four distinct baseline classes—Tactician, Heavy Gunner, Demolitionist, or Field Medic—equipped with fixed default weapon kits, signature passives, tactical cooldown abilities, and high-impact ultimate abilities, so that our four-player squad can synergize directional armor defense, crowd control, fire support, and team sustainment during the mission loop.",
+      "technicalSpecs": "Class state, weapon inventory, ability timers, and charge pools are defined via static data assets (DataTables) with talent trees stripped out for MVP. Networking follows a client-prediction / server-authoritative replication model using Unreal Engine Gameplay Ability System (GAS) concepts: ability inputs trigger local visual prediction cues, while cooldown deducts, projectile spawning, and buff/debuff tags (e.g., 'State.Debuff.TargetMarked') are validated and replicated by the listen-server host at 30Hz minimum. Replicated class struct size is constrained under 128 bytes per player to maintain low network overhead on baseline broadband connections."
+    },
+    {
+      "feature": "Weighty Kinematic Movement System",
+      "userStories": "As a Marine combat operator, I want a grounded, physics-informed locomotion system with momentum constraints, directional sprinting, tactical sliding, and contextual mantling, so that positioning in claustrophobic corridors feels deliberate, weighty, and mechanically tactical.",
+      "technicalSpecs": "Implemented via a C++ Character Movement Component sub-state machine (Idle, Tactical Jog, Combat Sprint, Tactical Slide, Mantle/Vault). Kinematic sweep traces (forward forward-box trace 0.8m x 1.2m, downward ledge trace) execute at 60Hz. Networked co-op uses standard client-side prediction with server replay buffers (sending sprint/slide timestamps and compressed input vectors). Dynamic inertia caps limit maximum yaw angular acceleration based on class mass multiplier to preserve heavy armor physical sensation on the GTX 1060 / Ryzen 5 1600 hardware baseline."
+    },
+    {
+      "feature": "Quadrant Ablative Armor & Health Model",
+      "userStories": "As a Space Marine player, I want incoming damage resolved against four discrete directional armor quadrants (Front, Rear, Left Flank, Right Flank) with shield gating and manual nanite repair mechanics, so that positioning, squad facing, and active field maintenance dictate tactical survival.",
+      "technicalSpecs": "Directional resolution calculated via 2D horizontal plane dot/cross product: cosTheta = Dot(MarineForward2D, Normalize(AttackerPosition2D - MarinePosition2D)). Damage replication uses bit-packed quadrant flags and uint8 health/armor deltas to minimize bandwidth. Shield-gate state is managed as an authoritative server timer; client predicts armor visual decay but cannot predict gate health invulnerability. Welder tool raycasts against four parented capsule colliders mapping directly to quadrant IDs."
+    },
+    {
+      "feature": "PC Steam Multiplayer Baseline & Hardware Performance Optimization",
+      "userStories": "As a Space Marine squad leader, I want to create, join, and synchronize 4-player co-op sessions via Steamworks with authoritative state replication on hardware equivalent to a GTX 1060 and Ryzen 5 1600, so that our squad can execute corridor-to-extraction tactical missions at stable 1080p 60 FPS without networking desync or frame spikes.",
+      "technicalSpecs": "Built on Steamworks SDK v1.58+ using ISteamNetworkingSockets with Valve P2P relays (SDR). Topology is listen-server authoritative (Host Marine simulates horde navigation, flow fields, and hit validation). Quadrant armor updates utilize delta-encoded bitmasks (8-bit quadrant ID + 16-bit fixed-point float for health/armor pool values). Horde network serialization uses hierarchical entity batching (position quantization to 16-bit ints, 8-bit yaw) updating at 15 Hz for distant enemies and 30 Hz for proximate enemies within 15 meters of any Marine. Memory and draw call budgets optimized for Pascal architecture: max 2,200 draw calls per frame, 1080p target rendering with static cascade shadow maps."
+    }
+  ],
+  "technicalDesignDocument": [
+    {
+      "title": "1. System Overview & Core Engine Architecture",
+      "content": "### 1.1 Architectural Vision & Engine Framework\n\nThe *Space Marines* engine architecture is built upon a hybrid Object-Oriented/Data-Oriented design pattern leveraging Unreal Engine 5.4 C++ with a custom Data-Oriented Technology stack for dense entity operations. The system isolates high-frequency simulations (horde pathing, steering, and hit detection) into memory-contiguous, Cache-friendly Structures of Arrays (SoA), while player mechanics, tactical abilities, and mission flow leverage a decoupled, event-driven architecture using lightweight Gameplay Ability System (GAS) primitives.\n\n```\n+--------------------------------------------------------------------------------------+\n|                                 SpaceMarines Game Engine                             |\n+--------------------------------------------------------------------------------------+\n| [Core Systems]                                                                       |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n|  |   Mission Director FSM    |-->| Class & GAS Ability Engine |-->| Player Pawns   | |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n|                |                               |                           |         |\n|                v                               v                           v         |\n|  +---------------------------------------------------------------------------------+ |\n|  |                     Kinematic Character Movement Component                      | |\n|  +---------------------------------------------------------------------------------+ |\n|                                                |                                     |\n| [Horde & Simulation Core]                      v                                     |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n|  | Flow-Field Grid (Eikonal) |-->|   SIMD Steering / Flocking |-->| Promotion FSM  | |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n|                                                |                   (<15m NavMesh)    |\n|                                                v                                     |\n| [Networking & Rendering Pipelines]                                                   |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n|  | Steamworks SDR P2P Relay  |   | Clustered Forward Shading  |   | GPU-Instanced  | |\n|  | Listen-Server Authority   |   | Fixed Cascade Shadow Maps  |   | VAT Mesh Batch | |\n|  +---------------------------+   +----------------------------+   +----------------+ |\n+--------------------------------------------------------------------------------------+\n```\n\n### 1.2 Subsystem Dependencies and Memory Layout\n\nTo satisfy the 16GB total system RAM constraint and AMD Ryzen 5 1600 processing budget, dynamic allocations in the game tick are prohibited. Subsystems register with a central `USpaceMarineEngineSubsystem` singleton managing linear scratchpad allocators and pre-allocated object pools:\n\n*   **Horde Memory Arena:** 32MB contiguous buffer housing `FMacroSwarmEntity` structs (300 max instances at 64 bytes aligned = 19.2 KB active dataset; remaining reserved for spatial hash cells and potential field buffers).\n*   **Spatial Tile Proxy Grid:** 512x512 grid cells (256m x 256m play area at 0.5m resolution), 8-bit cost field, 16-bit integration field, 16-bit packed vector flow field = 1.25MB contiguous SRAM cache footprint.\n*   **Replication Delta Buffer:** 4MB circular ring buffer per client for delta-compression and packet replay validation."
+    },
+    {
+      "title": "2. High-Density Horde Simulation & Flow-Field Navigation",
+      "content": "### 2.1 Eikonal / Dijkstra Flow-Field Architecture\n\nThe macro horde pathing bypasses standard A* per-agent calculation in favor of a 2D tile proxy grid overlaid directly on the corridor geometry. The navigation is divided into two phases: **Cost Field Generation** (static geometry + dynamic obstacles) and **Integration/Vector Field Evaluation** solved at 10 Hz.\n\n```\n+-----------------------+     +------------------------+     +-------------------------+\n| Level Collision Mesh  | --> | Static Cost Field Grid | --> | Dynamic Obstacle Layer  |\n+-----------------------+     +------------------------+     +-------------------------+\n                                                                          |\n                                                                          v\n+-----------------------+     +------------------------+     +-------------------------+\n| Output Vector Field   | <-- | 8-Directional Vector   | <-- | Dijkstra / Eikonal      |\n| (X: int8, Y: int8)    |     | Normalization (SIMD)   |     | Wavefront Integration   |\n+-----------------------+     +------------------------+     +-------------------------+\n```\n\n#### Cost Field and Vector Field Generation Algorithm\n\n```cpp\nstruct alignas(64) FFlowFieldTile {\n    static constexpr uint32_t GRID_DIM = 512;\n    static constexpr float CELL_SIZE = 50.0f; // 50cm per cell\n\n    uint8_t  CostField[GRID_DIM * GRID_DIM];          // 0xFF = Impassable, 1-254 = Cost\n    uint16_t IntegrationField[GRID_DIM * GRID_DIM];   // Distance potential\n    int8_t   VectorFieldX[GRID_DIM * GRID_DIM];       // Normalized direction [-127, 127]\n    int8_t   VectorFieldY[GRID_DIM * GRID_DIM];\n};\n\nvoid UpdateIntegrationField(FFlowFieldTile& Grid, const TArray<FVector2D>& TargetPositions) {\n    std::fill(std::begin(Grid.IntegrationField), std::end(Grid.IntegrationField), 0xFFFF);\n    \n    // Min-Heap priority queue driven by a circular bucket array\n    TArray<uint32_t> OpenQueue;\n    OpenQueue.Reserve(4096);\n\n    for (const FVector2D& Target : TargetPositions) {\n        uint32_t CellX = FMath::Clamp(static_cast<uint32_t>(Target.X / Grid.CELL_SIZE), 0u, Grid.GRID_DIM - 1);\n        uint32_t CellY = FMath::Clamp(static_cast<uint32_t>(Target.Y / Grid.CELL_SIZE), 0u, Grid.GRID_DIM - 1);\n        uint32_t CellIndex = CellY * Grid.GRID_DIM + CellX;\n        \n        Grid.IntegrationField[CellIndex] = 0;\n        OpenQueue.Add(CellIndex);\n    }\n\n    // 8-neighbor offsets and base distances (fixed point 1.0 and 1.414)\n    static const int32_t DX[8] = { 0, 1, 0, -1, 1, -1, 1, -1 };\n    static const int32_t DY[8] = { 1, 0, -1, 0, 1, 1, -1, -1 };\n    static const uint16_t StepCost[8] = { 10, 10, 10, 10, 14, 14, 14, 14 };\n\n    int32_t Head = 0;\n    while (Head < OpenQueue.Num()) {\n        uint32_t Current = OpenQueue[Head++];\n        uint32_t CurX = Current % Grid.GRID_DIM;\n        uint32_t CurY = Current / Grid.GRID_DIM;\n        uint16_t CurCost = Grid.IntegrationField[Current];\n\n        for (int32_t i = 0; i < 8; ++i) {\n            int32_t NX = static_cast<int32_t>(CurX) + DX[i];\n            int32_t NY = static_cast<int32_t>(CurY) + DY[i];\n\n            if (NX >= 0 && NX < Grid.GRID_DIM && NY >= 0 && NY < Grid.GRID_DIM) {\n                uint32_t NeighborIdx = NY * Grid.GRID_DIM + NX;\n                uint8_t TerrainCost = Grid.CostField[NeighborIdx];\n                if (TerrainCost == 0xFF) continue;\n\n                uint16_t NewCost = CurCost + StepCost[i] + TerrainCost;\n                if (NewCost < Grid.IntegrationField[NeighborIdx]) {\n                    Grid.IntegrationField[NeighborIdx] = NewCost;\n                    OpenQueue.Add(NeighborIdx);\n                }\n            }\n        }\n    }\n}\n```\n\n### 2.2 SIMD / AVX2 Steering and Flocking Pipeline (30 Hz Tick)\n\nMacro entities update positions via an AVX2-optimized structure-of-arrays (SoA) evaluation loop executing within a 3.5ms CPU budget on the AMD Ryzen 5 1600:\n\n```cpp\nstruct alignas(32) FMacroSwarmSoA {\n    float PosX[320];\n    float PosY[320];\n    float PosZ[320];\n    float VelX[320];\n    float VelY[320];\n    float VelZ[320];\n    uint16_t EntityID[320];\n    uint8_t  StateFlags[320]; // 0x01: Active, 0x02: Promoted, 0x04: Stunned\n};\n\nvoid ExecuteFlockingSIMD(FMacroSwarmSoA& Swarm, const FFlowFieldTile& Grid, float DeltaTime, int32_t EntityCount) {\n    __m256 vDT = _mm256_set1_ps(DeltaTime);\n    __m256 vMaxSpeed = _mm256_set1_ps(650.0f); // 6.5 m/s swarm rush speed\n    __m256 vCellInv = _mm256_set1_ps(1.0f / Grid.CELL_SIZE);\n\n    for (int32_t i = 0; i < EntityCount; i += 8) {\n        __m256 pX = _mm256_load_ps(&Swarm.PosX[i]);\n        __m256 pY = _mm256_load_ps(&Swarm.PosY[i]);\n        \n        // Convert World Position to Grid Indices\n        __m256 gX = _mm256_floor_ps(_mm256_mul_ps(pX, vCellInv));\n        __m256 gY = _mm256_floor_ps(_mm256_mul_ps(pY, vCellInv));\n        \n        // Vector field sampling and linear integration...\n        __m256 vX = _mm256_load_ps(&Swarm.VelX[i]);\n        __m256 vY = _mm256_load_ps(&Swarm.VelY[i]);\n        \n        pX = _mm256_fmadd_ps(vX, vDT, pX);\n        pY = _mm256_fmadd_ps(vY, vDT, pY);\n        \n        _mm256_store_ps(&Swarm.PosX[i], pX);\n        _mm256_store_ps(&Swarm.PosY[i], pY);\n    }\n}\n```\n\n### 2.3 Macro-to-Micro Promotion System (<15m Dynamic Transition)\n\n*   **Promotion Trigger:** When Euclidean distance `|EntityPos - PlayerPos| < 1500.0f` (15m), the entity state flag shifts from `Macro` to `MicroNavMeshAgent`.\n*   **Micro Promotion Routine:**\n    1. Entity index removed from `FMacroSwarmSoA` active SIMD buffer.\n    2. An instance from the pre-allocated `AAlienWarriorMicroPool` (capacity: 64 actors) is assigned.\n    3. Transforms, linear velocities, and current blackboard states are copied.\n    4. Micro Agent initializes its dedicated hitboxes (`Head`, `Torso`, `LeftLeg`, `RightLeg`, `LeftArm`, `RightArm`) and binds to the Unreal standard Recast NavMesh for root-motion attacks and local RVO avoidance.\n*   **Demotion Routine:** If distance exceeds 18m (3m hysteresis buffer) and no active line-of-sight/attack state is executing, the actor is recycled back to the pool, and an entry is re-injected into the `FMacroSwarmSoA`."
+    },
+    {
+      "title": "3. Authoritative Networking & Steamworks SDR Pipeline",
+      "content": "### 3.1 Network Topology & Session Routing\n\nThe networking architecture operates on a pure Listen-Server authority model using Valve's Steam Datagram Relay (`ISteamNetworkingSockets` v1.58+). This routes UDP traffic through Valve's secure point-of-presence (PoP) edge network, mitigating host IP exposure and utilizing optimal P2P packet routing."
+    }
+  ],
+  "modularBreakdown": [
+    {
+      "title": "Gameplay Programmer – Marine Kinematic Movement & Locomotion System",
+      "content": "## Scope of Work\nImplement the complete Marine Kinematic Movement State Machine for a 4-player co-op FPS, translating physical weight, inertia, and tactical agility into deterministic character controllers across PC, PS5, and Xbox Series X|S.\n\n## Deliverables\n* **State Machine & Kinematic Controller:** Implementation of states (`Idle`, `Tactical Jog`, `Combat Sprint`, `Tactical Slide`, `Mantle & Vault`, and `Inertial Landing Damping`).\n* **Locomotion Mechanics:**\n  * *Tactical Jog (Base):* Forward velocity $V_{\\text{max}} = 4.2\\text{ m/s}$, Strafe/Backwards $V_{\\text{strafe}} = 3.2\\text{ m/s}$, Acceleration $a = 18.0\\text{ m/s}^2$, Deceleration damping $d = 12.0\\text{ m/s}^2$.\n  * *Combat Sprint:* Forward-only velocity $V_{\\text{sprint}} = 6.8\\text{ m/s}$, Stamina pool consumption ($100\\text{ units}$ drained at $15\\text{ units/s}$), Angular velocity turn cap $\\omega_{\\text{max}} = 120^\\circ/\\text{s}$.\n  * *Tactical Slide:* Crouch-while-sprinting trigger, initial impulse $7.5\\text{ m/s}$ non-linearly decaying over $1.2\\text{ s}$ to crouch ($2.0\\text{ m/s}$), enabling high-dispersion hip fire.\n  * *Mantle & Vault:* Dynamic trace sweeps detecting ledges between $0.5\\text{m}$ and $2.1\\text{m}$, root-motion vaulting at $2.2\\text{ m/s}$ with primary weapon fire lock.\n  * *Inertial Landing Damping:* Impact state for vertical falls $> 3.5\\text{m}$, reducing movement speed by $40\\%$ for $0.6\\text{ s}$ with procedural vertical camera displacement.\n\n## Dependencies\n* Character collision mesh and animation assets (root motion and mantle animations).\n* Camera sub-system for procedural vertical landing displacement.\n\n## Constraints & Performance Budgets\n* Execution time must strictly fit within the **1.80 ms CPU** and **0.50 ms GPU** substepping budget allocated for Character Movement & Physics.\n* Must support network serialization and delta snapshot constraints (allocated **1.20 ms CPU** for network overhead).\n\n## Acceptance Criteria\n* State machine transitions precisely per the GDD state flow.\n* Sprint turn-rate clamp strictly limits yaw angular velocity to $120^\\circ/\\text{s}$.\n* Mantle detection cleanly triggers only within $0.5\\text{m} - 2.1\\text{m}$ obstacles without clipping.\n* Falls $> 3.5\\text{m}$ apply exact $40\\%$ speed reduction for $0.6\\text{s}$ alongside camera bump."
+    },
+    {
+      "title": "Systems Programmer – Damage Pipeline, Armor Integrity & Vitality Systems",
+      "content": "## Scope of Work\nArchitect and implement the two-tier defense model (Ablative Power Armor and Biological Vitality), directional quadrant damage evaluation, damage mitigation formulas, and field repair systems.\n\n## Deliverables\n* **Damage Resolution Pipeline:** Implement incoming damage flow evaluating Directional Kinetic Barriers, Ablative Plating, and raw HP.\n* **Damage Reduction Formula:** Implement exact formula:\n  $$D_{\\text{applied}} = D_{\\text{raw}} \\times \\left(1.0 - \\text{Clamp}\\left(\\frac{\\text{Armor}_{\\text{current}}}{\\text{Armor}_{\\text{max}}} \\times R_{\\text{mitigation}}, 0.0, 0.85\\right)\\right)$$\n  with $R_{\\text{mitigation}} = 0.65$ (Nominal) and $0.80$ (Heavy Gunner).\n* **Directional Plating:** 4 quadrants (*Frontal Torso*, *Rear Torso*, *Left Flank*, *Right Flank*). Rear impacts bypass $50\\%$ of remaining armor points directly to HP.\n* **Shield-Gate Protection:** $0.25\\text{-second}$ invulnerability window triggered upon any armor quadrant reaching $0\\text{ pts}$ to prevent one-shot fatal kills.\n* **Field Repair Mechanics:** Disable passive armor regeneration; implement repair interactions via Field Welding Torches and Nanite Armor Cores.\n\n## Dependencies\n* Marine character class data structures and hit-box directional quadrant setup.\n* Supply crate inventory logic for Nanite Armor Cores.\n\n## Constraints & Performance Budgets\n* Logic execution must operate within the **1.50 ms CPU** budget for Game Logic, Weapon Traces, and Abilities.\n* Dynamic gibbing and damage events must be server-validated."
+    }
+  ],
+  "assetList": {
+    "Key Screens & UI Setups": [
+      "Main Menu & Mission Selection Interface",
+      "Squad Assembly & Class Loadout Lobby Screen",
+      "Primary Gameplay Tactical HUD Overlay",
+      "Class Talent Tree & Progression Menu Screen",
+      "Tactical Field Map & Objective Radar Overlay",
+      "Mission Victory & Extraction Debrief Screen",
+      "Squad Wipe / Mission Failure Screen",
+      "System Settings & Keybinds Configuration Menu"
+    ],
+    "2D Sprites & Character Assets": [
+      "Class Portrait & Status Avatars (Tactician, Heavy Gunner, Demolitionist, Field Medic)",
+      "Downed / Incapacitated Ally State Badge Sprites",
+      "Dynamic Crosshairs & Bloom Reticle Sprites (Standard, Hipfire, Gyro ADS, Slide)",
+      "Directional Quadrant Damage Indicator Arcs (Front, Rear, Left Flank, Right Flank)",
+      "Minimap Radar Icons (Squadmates, Ammo Crates, Swarm Entity Blips, Objectives)",
+      "Interactable World Prompt Glyphs (Weld Door, Resupply Ammo, Nanite Core, Revive)",
+      "Environmental Surface Decals (Biomechanical Alien Creep, Acid Burns, Blood Splatters)"
+    ],
+    "Audio & Sound Effects (SFX)": [
+      "Marine Kinematic Movement SFX (Heavy Armored Footsteps, Sprint Exertion, Slide Skid, Mantle Grunt, Hard Landing Shock)",
+      "Armor Ablation & Shield SFX (Plating Impact, Quadrant Depletion Crack, Shield-Gate Trigger Chime, Welding Torch Repair Loop)",
+      "Tactician Ability SFX (Target Priority Scanner Tag, Sonar Pulse Echo, Orbital Lance Kinetic Impact)",
+      "Heavy Gunner Ability SFX (Hardpoint Barrier Deployment Hum, Overdrive Venting Steam Release & Sustained Fire)",
+      "Demolitionist Ability SFX (Proximity Mine Deploy/Arming Beep, Detonation Blast, Thermite Barrage Incendiary Burn Loop)",
+      "Field Medic Ability SFX (Nanite Stim Dart Pneumatic Fire, Vitality Inject Hiss, Defibrillator Charge & Discharge Pulse)",
+      "Dynamic Swarm & Ambience SFX (Chittering Skittering Hordes, Distant Screeches, Low-Light Facility Atmospheric Drone)",
+      "Diegetic Tactical UI SFX (Low Health Heartbeat, Ability Cooldown Ready Tone, Objective Update Ping, Extraction Siren)"
+    ],
+    "VFX & Particle Animations": [
+      "Directional Kinetic Barrier & Hardpoint Shield Hex-Grid Energy Distortion VFX",
+      "Ablative Armor Quadrant Break Sparks & Fragment Shatter FX",
+      "Pulse Sonar Wave Expansion & High-Threat Unit Highlight VFX",
+      "Orbital Lance Kinetic Strike Laser Guidance & High-Velocity Ground Impact Explosion",
+      "Thermite Barrage Incendiary Ground Fire Splatter & Flame Area Denial FX",
+      "Proximity Mine Proximity-Sensor Ring & Shrapnel Blast Cone FX",
+      "Nanite Stim Healing Mist Spray & Defibrillator Field AOE Electric Arc Burst",
+      "Tactical Slide Floor Friction Sparks & Plasma Arc Welding Seam FX",
+      "Biomechanical Alien Disseverment, Fluid Spray, & Severed Gib Physics VFX"
+    ],
+    "HUD & Icon Components": [
+      "Four-Quadrant Armor Integrity Gauge (Front, Rear, Left, Right)",
+      "Vitality Health Bar & Sprint Stamina Wheel Meter",
+      "Class Tactical Ability Cooldown Gauges & Ultimate Point Charge Meters",
+      "Class Ability Icons (Pulse Sonar, Orbital Lance, Hardpoint Shield, Overdrive, Proximity Mine, Thermite Barrage, Stim Dart, Defibrillator)",
+      "Talent Tree Node Icons (Offensive, Defensive, and Utility/Tech Mastery Branches)",
+      "Weapon Magazine Counter, Reserve Pool Meter, & Dynamic Reload Alerts",
+      "Squad Health, Armor, & Ammo Status Companion Cards",
+      "Objective Directional Compass Markers & Distance Waypoint Indicators"
+    ]
+  },
+  "scopeReviewContent": [
+    {
+      "feature": "Simultaneous Multi-Platform Launch (PC, PS5, Xbox Series X|S)",
+      "critique": "Targeting a simultaneous launch across three major platforms introduces massive console compliance (TRC/TCR) overhead, platform-specific optimization passes, and divergent certification cycles that crush indie velocity.",
+      "suggestion": "Pivot to a PC-first Early Access release on Steam. Defer console ports until post-launch once the core loop, netcode, and performance profiles are validated.",
+      "reasoning": "Saves hundreds of engineering hours on platform SDK updates and compliance testing, and allows rapid daily/weekly hotfixing that is impossible under console certification pipelines.",
+      "severity": "High"
+    },
+    {
+      "feature": "4-Quadrant Directional Armor Plating System",
+      "critique": "Calculating dynamic directional damage across four isolated quadrants (Front, Rear, Left, Right) with individual bypass formulas in a 360-degree high-density swarm creates unnecessary combat telemetry, netcode replication overhead, and severe HUD/UI complexity.",
+      "suggestion": "Flatten armor into a single unified ablative bar with a simple binary positional modifier (e.g., flat 1.5x damage taken from behind).",
+      "reasoning": "Preserves the tactical threat of getting flanked while eliminating complex hitbox quadrant checks, net replication payloads, and HUD clutter.",
+      "severity": "High"
+    },
+    {
+      "feature": "3-Branch Mastery Talent Trees (4 Classes x 3 Trees)",
+      "critique": "Designing, scripting, and balancing 12 distinct talent trees (36+ individual mastery perks) for V1 creates an exponential combinatorial balancing problem and heavy UI requirement before the core combat loop is even proven.",
+      "suggestion": "Cut the branching talent trees for V1. Ship each class with their fixed Passive, Tactical, and Ultimate, plus a single row of 3 mutually exclusive perk choices at max level.",
+      "reasoning": "Reduces ability balancing, QA matrix complexity, and UI implementation overhead by over 70%, letting the team focus on weapon feel and horde behavior.",
+      "severity": "High"
+    }
+  ]
+}

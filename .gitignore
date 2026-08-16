@@ -15,6 +15,22 @@ dist-ssr
 
 # Generated project package exports
 Output Files/
+!Output Files/
+Output Files/*
+!Output Files/Gemini3.7Flash/
+Output Files/Gemini3.7Flash/*
+!Output Files/Gemini3.7Flash/Space_Marines_Project_Package.json
+!Output Files/Gemini3.7Flash/Space_Marines_Project_Package.html
+!Output Files/Gemini3.7Flash/Urban_Rally_Racing_Project_Package.json
+!Output Files/Mistral/
+Output Files/Mistral/*
+!Output Files/Mistral/Bluetooth_Content_Share_Project_Package.json
+!Output Files/OpenAI/
+Output Files/OpenAI/*
+!Output Files/OpenAI/Aqua_Fighter_Project_Package.json
+!Output Files/OpenAI/Aqua_Fighter_Project_Package.html
+!Output Files/OpenAI/Aqua_Fighter_Project_Package.md
+!Output Files/OpenAI/Aqua_Fighter_Project_Package.txt
 
 # Editor directories and files
 .vscode/*

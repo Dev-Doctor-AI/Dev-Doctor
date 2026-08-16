@@ -81,6 +81,29 @@ The launcher requires macOS, `npm`, `curl`, and the `open` command. It checks LM
 
 `npm run start-auth` starts an optional local OAuth helper on port `1236`. It requires the relevant OAuth client-ID and client-secret environment variables; it is not needed for the standard LM Studio workflow.
 
+### macOS Keychain cloud credentials
+
+The local auth process also exposes a localhost-only, origin-restricted bridge for API keys stored as macOS **generic passwords**. `./start_app.sh` starts this bridge by default. The app reads a selected provider key into memory only; keys are not written to project history, exports, logs, browser storage, or source files.
+
+Default Keychain Service names:
+
+- `Dev Doctor AI — OpenAI`
+- `Dev Doctor AI — Gemini`
+
+The Account field may be any value because lookup is service-only. To create compatible entries without placing a secret in shell history:
+
+```bash
+read -s "OPENAI_KEY?Paste OpenAI API key: "; echo
+security add-generic-password -U -a "$USER" -s 'Dev Doctor AI — OpenAI' -w "$OPENAI_KEY"
+unset OPENAI_KEY
+
+read -s "GEMINI_KEY?Paste Gemini API key: "; echo
+security add-generic-password -U -a "$USER" -s 'Dev Doctor AI — Gemini' -w "$GEMINI_KEY"
+unset GEMINI_KEY
+```
+
+Service names can be overridden for the bridge process with `DEV_DOCTOR_OPENAI_KEYCHAIN_SERVICE` and `DEV_DOCTOR_GEMINI_KEYCHAIN_SERVICE`. Set `START_AUTH_SERVER=false` to disable the bridge when launching the app.
+
 ## Scripts
 
 | Command | Purpose |

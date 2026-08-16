@@ -1,0 +1,124 @@
+import { ConciergeMode, CritiqueRecord, MemoryEntry, RiskCritiqueRecord, SynthesisRecord, TranscriptRecord, UserProxyRecord } from '../types';
+
+const nonEmpty = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter(nonEmpty).map(value => value.trim()) : [];
+const modes: ConciergeMode[] = ['project-name', 'information-gatherer', 'creative-brainstormer', 'completion-gate'];
+
+export interface MemoryPersonaValidationOutcome { valid: boolean; errors: string[]; warnings: string[]; }
+
+export const validateMemoryEntries = (value: unknown): MemoryPersonaValidationOutcome => {
+  if (!Array.isArray(value)) return { valid: false, errors: ['Memory entries must be an array.'], warnings: [] };
+  const errors: string[] = []; const ids = new Set<string>();
+  value.forEach((entry: any, index) => {
+    if (!entry || !nonEmpty(entry.id) || !nonEmpty(entry.text)) errors.push(`Memory entry ${index + 1} requires an ID and text.`);
+    if (entry?.kind && !['fact', 'proposal', 'decision', 'question', 'constraint'].includes(entry.kind)) errors.push(`Memory entry ${index + 1} has an unsupported kind.`);
+    if (entry?.status && !['confirmed', 'accepted', 'rejected', 'unresolved', 'active'].includes(entry.status)) errors.push(`Memory entry ${index + 1} has an unsupported status.`);
+    if (entry?.id && ids.has(entry.id.toLowerCase())) errors.push(`Memory entry ${index + 1} duplicates ID "${entry.id}".`);
+    if (entry?.id) ids.add(entry.id.toLowerCase());
+  });
+  return { valid: errors.length === 0, errors, warnings: [] };
+};
+
+export const normalizeMemoryEntries = (value: unknown, sourceReference = 'conversation'): MemoryEntry[] => Array.isArray(value)
+  ? value.flatMap((entry: any, index) => {
+    if (!entry || !nonEmpty(entry.text)) return [];
+    return [{
+      id: nonEmpty(entry.id) ? entry.id.trim() : `memory-${index + 1}`,
+      kind: ['fact', 'proposal', 'decision', 'question', 'constraint'].includes(entry.kind) ? entry.kind : 'fact',
+      text: entry.text.trim(),
+      status: ['confirmed', 'accepted', 'rejected', 'unresolved', 'active'].includes(entry.status) ? entry.status : 'active',
+      sourceReferences: strings(entry.sourceReferences).length ? strings(entry.sourceReferences) : [sourceReference],
+    } as MemoryEntry];
+  })
+  : [];
+
+export const mergeMemoryEntries = (existing: MemoryEntry[], incoming: MemoryEntry[]): MemoryEntry[] => {
+  const merged = new Map<string, MemoryEntry>();
+  for (const entry of [...existing, ...incoming]) {
+    const key = entry.id.trim().toLowerCase() || `${entry.kind}:${entry.text.trim().toLowerCase()}`;
+    const previous = merged.get(key);
+    merged.set(key, previous ? {
+      ...previous,
+      ...entry,
+      sourceReferences: [...new Set([...previous.sourceReferences, ...entry.sourceReferences])],
+    } : { ...entry, sourceReferences: [...entry.sourceReferences] });
+  }
+  return [...merged.values()];
+};
+
+export const deriveConciergeMode = (
+  projectName: string,
+  conversationText: string,
+  entries: MemoryEntry[],
+): ConciergeMode => {
+  const userMessages = conversationText.split('\n').filter(line => /^user:/i.test(line.trim()));
+  const latestUserMessage = userMessages.at(-1) || conversationText;
+  if (/\b(brainstorm|brainstorming|creative ideas|what could we add|imagine|explore ideas|ideas for|help me create|help us create)\b/i.test(latestUserMessage)) return 'creative-brainstormer';
+  if (!nonEmpty(projectName) || /^(untitled(?: project)?|new project)$/i.test(projectName.trim())) return 'project-name';
+  const durableFacts = entries.filter(entry => entry.status !== 'rejected' && ['fact', 'decision', 'constraint'].includes(entry.kind));
+  if (userMessages.length >= 3 || durableFacts.length >= 3 || /ready to (compile|start|begin)|clear vision/i.test(conversationText)) return 'completion-gate';
+  if (userMessages.length === 2) return 'creative-brainstormer';
+  return 'information-gatherer';
+};
+
+export const conciergeModeGuidance = (mode: ConciergeMode): string => ({
+  'project-name': 'Prioritize identifying and confirming the official project name; do not move into broad design questions until the name is clear.',
+  'information-gatherer': 'Gather missing facts about audience, core loop, constraints, platform, and desired experience with one focused question at a time.',
+  'creative-brainstormer': 'Offer one imaginative, project-relevant expansion before asking one playful question; preserve the creator’s hook and avoid locking decisions without confirmation.',
+  'completion-gate': 'Check whether project name, core loop, audience, and style are sufficiently clear; if so, ask whether the creator is ready to begin critique.',
+}[mode]);
+
+export const validateTranscriptRecord = (value: unknown): MemoryPersonaValidationOutcome => {
+  const record = value as Partial<TranscriptRecord> | null;
+  if (!record || !Array.isArray(record.messages)) return { valid: false, errors: ['Transcript record requires a messages array.'], warnings: [] };
+  const errors: string[] = [];
+  if (!record.preservedInFull) errors.push('Transcript record must declare full preservation.');
+  if (!record.updatedAt || typeof record.updatedAt !== 'number') errors.push('Transcript record requires an update timestamp.');
+  return { valid: errors.length === 0, errors, warnings: [] };
+};
+
+export const validateConciergeMode = (value: unknown): MemoryPersonaValidationOutcome => modes.includes(value as ConciergeMode) ? { valid: true, errors: [], warnings: [] } : { valid: false, errors: [`Unsupported Concierge mode "${String(value)}".`], warnings: [] };
+
+export const validateUserProxy = (value: unknown): MemoryPersonaValidationOutcome => {
+  const record = value as Partial<UserProxyRecord> | null;
+  const errors: string[] = [];
+  if (!record || !nonEmpty(record.perspective)) errors.push('User Proxy requires a perspective.');
+  if (!strings(record?.priorities).length) errors.push('User Proxy requires priorities.');
+  return { valid: errors.length === 0, errors, warnings: [] };
+};
+
+export const validateRiskCritique = (value: unknown): MemoryPersonaValidationOutcome => {
+  const record = value as Partial<RiskCritiqueRecord> | null;
+  if (!record || !Array.isArray(record.risks)) return { valid: false, errors: ['Risk critique requires a risks array.'], warnings: [] };
+  const errors: string[] = [];
+  record.risks.forEach((risk: any, index) => {
+    if (!nonEmpty(risk?.id) || !nonEmpty(risk?.risk) || !nonEmpty(risk?.consequence)) errors.push(`Risk ${index + 1} requires ID, risk, and consequence.`);
+    if (!['High', 'Medium', 'Low'].includes(risk?.severity)) errors.push(`Risk ${index + 1} requires valid severity.`);
+  });
+  return { valid: errors.length === 0, errors, warnings: [] };
+};
+
+export const validateSynthesis = (value: unknown): MemoryPersonaValidationOutcome => {
+  const record = value as Partial<SynthesisRecord> | null;
+  const errors: string[] = [];
+  if (!record || !nonEmpty(record.summary)) errors.push('Synthesis requires a summary.');
+  if (!strings(record?.outputReferences).length) errors.push('Synthesis requires output references.');
+  return { valid: errors.length === 0, errors, warnings: [] };
+};
+
+export const createTranscriptRecord = (messages: TranscriptRecord['messages'], updatedAt = Date.now()): TranscriptRecord => ({ messages: [...messages], preservedInFull: true, updatedAt });
+
+export const buildRoleRelevantMemoryContext = (entries: MemoryEntry[], kinds: MemoryEntry['kind'][] = ['fact', 'decision', 'constraint', 'question']): string => entries
+  .filter(entry => kinds.includes(entry.kind) && entry.status !== 'rejected')
+  .map(entry => `[${entry.kind}/${entry.status}] ${entry.text}`)
+  .join('\n');
+
+export const buildPersonaSpecialistContext = (
+  conversationText: string,
+  memoryEntries: MemoryEntry[],
+  critiqueRecord: CritiqueRecord,
+): string => JSON.stringify({
+  conversation: conversationText,
+  memory: memoryEntries.filter(entry => entry.status !== 'rejected'),
+  completedCritique: critiqueRecord,
+});

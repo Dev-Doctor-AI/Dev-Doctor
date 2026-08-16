@@ -22,6 +22,7 @@ interface OutputPanelProps {
     scopeReviewGenerated: boolean;
     modularBreakdownGenerated: boolean;
     isGeneratingKey: string | null;
+    workflowError?: string | null;
 }
 
 const OutputButton = ({ icon, title, description, isGenerated, onClick, disabled, isLoading }: { icon: React.ReactNode, title: string, description: string, isGenerated: boolean, onClick: () => void, disabled?: boolean, isLoading?: boolean }) => (
@@ -52,6 +53,13 @@ export const OutputPanel: React.FC<OutputPanelProps> = (props) => {
                  <p className="text-sm text-brand-text-muted">
                     Generate project assets on-demand. Start with the GDD/PRD, then unlock other documents sequentially.
                 </p>
+                 {props.workflowError && (
+                    <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-200" role="alert" data-testid="workflow-error">
+                        <p className="font-semibold">Generation needs attention</p>
+                        <p className="mt-1 text-red-100/90">{props.workflowError}</p>
+                        <p className="mt-2 text-xs text-red-100/80">Correct the displayed contract issue and retry this stage. Downstream stages remain locked until the required output validates.</p>
+                    </div>
+                 )}
 
                 <div>
                     <h4 className="text-lg font-semibold text-brand-secondary mb-3 mt-4">Core Workflow</h4>

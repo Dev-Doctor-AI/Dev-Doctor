@@ -13,8 +13,20 @@
 - Discovery chat log formatting across package downloads.
 - Playwright E2E testing framework installed and passing.
 
-## Next Steps for Multi-Agent Execution Tomorrow
+## Next Steps for Multi-Agent Execution Tomorrow (2026-08-17)
 
-1. Agent 1 (Pipeline Engineer): Wire unified 8-stage auto-compilation (`gdd` -> `pitchDeck` -> `mvp` -> `mvpFeatureSpecs` -> `tdd` -> `briefs` -> `assets` -> `scopeReview`) into `App.tsx` and ensure all 4 export format generators write every section.
-2. Agent 2 (Prompt & Domain Specialist): Deepen system prompts in `services/lmStudioService.ts` for dynamic role-specific briefs, BDD User Stories & Acceptance Criteria, and comprehensive TDD specs.
-3. Agent 3 (QA & Automation Engineer): Implement `scripts/test-manual-sequential-e2e.mjs` with rotating game titles, AI helper driving discovery turns, automated critique answering, tab switching verification, and full package downloads into `Output Files/`.
+Accepted evidence from today's OpenAI Sol Aqua Fighter run:
+
+- Keychain-backed OpenAI/Gemini credentials and one-command startup work.
+- Aqua generated 6/6 valid MVP Feature Specs and six persisted per-feature `tddContent` architect records.
+- Aqua is the strongest current qualitative package, with coherent project-specific discovery, critique, GDD, pitch, combat systems, and MVP contracts.
+- Final TDD did not persist: `technicalDesignDocument` is empty, so the UI/export omission is not merely a renderer issue. Briefs are consequently absent.
+- Provider/model generation metadata is missing from the exported Aqua JSON and must become a global contract.
+
+Ordered tasks:
+
+1. Pipeline/State: trace Aqua Final TDD from provider response through parse/validation, `setTechnicalDesignDocument`, `setTddDocGenerated`, project persistence, reload, viewer, and package assembly.
+2. QA: add a deterministic no-silent-success regression. Valid `tddContent` must produce a non-empty Final TDD or a persistent actionable diagnostic; an empty document must never turn the stage green.
+3. Package/Metadata: require provider, model, run ID, and stage outcomes in saved/exported packages and verify HTML/MD/TXT/JSON parity.
+4. Contract Analysis: compare OpenAI Aqua Fighter, Gemini Urban Rally Racing, and Mistral Bluetooth Content Share structurally. Keep traceability, validation, persistence, diagnostics, metadata, and completeness global; isolate token fields, structured-output capabilities, envelope normalization, retry budgets, and rate limits in model adapters.
+5. Completion: after Final TDD is fixed, generate Aqua Freelance Briefs and verify the complete package without altering the saved baseline files.

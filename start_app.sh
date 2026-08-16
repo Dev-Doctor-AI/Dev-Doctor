@@ -11,6 +11,8 @@ SERVER_PID=""
 PROXY_PID=""
 AUTH_PID=""
 SHUTTING_DOWN="false"
+OPENAI_KEYCHAIN_SERVICE="${DEV_DOCTOR_OPENAI_KEYCHAIN_SERVICE:-Dev Doctor AI — OpenAI}"
+GEMINI_KEYCHAIN_SERVICE="${DEV_DOCTOR_GEMINI_KEYCHAIN_SERVICE:-Dev Doctor AI — Gemini}"
 
 stop_process_tree() {
   local parent_pid="$1"
@@ -74,46 +76,70 @@ printf 'LM proxy output is being written to %s\n' "${APP_DIR}/proxy.log"
 printf 'Checking LM Studio at %s\n' "${LM_UPSTREAM}"
 
 if ! curl -fsS --max-time 3 -o /dev/null "${LM_UPSTREAM%/}/v1/models"; then
-  printf 'Error: LM Studio is not reachable at %s/v1/models. Start its local server and load a model before launching Dev Doctor.\n' "${LM_UPSTREAM%/}" >&2
-  exit 1
+  printf 'Warning: LM Studio is not reachable at %s/v1/models. The UI will still start; AI requests will be unavailable until LM Studio is running.\n' "${LM_UPSTREAM%/}" >&2
 fi
 
 # Start the CORS proxy and explicitly point the Vite client at it.
 LM_UPSTREAM="${LM_UPSTREAM}" npm run start-proxy >"${APP_DIR}/proxy.log" 2>&1 &
 PROXY_PID=$!
 
-# Wait until the proxy can reach LM Studio, not merely until its port is open.
-for attempt in {1..20}; do
-  if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1235/v1/models"; then
-    printf 'LM proxy is ready.\n'
-    break
-  fi
-  if ! kill -0 "${PROXY_PID}" 2>/dev/null; then
-    printf 'Error: LM proxy exited before becoming ready.\n' >&2
-    cat "${APP_DIR}/proxy.log" >&2
-    exit 1
-  fi
-  sleep 1
-done
+# The proxy is optional for loading the UI. Check it once, then let Vite start
+# immediately so a missing LM Studio instance cannot block the application.
+if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1235/v1/models"; then
+  printf 'LM proxy is ready.\n'
+else
+  printf 'Warning: LM proxy is not ready. The UI will still start; AI requests will be unavailable until LM Studio is running.\n' >&2
+fi
 
-# OAuth is optional for the standard LM Studio workflow. Enable it only when needed.
-if [[ "${START_AUTH_SERVER:-false}" == "true" ]]; then
-  : > "${APP_DIR}/auth.log"
-  npm run start-auth >"${APP_DIR}/auth.log" 2>&1 &
-  AUTH_PID=$!
+# The localhost auth process also provides the macOS Keychain credential bridge.
+# Disable explicitly with START_AUTH_SERVER=false when cloud credentials are not needed.
+if [[ "${START_AUTH_SERVER:-true}" == "true" ]]; then
+  if [[ ! -x /usr/bin/security ]]; then
+    printf 'Warning: macOS Keychain command is unavailable; cloud credentials will require session-only entry.\n' >&2
+  else
+    if /usr/bin/security find-generic-password -s "${OPENAI_KEYCHAIN_SERVICE}" >/dev/null 2>&1; then
+      printf 'OpenAI Keychain credential is available.\n'
+    else
+      printf 'Notice: OpenAI Keychain credential was not found under service "%s".\n' "${OPENAI_KEYCHAIN_SERVICE}" >&2
+    fi
+    if /usr/bin/security find-generic-password -s "${GEMINI_KEYCHAIN_SERVICE}" >/dev/null 2>&1; then
+      printf 'Gemini Keychain credential is available.\n'
+    else
+      printf 'Notice: Gemini Keychain credential was not found under service "%s".\n' "${GEMINI_KEYCHAIN_SERVICE}" >&2
+    fi
+  fi
 
-  for attempt in {1..20}; do
-    if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1236/health"; then
-      printf 'Optional auth server is ready.\n'
-      break
-    fi
-    if ! kill -0 "${AUTH_PID}" 2>/dev/null; then
-      printf 'Error: auth server exited before becoming ready.\n' >&2
-      cat "${APP_DIR}/auth.log" >&2
-      exit 1
-    fi
-    sleep 1
-  done
+  BRIDGE_READY="false"
+  if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1236/health"; then
+    BRIDGE_READY="true"
+    printf 'Reusing the existing Keychain credential bridge at http://127.0.0.1:1236.\n'
+  else
+    : > "${APP_DIR}/auth.log"
+    DEV_DOCTOR_OPENAI_KEYCHAIN_SERVICE="${OPENAI_KEYCHAIN_SERVICE}" \
+    DEV_DOCTOR_GEMINI_KEYCHAIN_SERVICE="${GEMINI_KEYCHAIN_SERVICE}" \
+      npm run start-auth >"${APP_DIR}/auth.log" 2>&1 &
+    AUTH_PID=$!
+
+    for attempt in {1..20}; do
+      if curl -fsS --max-time 1 -o /dev/null "http://127.0.0.1:1236/health"; then
+        BRIDGE_READY="true"
+        printf 'Keychain credential bridge is ready at http://127.0.0.1:1236.\n'
+        break
+      fi
+      if ! kill -0 "${AUTH_PID}" 2>/dev/null; then
+        printf 'Warning: Keychain credential bridge exited before becoming ready; continuing with LM Studio and session-only cloud keys.\n' >&2
+        cat "${APP_DIR}/auth.log" >&2
+        AUTH_PID=""
+        break
+      fi
+      sleep 1
+    done
+  fi
+  if [[ "${BRIDGE_READY}" != "true" ]] && [[ -n "${AUTH_PID}" ]]; then
+    printf 'Warning: Keychain credential bridge did not become ready; continuing with LM Studio and session-only cloud keys.\n' >&2
+  fi
+else
+  printf 'Keychain credential bridge disabled by START_AUTH_SERVER=false.\n'
 fi
 
 VITE_LM_ENDPOINT="${LM_PROXY_URL}" npm run dev -- --host 127.0.0.1 --port 3000 --strictPort >"${SERVER_LOG}" 2>&1 &
@@ -123,7 +149,7 @@ for attempt in {1..30}; do
   if curl -fsS --max-time 1 -o /dev/null "${APP_URL}"; then
     printf 'Opening %s\n' "${APP_URL}"
     open "${APP_URL}"
-    printf 'App is running. Press Ctrl-C to stop it.\n'
+    printf 'Dev Doctor is running. Switch AI providers in the header; saved OpenAI/Gemini keys load automatically when available. Press Ctrl-C to stop.\n'
     wait "${SERVER_PID}"
     exit $?
   fi

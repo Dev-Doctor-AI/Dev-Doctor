@@ -6,15 +6,42 @@ interface GenerationProgressIndicatorProps {
     progress: number;
     message: string;
     title?: string;
+    stageKey?: string | null;
+    substage?: string;
+    completed?: number;
+    total?: number;
+    currentItem?: string;
+    activitySequence?: number;
 }
 
-export const GenerationProgressIndicator: React.FC<GenerationProgressIndicatorProps> = ({ isActive, progress, message, title = "Generation in Progress" }) => {
+export const GenerationProgressIndicator: React.FC<GenerationProgressIndicatorProps> = ({
+    isActive,
+    progress,
+    message,
+    title = "Generation in Progress",
+    stageKey,
+    substage,
+    completed,
+    total,
+    currentItem,
+    activitySequence = 0,
+}) => {
     if (!isActive) {
         return null;
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div
+            className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 backdrop-blur-sm p-4"
+            data-testid="generation-progress"
+            data-stage={stageKey || ''}
+            data-substage={substage || ''}
+            data-completed={completed ?? ''}
+            data-total={total ?? ''}
+            data-current-item={currentItem || ''}
+            data-activity-sequence={activitySequence}
+            data-progress={Math.round(progress)}
+        >
             <div className="w-full max-w-lg bg-brand-surface rounded-lg shadow-2xl border border-brand-border p-6 sm:p-8 text-center">
                 <h3 className="text-xl sm:text-2xl font-bold text-brand-secondary mb-4">{title}</h3>
                 
@@ -32,6 +59,12 @@ export const GenerationProgressIndicator: React.FC<GenerationProgressIndicatorPr
                     </div>
                     <span className="font-semibold text-brand-primary w-12 text-right">{Math.round(progress)}%</span>
                 </div>
+
+                {typeof completed === 'number' && typeof total === 'number' && total > 0 && (
+                    <p className="text-sm text-brand-text-muted mb-3" data-testid="generation-progress-count">
+                        Completed {completed} of {total}
+                    </p>
+                )}
                 
                 <p className="text-sm text-brand-text-muted">Please don't close this window.</p>
             </div>

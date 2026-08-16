@@ -16,6 +16,9 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
   const popupRef = useRef<Window | null>(null);
   const [signedInProvider, setSignedInProvider] = useState<string | null>(null);
   const [signedInToken, setSignedInToken] = useState<string | null>(null);
+  const [keychainState, setKeychainState] = useState<'idle' | 'loading' | 'loaded' | 'unavailable'>('idle');
+  const keychainCredentials = useRef(new Map<'openai' | 'gemini', string>());
+  const providerChangeSequence = useRef(0);
 
   const modelOptions = useMemo(() => {
     const source = availableModels.length > 0 ? availableModels : option.models;
@@ -71,16 +74,68 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
     }
   };
 
+  const keychainProviderFor = (provider: AIProviderId, endpoint: string): 'openai' | 'gemini' | null => {
+    if (provider === 'openai' || (provider === 'openai-compatible' && /^https:\/\/api\.openai\.com\//i.test(endpoint))) return 'openai';
+    if (provider === 'gemini') return 'gemini';
+    return null;
+  };
+
+  const loadKeychainCredential = async (provider: 'openai' | 'gemini'): Promise<string | null> => {
+    const cached = keychainCredentials.current.get(provider);
+    if (cached) return cached;
+    setKeychainState('loading');
+    try {
+      const bridge = import.meta.env.VITE_AUTH_SERVER_URL || 'http://127.0.0.1:1236';
+      const response = await fetch(`${bridge}/credentials/${provider}`, { method: 'POST', cache: 'no-store' });
+      if (!response.ok) throw new Error('Credential unavailable');
+      const payload = await response.json() as { apiKey?: string };
+      if (!payload.apiKey?.trim()) throw new Error('Credential unavailable');
+      keychainCredentials.current.set(provider, payload.apiKey.trim());
+      setKeychainState('loaded');
+      return payload.apiKey.trim();
+    } catch {
+      setKeychainState('unavailable');
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const credentialProvider = keychainProviderFor(config.provider, config.endpoint);
+    if (!credentialProvider || config.apiKey?.trim()) return;
+    const changeSequence = ++providerChangeSequence.current;
+    let cancelled = false;
+    void loadKeychainCredential(credentialProvider).then(apiKey => {
+      if (apiKey && !cancelled && changeSequence === providerChangeSequence.current) {
+        onChange({ ...config, apiKey });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [config.provider, config.endpoint, config.apiKey]);
+
+  const retryKeychainCredential = async () => {
+    const credentialProvider = keychainProviderFor(config.provider, config.endpoint);
+    if (!credentialProvider) return;
+    keychainCredentials.current.delete(credentialProvider);
+    const changeSequence = ++providerChangeSequence.current;
+    const apiKey = await loadKeychainCredential(credentialProvider);
+    if (apiKey && changeSequence === providerChangeSequence.current) onChange({ ...config, apiKey });
+  };
+
   const updateProvider = (provider: AIProviderId) => {
+    ++providerChangeSequence.current;
     const next = getProviderOption(provider);
-    onChange({
+    const nextConfig = {
       ...config,
       provider,
       endpoint: next.endpoint,
       model: next.models[0],
       useSdkLogin: provider === 'openai' ? config.useSdkLogin : false,
-      apiKey: provider === 'lmstudio' ? '' : config.apiKey,
-    });
+      apiKey: '',
+    };
+    onChange(nextConfig);
+    if (!keychainProviderFor(provider, next.endpoint)) {
+      setKeychainState('idle');
+    }
     setTestState('idle');
     setAvailableModels([]);
     setModelsState('idle');
@@ -217,6 +272,15 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
                     spellCheck={false}
                   />
                 </label>
+              )}
+
+              {keychainState === 'loading' && <p className="mb-3 text-xs text-brand-text-muted">Loading credential from macOS Keychain…</p>}
+              {keychainState === 'loaded' && <p className="mb-3 text-xs text-green-400">Credential loaded from macOS Keychain for this app session.</p>}
+              {keychainState === 'unavailable' && (
+                <div className="mb-3 rounded border border-yellow-500/30 bg-yellow-500/10 p-2 text-xs text-yellow-300">
+                  <p>Keychain credential unavailable. Start the local credential bridge or paste a session-only key.</p>
+                  <button type="button" onClick={retryKeychainCredential} className="mt-2 rounded border border-yellow-400 px-2 py-1 font-semibold hover:bg-yellow-500/10">Retry Keychain</button>
+                </div>
               )}
 
               {(!config.useSdkLogin || config.provider !== 'openai') && !config.apiKey?.trim() && (

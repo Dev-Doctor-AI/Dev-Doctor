@@ -595,3 +595,20 @@ Notes/Blockers:
 - Updated `implementation_plan.md` with the same targeted-review and complete-file exception criteria. The Cline Global Rule was intentionally not modified because the user had already updated it manually.
 - Tested: re-read the amended workspace-rule, plan, and status sections; confirmed the scheduled governance and Luna/Terra rate-limit clauses remain present.
 - Not tested: application lint, build, or live provider requests because this was a documentation-only policy change with no executable source changes.
+
+## 2026-08-16 end-of-day — Keychain, OpenAI Sol, Aqua Fighter, and tomorrow handoff
+
+- macOS Keychain generic-password credentials for services `Dev Doctor AI — OpenAI` and `Dev Doctor AI — Gemini` are available and were successfully retrieved through the origin-restricted localhost bridge without displaying either secret.
+- `start_app.sh` is the one-command startup path for LM proxy, Keychain bridge, Vite, and browser; it reuses an existing healthy bridge and keeps LM Studio/session-only fallback available.
+- A live OpenAI Sol run completed the Aqua Fighter discovery, critique, GDD, pitch, MVP definition, MVP Feature Specs, asset, and scope stages. All four package formats were saved under `Output Files/OpenAI/` at approximately 23:00.
+- Aqua Fighter is the best current qualitative output. It consistently carries a skill-first underwater fighting-game identity through control mapping, hit-stun/guard/recovery rules, deterministic 2.5D depth lanes, momentum/current/reef/wreckage interactions, readability/fairness constraints, pitch positioning, and MVP requirements.
+- JSON inspection: 33 GDD sections, 10 pitch slides, 6 MVP in-scope features, 6 valid MVP Feature Specs, 6 validation outcomes all valid, 6 `tddContent` architect records, 3 asset-list categories, 13 asset metadata records, and 11 scope critiques. No generation diagnostic was persisted.
+- Final TDD did not appear after generation. The saved package confirms `technicalDesignDocument` is empty even though `tddContent` contains all six per-feature technical records. Freelance/production briefs are absent. This is a Final TDD request/validation/commit/generated-flag/viewer issue, not merely rich export filtering.
+- Aqua's exported package does not contain provider/model generation metadata. The run is known to be OpenAI Sol only from the manual session/folder context. Provider/model/run/stage metadata must be enforced globally tomorrow.
+- Comparison insight: Sol/Aqua is strongest in coherent domain reasoning and detailed project-specific contracts; Gemini/Urban Rally is strong in dense technical ideation but its saved run stops before MVP specs; Mistral/Bluetooth is the current completeness baseline through Final TDD/briefs but is substantially more generic.
+- Final end-of-day confirmation: the global 600-second E2E run completed without browser errors, model-validation errors, transport errors, or sleep interruption. Keep that run as the accepted complete-pipeline baseline while treating Aqua's missing Final TDD as a separate manual state/persistence defect.
+- Do not alter or regenerate the saved Aqua files before diagnosis. Use them as structural/semantic evidence, never exact-text snapshots.
+
+### Resume next session
+
+Start with Aqua Final TDD persistence: trace the saved project's Final TDD action from provider response through parsing/validation, `setTechnicalDesignDocument`, `tddDocGenerated`, reload persistence, legacy viewer, Rich Package Preview, and all four exports. Add a deterministic no-silent-success regression before another paid model run. Then enforce provider/model metadata and derive global versus model-adapter rules from Aqua/Sol, Urban Rally/Gemini, and Bluetooth/Mistral.

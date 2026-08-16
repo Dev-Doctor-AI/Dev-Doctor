@@ -6,9 +6,17 @@
 import http from 'http';
 import { URL } from 'url';
 import querystring from 'querystring';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 
 const PORT = process.env.AUTH_SERVER_PORT || 1236;
 const REDIRECT_HOST = process.env.OAUTH_REDIRECT_HOST || `http://127.0.0.1:${PORT}`;
+const execFileAsync = promisify(execFile);
+const ALLOWED_APP_ORIGINS = new Set((process.env.DEV_DOCTOR_ALLOWED_ORIGINS || 'http://127.0.0.1:3000,http://localhost:3000').split(',').map(value => value.trim()).filter(Boolean));
+const KEYCHAIN_SERVICES = {
+  openai: process.env.DEV_DOCTOR_OPENAI_KEYCHAIN_SERVICE || 'Dev Doctor AI — OpenAI',
+  gemini: process.env.DEV_DOCTOR_GEMINI_KEYCHAIN_SERVICE || 'Dev Doctor AI — Gemini',
+};
 
 const PROVIDERS = {
   google: {
@@ -41,10 +49,61 @@ const html = (res, body) => {
   res.end(body);
 };
 
+const credentialJson = (req, res, obj, code = 200) => {
+  const origin = req.headers.origin || '';
+  const body = JSON.stringify(obj);
+  res.writeHead(code, {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store, max-age=0',
+    'Pragma': 'no-cache',
+    'Access-Control-Allow-Origin': origin,
+    'Vary': 'Origin',
+  });
+  res.end(body);
+};
+
+const readKeychainCredential = async provider => {
+  const service = KEYCHAIN_SERVICES[provider];
+  if (!service) return null;
+  const { stdout } = await execFileAsync('/usr/bin/security', ['find-generic-password', '-s', service, '-w'], {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024,
+  });
+  return stdout.trim();
+};
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `${REDIRECT_HOST}`);
 
   if (url.pathname === '/health') return json(res, { status: 'ok' });
+
+  if (url.pathname.startsWith('/credentials/')) {
+    const origin = req.headers.origin || '';
+    const host = req.headers.host || '';
+    if (!ALLOWED_APP_ORIGINS.has(origin) || !/^(?:127\.0\.0\.1|localhost):1236$/.test(host)) {
+      return credentialJson(req, res, { error: 'forbidden' }, 403);
+    }
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '600',
+        'Vary': 'Origin',
+      });
+      return res.end();
+    }
+    if (req.method !== 'POST') return credentialJson(req, res, { error: 'method_not_allowed' }, 405);
+    const provider = url.pathname.slice('/credentials/'.length);
+    if (!Object.hasOwn(KEYCHAIN_SERVICES, provider)) return credentialJson(req, res, { error: 'unsupported_provider' }, 404);
+    try {
+      const apiKey = await readKeychainCredential(provider);
+      if (!apiKey) return credentialJson(req, res, { error: 'credential_not_found' }, 404);
+      return credentialJson(req, res, { provider, apiKey });
+    } catch {
+      return credentialJson(req, res, { error: 'credential_not_found' }, 404);
+    }
+  }
 
   if (url.pathname === '/auth/start') {
     const provider = url.searchParams.get('provider') || 'google';
