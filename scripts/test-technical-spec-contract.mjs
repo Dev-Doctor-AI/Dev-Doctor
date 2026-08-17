@@ -12,7 +12,7 @@ try {
   execFileSync(join(root, 'node_modules/.bin/tsc'), [
     '--target', 'ES2022', '--module', 'ESNext', '--moduleResolution', 'bundler',
     '--skipLibCheck', '--outDir', output, join(root, 'types.ts'),
-    join(root, 'services/technicalSpecContract.ts'),
+    join(root, 'services/technicalSpecContract.ts'), join(root, 'services/personaPrompts.ts'),
   ], { stdio: 'inherit' });
 
   const contract = await import(pathToFileURL(join(output, 'services/technicalSpecContract.js')).href);
@@ -96,6 +96,9 @@ try {
   assert.equal(bridge.featureId, 'squad-deployment');
   assert.equal(bridge.technicalSpecification.source, 'bdd-feature-spec');
   assert.equal(contract.validateTechnicalSpecification({}).valid, false);
+  const prompts = await import(pathToFileURL(join(output, 'services/personaPrompts.js')).href);
+  assert(prompts.buildTechnicalSpecRoleGuidance().includes('Data Model'));
+  assert(prompts.buildTddRoleGuidance().includes('System Architecture'));
   console.log('Technical specification contract assertions passed.');
 } finally {
   rmSync(output, { recursive: true, force: true });

@@ -1,38 +1,45 @@
 # Dev Doctor — Resume Snapshot
 
-**Updated:** 2026-08-16 end of day
-**Tomorrow's first task:** Diagnose and fix Aqua Fighter Final TDD persistence/UI visibility.
+**Updated:** 2026-08-17 end of day
+**Primary resume file:** `TOMORROW_RESUME.md`
+**Tomorrow's first task:** Fix the Gemini technical-spec response contract so Duck Wars can pass MVP Feature Specs and continue into Final TDD.
 
 ## Accepted today
 
-- macOS Keychain credentials work for OpenAI and Gemini through the localhost-only bridge.
-- `./start_app.sh` remains the one-command launcher.
-- OpenAI Sol produced the best current project output: `Output Files/OpenAI/Aqua_Fighter_Project_Package` in HTML, Markdown, TXT, and JSON.
-- Aqua generated 6/6 valid MVP Feature Specs and six persisted per-feature architect records without a diagnostic.
-- The global 600-second E2E run completed without browser errors, model-validation errors, transport errors, or sleep interruption.
+- Duck Wars visible manual flow reaches GDD and MVP successfully.
+- MVP Feature Specs visibly unlock after MVP.
+- Button gates now use the core order: GDD → MVP → MVP Feature Specs → Final TDD → Freelance Briefs → Assets → Pitch → Scope.
+- The progress modal exposes workflow position, stage, substage, item counts, current item, and activity sequence.
+- The visible Playwright runner uses a visible browser, slow motion, cursor movement, mouse-down/up clicks, screenshots, and video recording.
+- Rich Package, visible-page text, button-state snapshots, screenshots, and lifecycle cleanup are implemented.
+- Rollup vendor chunking reduced the largest bundle from approximately 1,768.74 kB to 1,116.10 kB.
+- `node --check`, `npm run lint`, `git diff --check`, and `npm run build` passed.
 
 ## Exact blocker
 
-- Aqua JSON has `tddContent.length === 6` but no `technicalDesignDocument` sections.
-- Final TDD did not appear in the UI after generation.
-- Freelance/production briefs are consequently absent.
-- Assets and scope are present, so later saved package sections were not globally truncated.
-- Exported metadata does not identify OpenAI/Sol; only project name, timestamp, and project ID are present.
+Gemini fails during MVP Feature Specs technical-spec generation with:
 
-## Why Aqua matters
+```text
+Generated technical specifications failed validation.
+Response did not contain a technical specification object.
+Technical specification must be an object.
+```
 
-Aqua is the strongest current evidence for the intended product: project-specific discovery and critique feed a coherent GDD, pitch, and detailed validated MVP contracts. Preserve it unchanged. Compare structurally with:
-
-- `Output Files/Gemini3.7Flash/Urban_Rally_Racing_Project_Package.json`
-- `Output Files/Mistral/Bluetooth_Content_Share_Project_Package.json`
+The failure is in model response shape/normalization or prompt/schema alignment. Do not weaken the technical-spec validator until the provider response contract has been traced.
 
 ## Tomorrow order
 
-1. Trace Final TDD provider response, parsing, validation, state commit, generated flag, persistence, and viewers.
-2. Add a regression forbidding silent Final TDD success with an empty document.
-3. Verify reload plus HTML/MD/TXT/JSON package parity.
-4. Persist provider, model, run ID, and stage outcomes globally.
-5. Separate global contracts from provider/model adapters using the three comparison packages.
-6. Once Final TDD works, generate and verify Aqua Freelance Briefs and complete package coverage.
+1. Inspect the Gemini response and technical-spec prompt/normalizer in `services/lmStudioService.ts` and `services/technicalSpecContract.ts`.
+2. Add or update a focused regression for malformed/missing technical-spec objects.
+3. Rerun `npm run test:technical-spec`, `npm run test:structured-output`, and the relevant MVP/TDD smoke tests.
+4. Rerun `npm run run:visible-duck-wars` with human-like movement and confirm the video/snapshots use the new button order.
+5. Continue Duck Wars through Final TDD, Freelance Briefs, Assets, Pitch, and Scope.
+6. Verify the final Rich Package, progress modal, screenshots, video, persisted metadata, and cleanup.
+7. Run production preview/runtime checks and review the staged Git commit.
 
-See `persona_recall_latest_updates.md` for the detailed ledger and `statuslog.txt` for chronological evidence.
+## Important evidence
+
+- Partial successful run: `Output Files/Duck_Wars_Manual_Run/duck-wars-2026-08-17T11-14-08-777Z/`
+- Recording-enabled run: `Output Files/Duck_Wars_Manual_Run/duck-wars-2026-08-17T11-19-37-665Z/`
+- Video: `Output Files/Duck_Wars_Manual_Run/duck-wars-2026-08-17T11-19-37-665Z/page@9b9da9785e4a4ea11a504a70adb0e5f1.webm`
+- Detailed handoff: `TOMORROW_RESUME.md`

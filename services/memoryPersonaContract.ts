@@ -1,10 +1,102 @@
-import { ConciergeMode, CritiqueRecord, MemoryEntry, RiskCritiqueRecord, SynthesisRecord, TranscriptRecord, UserProxyRecord } from '../types';
+import { BrainstormPhase, BrainstormState, CanonicalProjectContext, ConciergeMode, CritiqueRecord, MemoryEntry, RiskCritiqueRecord, SynthesisRecord, TranscriptRecord, UserProxyRecord } from '../types';
 
 const nonEmpty = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter(nonEmpty).map(value => value.trim()) : [];
 const modes: ConciergeMode[] = ['project-name', 'information-gatherer', 'creative-brainstormer', 'completion-gate'];
 
 export interface MemoryPersonaValidationOutcome { valid: boolean; errors: string[]; warnings: string[]; }
+
+export interface ConciergeCompletionEvidence {
+  projectIdentity: boolean;
+  coreConcept: boolean;
+  audienceOrUseCase: boolean;
+  majorConstraints: boolean;
+  unresolvedContradictions: boolean;
+}
+
+const validProjectName = (projectName: string): boolean => nonEmpty(projectName)
+  && !/^(untitled(?: project)?|new project)$/i.test(projectName.trim());
+
+const activeMemoryText = (entries: MemoryEntry[]): string => entries
+  .filter(entry => entry.status !== 'rejected')
+  .map(entry => entry.text)
+  .join(' ');
+
+export const assessConciergeCompletion = (
+  projectName: string,
+  conversationText: string,
+  entries: MemoryEntry[],
+): ConciergeCompletionEvidence => {
+  const source = `${activeMemoryText(entries)} ${conversationText}`;
+  return {
+    projectIdentity: validProjectName(projectName),
+    coreConcept: /\b(core concept|core loop|gameplay loop|main mechanic|central mechanic|player experience|what the player|project is|game is|app is)\b/i.test(source),
+    audienceOrUseCase: /\b(audience|target users?|target audience|players?|customers?|users?|children|famil(?:y|ies)|kids|use case|platform)\b/i.test(source),
+    majorConstraints: /\b(constraint|requirement|scope|budget|timeline|deadline|platform|offline|multiplayer|team size|must have|cannot|can't|technical)\b/i.test(source),
+    unresolvedContradictions: entries.some(entry => entry.status === 'unresolved' && /\b(contradict|conflict|inconsistent|blocked)\b/i.test(entry.text)),
+  };
+};
+
+export const canEnterConciergeCompletionGate = (evidence: ConciergeCompletionEvidence): boolean =>
+  evidence.projectIdentity
+  && evidence.coreConcept
+  && evidence.audienceOrUseCase
+  && evidence.majorConstraints
+  && !evidence.unresolvedContradictions;
+
+const userLines = (conversationText: string): string[] => conversationText
+  .split('\n')
+  .filter(line => /^user:/i.test(line.trim()))
+  .map(line => line.replace(/^user:\s*/i, '').trim())
+  .filter(Boolean);
+
+const assistantLines = (conversationText: string): string[] => conversationText
+  .split('\n')
+  .filter(line => /^ai:/i.test(line.trim()))
+  .map(line => line.replace(/^ai:\s*/i, '').trim())
+  .filter(Boolean);
+
+export const isAffirmativeBrainstormFeedback = (message: string): boolean =>
+  /\b(yes|yeah|yep|sure|okay|ok|great|sounds good|i like (that|it)|love it|perfect|go ahead|that works|approved|agree)\b/i.test(message)
+  && !/\b(no|not|don't|do not|change|instead|but)\b/i.test(message);
+
+export const critiqueAnswersToMemoryEntries = (
+  questions: string[],
+  answers: string[],
+  sourceReference = 'technical-critique',
+): MemoryEntry[] => questions.flatMap((question, index) => {
+  const answer = answers[index]?.trim();
+  if (!answer) return [];
+  return [{
+    id: `critique-decision-${index + 1}`,
+    kind: 'decision',
+    text: `${question.trim()} — Creator answer: ${answer}`,
+    status: 'accepted',
+    sourceReferences: [sourceReference],
+  }];
+});
+
+export const deriveBrainstormState = (conversationText: string): BrainstormState => {
+  const users = userLines(conversationText);
+  const assistants = assistantLines(conversationText);
+  const brainstormRequest = users.findIndex(message => /\b(brainstorm|brainstorming|creative ideas|what could we add|imagine|explore ideas|ideas for|help me create|help us create)\b/i.test(message));
+  if (brainstormRequest < 0) return { phase: 'identify-subtopics', subtopics: [], activeSubtopicIndex: 0, acceptedSubtopics: [] };
+
+  const laterUsers = users.slice(brainstormRequest + 1);
+  const confirmations = laterUsers.filter(isAffirmativeBrainstormFeedback).length;
+  const proposalCount = assistants.slice(Math.max(0, brainstormRequest)).filter(message => /\?|\b(?:could|might|idea|suggest|propose)\b/i.test(message)).length;
+  const subtopics = Array.from({ length: Math.max(1, confirmations + 1) }, (_, index) => `brainstorm-subtopic-${index + 1}`);
+  const activeSubtopicIndex = Math.min(confirmations, subtopics.length - 1);
+  let phase: BrainstormPhase = proposalCount === 0 ? 'identify-subtopics' : 'await-feedback';
+  if (confirmations > 0) phase = 'advance';
+  return {
+    phase,
+    subtopics,
+    activeSubtopicIndex,
+    activeSubtopic: subtopics[activeSubtopicIndex],
+    acceptedSubtopics: subtopics.slice(0, confirmations),
+  };
+};
 
 export const validateMemoryEntries = (value: unknown): MemoryPersonaValidationOutcome => {
   if (!Array.isArray(value)) return { valid: false, errors: ['Memory entries must be an array.'], warnings: [] };
@@ -55,9 +147,7 @@ export const deriveConciergeMode = (
   const latestUserMessage = userMessages.at(-1) || conversationText;
   if (/\b(brainstorm|brainstorming|creative ideas|what could we add|imagine|explore ideas|ideas for|help me create|help us create)\b/i.test(latestUserMessage)) return 'creative-brainstormer';
   if (!nonEmpty(projectName) || /^(untitled(?: project)?|new project)$/i.test(projectName.trim())) return 'project-name';
-  const durableFacts = entries.filter(entry => entry.status !== 'rejected' && ['fact', 'decision', 'constraint'].includes(entry.kind));
-  if (userMessages.length >= 3 || durableFacts.length >= 3 || /ready to (compile|start|begin)|clear vision/i.test(conversationText)) return 'completion-gate';
-  if (userMessages.length === 2) return 'creative-brainstormer';
+  if (canEnterConciergeCompletionGate(assessConciergeCompletion(projectName, conversationText, entries))) return 'completion-gate';
   return 'information-gatherer';
 };
 
@@ -112,6 +202,38 @@ export const buildRoleRelevantMemoryContext = (entries: MemoryEntry[], kinds: Me
   .filter(entry => kinds.includes(entry.kind) && entry.status !== 'rejected')
   .map(entry => `[${entry.kind}/${entry.status}] ${entry.text}`)
   .join('\n');
+
+export const buildCanonicalProjectContext = (
+  projectName: string,
+  conversationText: string,
+  entries: MemoryEntry[],
+  critiqueRecord?: CritiqueRecord,
+): CanonicalProjectContext => {
+  const activeEntries = entries.filter(entry => entry.status !== 'rejected');
+  const critiqueEntries = critiqueRecord?.completed
+    ? critiqueAnswersToMemoryEntries(critiqueRecord.questions, critiqueRecord.answers)
+    : [];
+  const merged = mergeMemoryEntries(activeEntries, critiqueEntries);
+  const byKind = (kind: MemoryEntry['kind']): MemoryEntry[] => merged.filter(entry => entry.kind === kind);
+  const sourceReferences = [...new Set([
+    'canonical-project-context',
+    ...merged.flatMap(entry => entry.sourceReferences),
+    ...(critiqueRecord?.completed ? ['technical-critique'] : []),
+  ])];
+  return {
+    projectName: validProjectName(projectName) ? projectName.trim() : 'Untitled Project',
+    summarySource: conversationText.trim(),
+    facts: byKind('fact'),
+    proposals: byKind('proposal'),
+    decisions: byKind('decision'),
+    constraints: byKind('constraint'),
+    questions: byKind('question'),
+    transcriptReference: 'full-transcript',
+    sourceReferences,
+  };
+};
+
+export const serializeCanonicalProjectContext = (context: CanonicalProjectContext): string => JSON.stringify(context, null, 2);
 
 export const buildPersonaSpecialistContext = (
   conversationText: string,

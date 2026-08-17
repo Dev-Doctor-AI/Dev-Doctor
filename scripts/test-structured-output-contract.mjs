@@ -28,6 +28,7 @@ try {
   const structured = buildOpenAICompatibleRequestBody({ model: 'local-model', messages, maxTokens: 100, structuredOutput: { name: 'test_object', schema } });
   assert.equal(structured.temperature, 0.2);
   assert.deepEqual(structured.response_format, { type: 'json_schema', json_schema: { name: 'test_object', strict: true, schema } });
+  assert.equal(structured.response_format.type, 'json_schema');
   assert.deepEqual(structured.messages, messages);
   console.log('Structured output request contract assertions passed.');
 } finally {

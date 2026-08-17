@@ -15,7 +15,16 @@ export default defineConfig(() => {
         }
       },
       build: {
-        chunkSizeWarningLimit: 1700,
+        chunkSizeWarningLimit: 1200,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              react: ['react', 'react-dom'],
+              documents: ['jspdf', 'html2canvas', 'mammoth', 'marked'],
+              compression: ['pako'],
+            },
+          },
+        },
       },
     };
 });

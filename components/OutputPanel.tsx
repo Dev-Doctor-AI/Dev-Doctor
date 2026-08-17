@@ -5,6 +5,7 @@ import { FileCodeIcon, CheckIcon, GlobeIcon, TargetIcon, DownloadIcon, LoaderIco
 interface OutputPanelProps {
     projectType: ProjectType;
     onGenerateGDD: () => void;
+    onRunUnifiedPipeline: () => void;
     onGeneratePitchDeck: () => void;
     onGenerateMvp: () => void;
     onGenerateTddSpecs: () => void;
@@ -23,6 +24,7 @@ interface OutputPanelProps {
     modularBreakdownGenerated: boolean;
     isGeneratingKey: string | null;
     workflowError?: string | null;
+    critiqueCompleted: boolean;
 }
 
 const OutputButton = ({ icon, title, description, isGenerated, onClick, disabled, isLoading }: { icon: React.ReactNode, title: string, description: string, isGenerated: boolean, onClick: () => void, disabled?: boolean, isLoading?: boolean }) => (
@@ -53,6 +55,15 @@ export const OutputPanel: React.FC<OutputPanelProps> = (props) => {
                  <p className="text-sm text-brand-text-muted">
                     Generate project assets on-demand. Start with the GDD/PRD, then unlock other documents sequentially.
                 </p>
+                 <OutputButton
+                    icon={<WandIcon className="w-6 h-6 text-brand-primary" />}
+                    title="Run Full Recovery Pipeline"
+                    description="Runs canonical synthesis through GDD, MVP, BDD, TDD, production, pitch, and scope in dependency order."
+                    isGenerated={false}
+                    isLoading={props.isGeneratingKey === 'pipeline'}
+                    onClick={props.onRunUnifiedPipeline}
+                    disabled={!props.critiqueCompleted}
+                 />
                  {props.workflowError && (
                     <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-200" role="alert" data-testid="workflow-error">
                         <p className="font-semibold">Generation needs attention</p>
@@ -72,45 +83,18 @@ export const OutputPanel: React.FC<OutputPanelProps> = (props) => {
                             isLoading={props.isGeneratingKey === 'gdd'}
                             onClick={props.onGenerateGDD}
                         />
-                         <OutputButton
-                            icon={<FileCodeIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="2. Generate Pitch Deck"
-                            description="A 10-slide deck with AI-generated concept visuals."
-                            isGenerated={props.pitchDeckGenerated}
-                            isLoading={props.isGeneratingKey === 'pitch'}
-                            onClick={props.onGeneratePitchDeck}
-                            disabled={!props.gddGenerated}
-                        />
                         <OutputButton
-                            icon={<FileCodeIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="3. Generate Asset List"
-                            description="Compiles a comprehensive list of all required production assets from the GDD."
-                            isGenerated={props.assetListGenerated}
-                            isLoading={props.isGeneratingKey === 'assets'}
-                            onClick={props.onGenerateAssetList}
-                            disabled={!props.pitchDeckGenerated}
-                        />
-                         <OutputButton
                             icon={<TargetIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="4. Run Scope Critique"
-                            description="Get a realistic review of your project's scope for both studio and indie development."
-                            isGenerated={props.scopeReviewGenerated}
-                            isLoading={props.isGeneratingKey === 'scope'}
-                            onClick={props.onGenerateScopeReview}
-                             disabled={!props.assetListGenerated}
-                        />
-                         <OutputButton
-                            icon={<TargetIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="5. Define MVP"
+                            title="2. Define MVP"
                             description="Defines the Minimum Viable Product, separating core features from post-launch content."
                             isGenerated={props.mvpGenerated}
                             isLoading={props.isGeneratingKey === 'mvp'}
                             onClick={props.onGenerateMvp}
-                            disabled={!props.scopeReviewGenerated}
+                            disabled={!props.gddGenerated}
                         />
-                         <OutputButton
+                        <OutputButton
                             icon={<TargetIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="6. Generate MVP Feature Specs"
+                            title="3. Generate MVP Feature Specs"
                             description="Creates user stories and technical specs for each MVP feature."
                             isGenerated={props.tddSpecsGenerated}
                             isLoading={props.isGeneratingKey === 'tdd_specs'}
@@ -119,34 +103,50 @@ export const OutputPanel: React.FC<OutputPanelProps> = (props) => {
                         />
                         <OutputButton
                             icon={<TargetIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="7. Assemble Final TDD"
+                            title="4. Assemble Final TDD"
                             description="Assembles the final, formal Technical Design Document from the specs."
                             isGenerated={props.tddDocGenerated}
                             isLoading={props.isGeneratingKey === 'tdd_doc'}
                             onClick={props.onGenerateTddDoc}
                             disabled={!props.tddSpecsGenerated}
                         />
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 className="text-lg font-semibold text-brand-secondary mb-3 mt-4">Freelance Toolkit</h4>
-                     <div className="space-y-3">
                         <OutputButton
                             icon={<BriefcaseIcon className="w-6 h-6 text-brand-secondary" />}
-                            title="Generate Freelance Briefs"
-                            description="Generates a complete set of role-specific briefs with dependencies."
+                            title="5. Generate Freelance Briefs"
+                            description="Generates production briefs and dependencies for the freelance toolkit."
                             isGenerated={props.modularBreakdownGenerated}
                             isLoading={props.isGeneratingKey === 'modular'}
                             onClick={props.onGenerateModularBreakdown}
                             disabled={!props.tddDocGenerated}
                         />
+                        <OutputButton
+                            icon={<FileCodeIcon className="w-6 h-6 text-brand-secondary" />}
+                            title="6. Generate Asset List"
+                            description="Compiles a comprehensive list of required production assets from the production briefs."
+                            isGenerated={props.assetListGenerated}
+                            isLoading={props.isGeneratingKey === 'assets'}
+                            onClick={props.onGenerateAssetList}
+                            disabled={!props.modularBreakdownGenerated}
+                        />
+                        <OutputButton
+                            icon={<FileCodeIcon className="w-6 h-6 text-brand-secondary" />}
+                            title="7. Generate Pitch Deck"
+                            description="Creates a 10-slide deck grounded in the completed design, MVP, TDD, production, and assets."
+                            isGenerated={props.pitchDeckGenerated}
+                            isLoading={props.isGeneratingKey === 'pitch'}
+                            onClick={props.onGeneratePitchDeck}
+                            disabled={!props.tddDocGenerated || !props.modularBreakdownGenerated || !props.assetListGenerated}
+                        />
+                        <OutputButton
+                            icon={<TargetIcon className="w-6 h-6 text-brand-secondary" />}
+                            title="8. Run Scope Critique"
+                            description="Reviews the completed project scope for studio and indie production."
+                            isGenerated={props.scopeReviewGenerated}
+                            isLoading={props.isGeneratingKey === 'scope'}
+                            onClick={props.onGenerateScopeReview}
+                            disabled={!props.pitchDeckGenerated}
+                        />
                     </div>
-                     {!props.tddDocGenerated && (
-                         <div className="mt-2 text-xs text-brand-text-muted bg-brand-surface p-2 rounded-md">
-                           You must generate the MVP Feature Specs and assemble the Final TDD before using the Freelance Toolkit.
-                        </div>
-                    )}
                 </div>
 
                 <div>

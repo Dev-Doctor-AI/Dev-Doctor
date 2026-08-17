@@ -14,7 +14,7 @@ import * as AIService from './services/lmStudioService';
 import { AIProviderConfig } from './services/aiProvider';
 import { MVPFeatureSpecGenerationError, UnifiedPipelineCritiqueGateError, runUnifiedPipeline } from './services/pipelineOrchestrator';
 import { validateCritiqueRecord } from './services/orchestrationContract';
-import { buildPersonaSpecialistContext, createTranscriptRecord, deriveConciergeMode, mergeMemoryEntries } from './services/memoryPersonaContract';
+import { buildCanonicalProjectContext, buildPersonaSpecialistContext, createTranscriptRecord, critiqueAnswersToMemoryEntries, deriveConciergeMode, mergeMemoryEntries, serializeCanonicalProjectContext } from './services/memoryPersonaContract';
 import { projectAssetMetadataToLegacyList, projectProductionBriefsToLegacy } from './services/productionHandoffContract';
 import { assembleValidatedTDDFeatures } from './services/technicalSpecContract';
 import { validateMVPFeatureSpecs } from './services/bddFeatureValidator';
@@ -593,8 +593,8 @@ const App: React.FC = () => {
             }
             
             let mvp = overrideMvp || mvpDefinition;
+            const contentToUse = overrideGdd || gddContent;
             if (!mvp) {
-                 const contentToUse = overrideGdd || gddContent;
                  setGenerationStatus(prev => ({ ...prev, progress: 10, message: 'Defining MVP scope...' }));
                  mvp = await AIService.defineMVP(contentToUse);
                  setMvpDefinition(mvp);
@@ -614,7 +614,8 @@ const App: React.FC = () => {
                     const globalIndex = i + batchIndex;
                     setGenerationStatus(prev => ({ ...prev, currentItem: feature, message: `Writing feature specification ${globalIndex + 1}/${featureTotal}: ${feature}...` }));
                     
-                    return AIService.generateMVPFeatureSpec(feature, projectName, mvp!);
+                    const featureContext = JSON.stringify({ canonicalProject: buildCanonicalProjectContext(projectName, getConversationText(), memoryEntries, critiqueRecord), gdd: contentToUse, mvp: mvp });
+                    return AIService.generateMVPFeatureSpec(feature, projectName, mvp!, featureContext);
                 });
                 
                 const batchResults = await Promise.all(batchPromises);
@@ -653,7 +654,8 @@ const App: React.FC = () => {
             for (let index = 0; index < resolvedFeatureSpecs.length; index += 1) {
                 const featureSpec = resolvedFeatureSpecs[index];
                 setGenerationStatus(prev => ({ ...prev, currentItem: featureSpec.feature, message: `Designing technical specification ${index + 1}/${resolvedFeatureSpecs.length}: ${featureSpec.feature}...` }));
-                technicalSpecifications.push(await AIService.generateTechnicalSpecification(featureSpec, projectText));
+                const technicalContext = JSON.stringify({ canonicalProject: buildCanonicalProjectContext(projectName, getConversationText(), memoryEntries, critiqueRecord), gdd: overrideGdd || gddContent, mvp: mvpDefinition });
+                technicalSpecifications.push(await AIService.generateTechnicalSpecification(featureSpec, `${projectText}\n\nCanonical/MVP context:\n${technicalContext}`));
                 const completed = index + 1;
                 setGenerationStatus(prev => ({
                     ...prev,
@@ -722,7 +724,7 @@ const App: React.FC = () => {
             }
             
             setGenerationStatus(prev => ({ ...prev, progress: 50, message: `Assembling final document...` }));
-            const finalTdd = await AIService.generateTechnicalDesignDocument(text, specsToUse);
+            const finalTdd = await AIService.generateTechnicalDesignDocument(`${text}\n\nCanonical project context:\n${serializeCanonicalProjectContext(buildCanonicalProjectContext(projectName, conversationText, memoryEntries, critiqueRecord))}`, specsToUse);
             setTechnicalDesignDocument(finalTdd);
             
             setTddDocGenerated(true);
@@ -951,8 +953,9 @@ const App: React.FC = () => {
         
         try {
             // Run conversation step and name extraction in parallel if we don't have a name yet
+            const requestMode = deriveConciergeMode(projectName, conversationText, memoryEntries);
             const [responseText, extractedName] = await Promise.all([
-                AIService.getNextConversationStep(conversationText, file, conciergeMode, memoryEntries),
+                AIService.getNextConversationStep(conversationText, file, requestMode, memoryEntries),
                 projectName === 'Untitled Project' 
                     ? AIService.extractProjectName(conversationText) 
                     : Promise.resolve(projectName)
@@ -1057,6 +1060,11 @@ const App: React.FC = () => {
         
         try {
             const answersText = critiqueData?.questions.map((q, i) => `Question: ${q}\nAnswer: ${critiqueAnswers[i] || '(No answer provided)'}`).join('\n\n');
+            const critiqueQuestions = critiqueData?.questions || [];
+            const critiqueMemory = critiqueAnswersToMemoryEntries(critiqueQuestions, critiqueAnswers);
+            const mergedMemory = mergeMemoryEntries(memoryEntries, critiqueMemory);
+            setMemoryEntries(mergedMemory);
+            setCritiqueRecord({ summary: critiqueData?.summary || '', questions: critiqueQuestions, answers: [...critiqueAnswers], completed: true, source: 'technical-analyst' });
             
             const finalHistory: ChatMessage[] = [...chatHistory, {
                 sender: 'user',
@@ -1089,7 +1097,9 @@ const App: React.FC = () => {
 
             setGenerationStatus({ key: 'gdd', isActive: true, progress: 10, message: 'Expanding conversation...', title: 'Generating Core Document' });
 
-            const text = await AIService.getExpandedText(conversationText);
+            const canonicalContext = buildCanonicalProjectContext(projectName, conversationText, mergedMemory, completedCritique);
+            const text = await AIService.getExpandedTextFromCanonicalContext(canonicalContext);
+            setSynthesis({ summary: canonicalContext.summarySource, acceptedDecisions: canonicalContext.decisions.map(entry => entry.text), unresolvedQuestions: canonicalContext.questions.map(entry => entry.text), outputReferences: canonicalContext.sourceReferences });
             setExpandedText(text);
             setCostReport(AIService.getLMCostReport());
             setGenerationStatus(prev => ({ ...prev, progress: 30, message: 'Creating table of contents...' }));
@@ -1127,7 +1137,7 @@ const App: React.FC = () => {
             const conversationText = getConversationText();
             const onProgress = (percent: number, message: string) => setGenerationStatus(prev => ({ ...prev, progress: percent, message }));
             const currentCritique = critiqueRecord || (critiqueData ? { summary: critiqueData.summary, questions: critiqueData.questions, answers: critiqueAnswers, completed: critiqueAnswers.length === critiqueData.questions.length && critiqueAnswers.every(answer => answer.trim()), source: 'technical-analyst' as const } : undefined);
-            const pkg = await runUnifiedPipeline(conversationText, projectName, scopeReviewLens, activePitchDeckSlides, activeVisualAssets, onProgress, currentCritique, chatHistory);
+            const pkg = await runUnifiedPipeline(conversationText, projectName, scopeReviewLens, activePitchDeckSlides, activeVisualAssets, onProgress, currentCritique, chatHistory, memoryEntries);
 
             // Apply returned package to local state
             setExpandedText(pkg.expandedText);
@@ -2746,6 +2756,7 @@ const App: React.FC = () => {
                             <OutputPanel 
                                 projectType={projectType}
                                 onGenerateGDD={handleGenerateGDD}
+                                onRunUnifiedPipeline={handleRunUnifiedPipeline}
                                 onGeneratePitchDeck={() => handleGeneratePitchDeck()}
                                 onGenerateMvp={() => handleGenerateMVP()}
                                 onGenerateTddSpecs={() => handleGenerateTddSpecs()}
@@ -2762,6 +2773,7 @@ const App: React.FC = () => {
                                 assetListGenerated={assetListGenerated}
                                 scopeReviewGenerated={scopeReviewGenerated}
                                 modularBreakdownGenerated={modularBreakdownGenerated}
+                                critiqueCompleted={Boolean(critiqueRecord?.completed)}
                                 isGeneratingKey={generationStatus.key}
                                 workflowError={workflowError}
                             />
@@ -3165,6 +3177,7 @@ const App: React.FC = () => {
                            <OutputPanel 
                                 projectType={projectType}
                                 onGenerateGDD={handleGenerateGDD}
+                                onRunUnifiedPipeline={handleRunUnifiedPipeline}
                                 onGeneratePitchDeck={() => handleGeneratePitchDeck()}
                                 onGenerateMvp={() => handleGenerateMVP()}
                                 onGenerateTddSpecs={() => handleGenerateTddSpecs()}
@@ -3181,6 +3194,7 @@ const App: React.FC = () => {
                                 assetListGenerated={assetListGenerated}
                                 scopeReviewGenerated={scopeReviewGenerated}
                                 modularBreakdownGenerated={modularBreakdownGenerated}
+                                critiqueCompleted={Boolean(critiqueRecord?.completed)}
                                 isGeneratingKey={generationStatus.key}
                                 workflowError={workflowError}
                             />

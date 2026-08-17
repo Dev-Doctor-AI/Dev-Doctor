@@ -1,5 +1,5 @@
 import {
-  AssetList, AttachedFile, CritiquePoint, FreelanceBrief, GDDSection,
+  AssetList, AttachedFile, BrainstormState, CanonicalProjectContext, CritiquePoint, FreelanceBrief, GDDSection,
   GeneratedImages, LensType, MVPDefinition, MVPFeatureSpec, MVPFeatureSpecValidationOutcome, PitchDeckSlide, TDDFeature,
   TechnicalDesignSection, TechnicalSpecification, ProductionBrief, MemoryEntry, ConciergeMode, UserProxyRecord, RiskCritiqueRecord, SynthesisRecord,
 } from '../types';
@@ -10,8 +10,9 @@ import { BDDFeatureValidationResult, formatMVPFeatureSpecRepairIssues, mvpFeatur
 import { parseTechnicalSpecificationResponse, prepareTechnicalDesignInputs, validateTechnicalSpecification } from './technicalSpecContract';
 import { normalizeProductionBrief, normalizeRelatedBriefReferences, parseAssetMetadataResponse, parseProductionBriefsResponse, parseVisualPromptResponse, projectAssetMetadataToLegacyList, projectProductionBriefsToLegacy, projectVisualPromptsToLegacyMap, validateProductionBriefs } from './productionHandoffContract';
 import { normalizeCritiquePoint, normalizePitchSlide, omitInvalidPitchClaims, validatePitchSlides, validateScopeReview } from './scopePitchContract';
-import { conciergeModeGuidance, normalizeMemoryEntries, validateMemoryEntries } from './memoryPersonaContract';
+import { conciergeModeGuidance, deriveBrainstormState, normalizeMemoryEntries, validateMemoryEntries } from './memoryPersonaContract';
 import { validateRiskCritique, validateSynthesis, validateUserProxy } from './memoryPersonaContract';
+import { buildBddPrompt, buildCritiqueAnswerSuggestionPrompt, buildGddTocPrompt, buildMvpPrompt, buildTddRoleGuidance, buildTechnicalCritiquePrompt, buildTechnicalSpecRoleGuidance, BDD_SYSTEM_INSTRUCTION, CONCIERGE_SYSTEM_INSTRUCTION, CRITIQUE_ANSWER_SUGGESTION_SYSTEM_INSTRUCTION, GDD_TOC_SYSTEM_INSTRUCTION, MVP_SYSTEM_INSTRUCTION, TECHNICAL_CRITIQUE_SYSTEM_INSTRUCTION, TECHNICAL_SPEC_SYSTEM_INSTRUCTION, TDD_SYSTEM_INSTRUCTION } from './personaPrompts';
 
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type VisualAsset = { key: string; description: string; aspectRatio?: string };
@@ -224,6 +225,18 @@ const invalidResponse = (operation: string): never => {
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 const isSectionArray = (value: unknown): value is GDDSection[] => Array.isArray(value) && value.length > 0 && value.every((item: any) => isNonEmptyString(item?.title) && isNonEmptyString(item?.content));
+const isValidTechnicalDesignSections = (value: unknown): value is TechnicalDesignSection[] => {
+  if (!Array.isArray(value) || value.length < 2 || value.length > 8) return false;
+  const titles = new Set<string>();
+  return value.every((item: any) => {
+    const title = typeof item?.title === 'string' ? item.title.trim() : '';
+    const content = typeof item?.content === 'string' ? item.content.trim() : '';
+    const key = title.toLowerCase();
+    if (!title || !content || titles.has(key)) return false;
+    titles.add(key);
+    return true;
+  });
+};
 const isPitchDeckArray = (value: unknown): value is PitchDeckSlide[] => Array.isArray(value) && value.length > 0 && value.every((item: any) => isNonEmptyString(item?.title) && isNonEmptyString(item?.content));
 const isFreelanceBriefArray = (value: unknown): value is FreelanceBrief[] => Array.isArray(value) && value.length > 0 && value.every((item: any) => isNonEmptyString(item?.title) && isNonEmptyString(item?.content));
 const isAssetObject = (value: unknown): value is AssetList => Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0 && Object.values(value as Record<string, unknown>).every(items => Array.isArray(items) && items.every(isNonEmptyString)));
@@ -308,6 +321,12 @@ const generateRichFallbackGDD = (sourceText: string, toc: string[], projectName:
 const request = async (messages: ChatMessage[], model = activeProviderConfig.model, maxTokens = 4096, operation = 'lm_request', structuredOutput?: StructuredOutputSchema): Promise<string> => {
   const config = { ...activeProviderConfig, model };
   const result = await requestWithProvider(messages, config, maxTokens, operation, structuredOutput);
+  if (result.status === 'empty') throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', 'The selected model returned no visible assistant content.');
+  if (result.status === 'reasoning_exhausted') {
+    logger.warn('lm_reasoning_exhausted', { operation, model: config.model, errorCode: 'LM_STUDIO_REASONING_EXHAUSTED', errorMessage: `The model consumed its reasoning budget without visible content (${result.reasoningCharacters || 0} reasoning characters).` });
+    throw createServiceError('LM_STUDIO_REASONING_EXHAUSTED', 'The selected model exhausted its reasoning budget before returning visible content.');
+  }
+  if (result.status === 'truncated') logger.warn('lm_generation_truncated', { operation, model: config.model, errorCode: 'LM_STUDIO_TRUNCATED_RESPONSE', errorMessage: `Provider finish reason: ${result.finishReason || 'length'}` });
   const promptTokens = result.promptTokens || 0;
   const completionTokens = result.completionTokens || 0;
   sessionPromptTokens += promptTokens;
@@ -323,6 +342,21 @@ const ask = (prompt: string, system = 'You are a precise project-development ass
 const withFallback = async <T>(operation: () => Promise<T>, fallback: T): Promise<T> => {
   try { return await operation(); } catch (error) { console.error('[LM Studio Service Error]', error); return fallback; }
 };
+
+const normalizeConciergeResponse = (response: string, mode: ConciergeMode): string => {
+  let normalized = response.trim();
+  if (mode !== 'completion-gate') {
+    normalized = normalized
+      .replace(/\s*(?:After we discuss|Once we discuss|When we discuss)[\s\S]*?(?:Are you ready[^?]*\?|ready to (?:compile|begin|start)[^?]*\?)/i, '')
+      .trim();
+  }
+  if (mode !== 'completion-gate') {
+    const firstQuestion = normalized.indexOf('?');
+    if (firstQuestion >= 0) normalized = normalized.slice(0, firstQuestion + 1).trim();
+  }
+  return normalized.replace(/(^|\n)\s*\d+[.)]\s*/g, '$1').trim();
+};
+
 const section = (title: string, content: string): GDDSection => ({ title, content });
 
 export const compactConversation = (conversationText: string, maxCharacters = PERSONA_CONTEXT_LIMIT): string => {
@@ -395,6 +429,9 @@ export async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3, 
 
 export const getExpandedText = (conversationText: string): Promise<string> => withFallback(() => ask(`Synthesize this discovery conversation into a clear, comprehensive project brief. Preserve all stated facts, game mechanics, technical requirements, and target audience details without inventing unsupported constraints.\n\n${compactConversation(conversationText)}`), conversationText.trim() || 'No project details were provided.');
 
+export const getExpandedTextFromCanonicalContext = (context: CanonicalProjectContext): Promise<string> =>
+  getExpandedText(`Canonical project context (authoritative downstream source):\n${JSON.stringify(context, null, 2)}\n\nOriginal transcript reference:\n${context.summarySource}`);
+
 export const extractProjectName = async (conversationText: string): Promise<string> => withFallback(async () => {
   // 1. Fast heuristic detection for common patterns like "called X", "name is X", "titled X"
   const userLines = conversationText
@@ -456,27 +493,15 @@ ${compactConversation(conversationText)}`
   return clean && !/^(untitled project|untitled|unknown|none|n\/a)$/i.test(clean) ? clean : 'Untitled Project';
 }, 'Untitled Project');
 
-const conciergeSystem = `You are the Concierge for Dev Doctor AI — a friendly, creative mentor for dreamers, founders, and young adventurers.
-
-CRITICAL INSTRUCTION: KEEP RESPONSES VERY SHORT, PUNCHY, AND EASY TO READ (MAX 2-3 SHORT SENTENCES TOTAL). DO NOT WRITE LONG-WINDED WALLS OF TEXT.
-
-HOW TO TALK:
-1. PUNCHY VALIDATION (1 short sentence): Enthusiastically acknowledge their idea (e.g. "I love that squishy monster vibe!" or "Offline Bluetooth discovery is super smart!").
-2. BEHIND-THE-SCENES TECH: Handle technical architecture and mechanics automatically behind the scenes — do NOT lecture the user on tech.
-3. ONE SIMPLE QUESTION (1 sentence): Ask exactly ONE bite-sized, fun question to uncover the next creative detail (vibe, character personality, or player experience).
-4. COMPLETION GATE: When title, core loop, and style are clear, ask:
-   "I have a clear vision for [Project Name] now! Ready to compile and start the design critique?"
-
-RESPONSE CONSTRAINT:
-- Maximum 2 to 3 sentences total.
-- Never output lists, bullet points, or paragraphs of explanation.`;
-
 export const getNextConversationStep = async (conversationText: string, file?: AttachedFile | null, mode: ConciergeMode = 'information-gatherer', memoryEntries: MemoryEntry[] = []): Promise<string> => {
   const context = buildRoleRelevantPersonaContext(conversationText, memoryEntries);
+  const brainstormState: BrainstormState = deriveBrainstormState(conversationText);
   const prompt = `Continue the project discovery conversation as the Concierge mentor. Guide the user gently, celebrate what they shared, expand with common industry practices, and ask ONE guiding question to help them imagine the next piece.
 
 Selected Concierge mode: ${mode}
 Mode guidance: ${conciergeModeGuidance(mode)}
+${mode === 'creative-brainstormer' ? `Brainstorm orchestration state: ${JSON.stringify(brainstormState)}
+When brainstorming, address only the active subtopic. In the propose/await-feedback phase, give one idea and ask for feedback on that idea. In the advance phase, briefly acknowledge acceptance and immediately propose the next subtopic; do not ask what to do next.` : ''}
 ${file ? `The user provided an attached file "${file.name}" with content: ${file.data?.slice(0, 2000)}; factor this in as project truth.` : ''}
 
 Conversation and relevant memory:
@@ -489,7 +514,7 @@ ${context}`;
   ];
   const questionIndex = Math.max(0, conversationText.split('\n').filter(line => line.startsWith('user:')).length - 1) % fallbackQuestions.length;
   return withFallback(
-    () => withRetry(() => ask(prompt, conciergeSystem, 4096), 2, 500),
+    () => withRetry(() => ask(prompt, CONCIERGE_SYSTEM_INSTRUCTION, 4096).then(response => normalizeConciergeResponse(response, mode)), 2, 500),
     fallbackQuestions[questionIndex],
   );
 };
@@ -580,34 +605,8 @@ ${compactConversation(conversationText)}`,
 );
 
 export const getCritiqueAnswerSuggestion = (conversationText: string, question: string): Promise<string> => withFallback(
-  () => withRetry(() => ask(`You are an expert Technical Architect and Game Analyst. Provide a definitive, practical, high-quality technical solution to the following critique question based on the creator's project vision and constraints.
-
-Question:
-${question}
-
-Project Source of Truth & Conversation:
-${compactConversation(conversationText)}
-
-Instructions:
-- Give a concise, professional 1-2 sentence implementation plan.
-- Directly resolve the ambiguity (e.g. specific input handling, lightweight engine choice, offline local architecture, or data-driven asset schemas).
-- Do not output preambles or disclaimers.`, 'You are a Senior Technical Architect providing definitive implementation answers.', 4096), 2, 500),
-  (() => {
-    const qLower = question.toLowerCase();
-    if (qLower.includes('touch') || qLower.includes('drag') || qLower.includes('input')) {
-      return 'Implement single-pointer touch lock with an oversized touch radius and ignore secondary palm/finger touches to ensure frustration-free dragging for toddlers.';
-    }
-    if (qLower.includes('engine') || qLower.includes('physics') || qLower.includes('performance')) {
-      return 'Utilize lightweight 2D rigid-body kinematics with fixed time steps and simple colliders in Unity 2D or Godot for 60 FPS performance on mobile devices.';
-    }
-    if (qLower.includes('asset') || qLower.includes('swap') || qLower.includes('content') || qLower.includes('letter')) {
-      return 'Structure content in a data-driven JSON registry with item IDs, sprite paths, and audio keys so shapes, letters, and numbers can be added dynamically.';
-    }
-    if (qLower.includes('cloud') || qLower.includes('save') || qLower.includes('offline') || qLower.includes('storage')) {
-      return 'Store all settings and progress strictly in local device storage (PlayerPrefs / local file) with zero backend dependency for frictionless offline play.';
-    }
-    return 'Implement with lightweight 2D kinematics, single-touch pointer locking with touch-slop tolerance, and simple JSON data configuration.';
-  })(),
+  () => withRetry(() => ask(buildCritiqueAnswerSuggestionPrompt(compactConversation(conversationText), question), CRITIQUE_ANSWER_SUGGESTION_SYSTEM_INSTRUCTION, 4096), 2, 500),
+  'I would use a focused, data-driven implementation that resolves this ambiguity while preserving the project’s core experience and delivery constraints.',
 );
 
 export const generateFullPitchDeck = async (sourceText: string, projectName: string, slidesConfig: SlideConfig[] = [], sourceIds: string[] = []): Promise<PitchDeckSlide[]> => {
@@ -825,17 +824,7 @@ const parseMVPDefinition = (response: string): MVPDefinition | null => {
 
 export const defineMVP = async (project: GDDSection[] | string, brief?: string): Promise<MVPDefinition> => {
   const source = Array.isArray(project) ? project.map(item => `${item.title}: ${item.content}`).join('\n') : project;
-  const response = await ask(`Define the smallest credible MVP for this project.
-
-Return either:
-- JSON only: {"summary":"...","inScope":["..."],"outOfScope":["..."]}; or
-- Three labeled sections: Summary, In Scope, and Out of Scope, with bullet items for each scope list.
-
-Include at least two in-scope and two out-of-scope items. Do not use generic filler.
-
-Project source:
-${source}
-${brief || ''}`, 'You are a pragmatic product manager who protects MVP scope while preserving the project’s unique hook.', 2048, 'define_mvp');
+  const response = await ask(`${buildMvpPrompt(source)}\n${brief || ''}\n\nReturn either JSON only or three labeled sections. Include at least two in-scope and two out-of-scope items. Do not use generic filler.`, MVP_SYSTEM_INSTRUCTION, 2048, 'define_mvp');
   const mvp = parseMVPDefinition(response);
   if (mvp) return mvp;
 
@@ -850,7 +839,7 @@ ${response}`, 'You repair response formatting without inventing unsupported scop
   if (!repairedMvp) invalidResponse('MVP');
   return repairedMvp;
 };
-export const generateUserStoriesAndAcceptanceCriteria = (feature: string, projectName: string): Promise<string> => withFallback(() => ask(`Write user stories and acceptance criteria in Markdown for feature "${feature}" in project "${projectName}".`), `## ${feature}\n\nAs a user, I want to use ${feature} so that the project delivers its intended value.\n\n### Acceptance Criteria\n- The feature is accessible from the primary user flow.\n- Valid input produces the expected result.\n- Invalid input produces a clear error message.`);
+export const generateUserStoriesAndAcceptanceCriteria = (feature: string, projectName: string, context = ''): Promise<string> => withFallback(() => ask(buildBddPrompt(feature, projectName, context), BDD_SYSTEM_INSTRUCTION), `## ${feature}\n\nAs a user, I want to use ${feature} so that the project delivers its intended value.\n\n### Acceptance Criteria\n- The feature is accessible from the primary user flow.\n- Valid input produces the expected result.\n- Invalid input produces a clear error message.`);
 export const generateTechnicalSpecs = async (feature: string, userStories: string, projectName: string, _mvp: MVPDefinition): Promise<TDDFeature['technicalSpecs']> => withFallback(() => ask(`Write technical specifications in Markdown for feature "${feature}" in "${projectName}".\nUser stories:\n${userStories}`), 'Define data models, state transitions, validation, dependencies, and failure handling.');
 export interface MVPFeatureSpecGenerationResult {
   featureSpec: MVPFeatureSpec | null;
@@ -876,7 +865,7 @@ const featureSpecGenerationResult = (
   },
 });
 
-export const generateMVPFeatureSpec = async (feature: string, projectName: string, mvp: MVPDefinition): Promise<MVPFeatureSpecGenerationResult> => {
+export const generateMVPFeatureSpec = async (feature: string, projectName: string, mvp: MVPDefinition, context = ''): Promise<MVPFeatureSpecGenerationResult> => {
   const logRepairDiagnostic = (attempt: number, responseText: string, parsed: ReturnType<typeof parseMVPFeatureSpecResponse>) => {
     logger.warn('mvp_feature_spec_repair_diagnostic', {
       operation: 'generate_mvp_feature_spec',
@@ -897,6 +886,9 @@ export const generateMVPFeatureSpec = async (feature: string, projectName: strin
 
 Project MVP:
 ${JSON.stringify(mvp)}
+
+Canonical project/GDD context:
+${context}
 
 Return valid JSON only. Do not include Markdown fences, commentary, or fields outside this shape:
 {
@@ -1043,8 +1035,11 @@ Project context:
 ${projectText}
 
 Validated BDD source:
-${sourceContext}`;
-  const response = await ask(prompt, 'You are a Software Architect translating validated BDD features into precise, traceable technical specifications.', 4096, 'generate_technical_specification', technicalSpecificationStructuredOutput);
+${sourceContext}
+
+Role guidance from the recovered technical architect:
+${buildTechnicalSpecRoleGuidance()}`;
+  const response = await ask(prompt, TECHNICAL_SPEC_SYSTEM_INSTRUCTION, 4096, 'generate_technical_specification', technicalSpecificationStructuredOutput);
   const parsed = parseTechnicalSpecificationResponse(extractJson(response));
   const sourcePreserving = parsed.specification ? {
     ...parsed.specification,
@@ -1098,9 +1093,9 @@ ${latestResponse}`, 'You repair technical specifications without inventing unsup
 export const generateTechnicalDesignDocument = async (projectText: string, specs: TDDFeature[]): Promise<TechnicalDesignSection[]> => {
   const parseTechnicalDesign = (response: string): TechnicalDesignSection[] => {
     const parsed = extractJson(response);
-    if (isSectionArray(parsed)) return parsed.map(section => ({ title: section.title.trim(), content: section.content.trim() }));
+    if (isValidTechnicalDesignSections(parsed)) return parsed.map(section => ({ title: section.title.trim(), content: section.content.trim() }));
     const markdownSections = parseMarkdownToSections(response, [], '');
-    if (markdownSections.length) return markdownSections.map(section => ({ title: section.title.trim(), content: section.content.trim() }));
+    if (isValidTechnicalDesignSections(markdownSections)) return markdownSections.map(section => ({ title: section.title.trim(), content: section.content.trim() }));
     const markdown = response.trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/\s*```$/i, '');
     const heading = markdown.match(/^#{1,4}\s+(.+)\n+([\s\S]+)$/);
     const title = heading?.[1]?.trim();
@@ -1121,7 +1116,10 @@ ${projectText}
 Feature specifications:
 ${JSON.stringify(technicalDesignInputs)}
 
-Use the structured technicalSpecification object as the authoritative source when present. It contains data models, API/event contracts, state transitions, dependencies, acceptance criteria, and the original BDD scenarios. Preserve every featureId and scenario ID in the resulting document. For legacy entries with no technicalSpecification, use the supplied userStories and legacyTechnicalSpecs fields without inventing structured fields.`, 'You are a principal software architect producing an implementation-ready technical design document.', 4096, 'generate_technical_design_document', technicalDesignDocumentStructuredOutput);
+Recovered TDD role guidance:
+${buildTddRoleGuidance()}
+
+Use the structured technicalSpecification object as the authoritative source when present. It contains data models, API/event contracts, state transitions, dependencies, acceptance criteria, and the original BDD scenarios. Preserve every featureId and scenario ID in the resulting document. For legacy entries with no technicalSpecification, use the supplied userStories and legacyTechnicalSpecs fields without inventing structured fields.`, TDD_SYSTEM_INSTRUCTION, 4096, 'generate_technical_design_document', technicalDesignDocumentStructuredOutput);
   const sections = parseTechnicalDesign(response);
   if (sections.length) return sections;
 
@@ -1138,7 +1136,7 @@ ${JSON.stringify(technicalDesignInputs)}
 Attempted response:
 ${response}`, 'You repair response formatting without inventing unsupported project facts.', 4096, 'repair_technical_design_document', technicalDesignDocumentStructuredOutput);
   const repairedSections = parseTechnicalDesign(repairedResponse);
-  if (!isSectionArray(repairedSections)) invalidResponse('technical design document');
+  if (!isValidTechnicalDesignSections(repairedSections)) invalidResponse('technical design document');
   return repairedSections;
 };
 
@@ -1286,14 +1284,7 @@ export const refineGDD = (gddText: string, _toc: unknown, projectName: string, i
   return [section('Refined GDD', response || gddText)];
 }, [section('Refined GDD', gddText)]);
 export const performTechnicalCritique = (conversationText: string): Promise<{ summary: string; questions: string[] }> => withFallback(async () => {
-  const prompt = `You are a Senior Technical Analyst. Review the project context and identify technical ambiguities, performance risks, and architectural constraints.
-Return a valid JSON object with:
-- "summary": a 2-3 sentence overview of the project's technical architecture challenges.
-- "questions": an array of 3 to 5 targeted technical questions the creator should clarify.
-
-Context:
-${compactConversation(conversationText)}`;
-  const parsed = extractJson(await ask(prompt, 'You are a Senior Technical Analyst specializing in software and game architecture.')) as any;
+  const parsed = extractJson(await ask(buildTechnicalCritiquePrompt(compactConversation(conversationText),), TECHNICAL_CRITIQUE_SYSTEM_INSTRUCTION, 4096, 'perform_technical_critique')) as any;
   if (!parsed || typeof parsed !== 'object' || !isNonEmptyString(parsed.summary) || !Array.isArray(parsed.questions)) {
     throw new Error('LM Studio returned an invalid critique.');
   }

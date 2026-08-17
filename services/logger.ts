@@ -1,5 +1,5 @@
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
-export type ServiceErrorCode = 'LM_STUDIO_UNREACHABLE' | 'LM_STUDIO_TIMEOUT' | 'LM_STUDIO_HTTP_ERROR' | 'LM_STUDIO_MODEL_ERROR' | 'LM_STUDIO_EMPTY_RESPONSE' | 'LM_STUDIO_INVALID_RESPONSE' | 'LM_STUDIO_RETRY_EXHAUSTED' | 'AI_RATE_LIMITED' | 'MISSING_PROVIDER_API_KEY' | 'LM_STUDIO_UNKNOWN';
+export type ServiceErrorCode = 'LM_STUDIO_UNREACHABLE' | 'LM_STUDIO_TIMEOUT' | 'LM_STUDIO_HTTP_ERROR' | 'LM_STUDIO_MODEL_ERROR' | 'LM_STUDIO_EMPTY_RESPONSE' | 'LM_STUDIO_TRUNCATED_RESPONSE' | 'LM_STUDIO_REASONING_EXHAUSTED' | 'LM_STUDIO_INVALID_RESPONSE' | 'LM_STUDIO_RETRY_EXHAUSTED' | 'AI_RATE_LIMITED' | 'MISSING_PROVIDER_API_KEY' | 'LM_STUDIO_UNKNOWN';
 
 export interface LogEvent {
   timestamp: string;
@@ -49,6 +49,8 @@ export const classifyServiceError = (error: unknown): ServiceErrorCode => {
   const message = String(value?.message || error || '').toLowerCase();
   if (value?.name === 'AbortError' || message.includes('timed out')) return 'LM_STUDIO_TIMEOUT';
   if (value?.code === 'LM_STUDIO_EMPTY_RESPONSE' || message.includes('no assistant content')) return 'LM_STUDIO_EMPTY_RESPONSE';
+  if (value?.code === 'LM_STUDIO_TRUNCATED_RESPONSE' || message.includes('truncated')) return 'LM_STUDIO_TRUNCATED_RESPONSE';
+  if (value?.code === 'LM_STUDIO_REASONING_EXHAUSTED' || message.includes('reasoning budget')) return 'LM_STUDIO_REASONING_EXHAUSTED';
   if (value?.code === 'LM_STUDIO_INVALID_RESPONSE' || message.includes('invalid response')) return 'LM_STUDIO_INVALID_RESPONSE';
   if (value?.status === 404 || (message.includes('model') && message.includes('load'))) return 'LM_STUDIO_MODEL_ERROR';
   if (value?.status === 429 || message.includes('rate limit') || message.includes('quota') || message.includes('insufficient_quota')) return 'AI_RATE_LIMITED';
@@ -71,6 +73,8 @@ export const getUserFacingError = (error: unknown, fallback = 'The request could
     case 'LM_STUDIO_TIMEOUT': return 'LM Studio took too long to respond. Please try again.';
     case 'LM_STUDIO_MODEL_ERROR': return 'The configured LM Studio model is unavailable or could not be loaded.';
     case 'LM_STUDIO_EMPTY_RESPONSE': return 'LM Studio returned an empty response. Please try again.';
+    case 'LM_STUDIO_TRUNCATED_RESPONSE': return 'The model stopped before completing the response. Try a shorter task or continue generation.';
+    case 'LM_STUDIO_REASONING_EXHAUSTED': return 'The model used its reasoning budget before producing visible content. Try a more direct request or a different execution strategy.';
     case 'LM_STUDIO_INVALID_RESPONSE': return 'LM Studio returned an incomplete result. Please try again.';
     case 'LM_STUDIO_HTTP_ERROR': return 'The selected AI provider rejected the request. Check the model and request configuration.';
     case 'LM_STUDIO_RETRY_EXHAUSTED': return 'The selected AI provider could not complete the request after several attempts.';

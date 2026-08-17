@@ -2,6 +2,10 @@
 
 Dev Doctor is an AI-assisted game-development planning workspace. It guides a game concept through discovery and critique, then produces implementation-ready project documentation that can be exported as a consolidated project package.
 
+## Current project handoff
+
+For the latest implementation status and tomorrow's exact resume point, start with [`TOMORROW_RESUME.md`](TOMORROW_RESUME.md). The shorter [`check_status.md`](check_status.md) file contains the same current blocker and milestone summary.
+
 ## What it does
 
 - Runs a guided discovery chat to turn an initial game idea into a defined project concept.

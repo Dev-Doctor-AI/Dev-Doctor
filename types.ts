@@ -100,6 +100,16 @@ export interface TranscriptRecord {
 
 export type ConciergeMode = 'project-name' | 'information-gatherer' | 'creative-brainstormer' | 'completion-gate';
 
+export type BrainstormPhase = 'identify-subtopics' | 'propose' | 'await-feedback' | 'advance' | 'complete';
+
+export interface BrainstormState {
+  phase: BrainstormPhase;
+  subtopics: string[];
+  activeSubtopicIndex: number;
+  activeSubtopic?: string;
+  acceptedSubtopics: string[];
+}
+
 export interface UserProxyRecord {
   perspective: string;
   priorities: string[];
@@ -116,6 +126,18 @@ export interface SynthesisRecord {
   acceptedDecisions: string[];
   unresolvedQuestions: string[];
   outputReferences: string[];
+}
+
+export interface CanonicalProjectContext {
+  projectName: string;
+  summarySource: string;
+  facts: MemoryEntry[];
+  proposals: MemoryEntry[];
+  decisions: MemoryEntry[];
+  constraints: MemoryEntry[];
+  questions: MemoryEntry[];
+  transcriptReference: string;
+  sourceReferences: string[];
 }
 
 export interface GeneratedImages {

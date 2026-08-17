@@ -72,10 +72,61 @@ const readKeychainCredential = async provider => {
   return stdout.trim();
 };
 
+const readJsonBody = req => new Promise((resolve, reject) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk; if (body.length > 2_000_000) reject(new Error('request_too_large')); });
+  req.on('end', () => {
+    try { resolve(body ? JSON.parse(body) : {}); } catch { reject(new Error('invalid_json')); }
+  });
+  req.on('error', reject);
+});
+
+const proxyJson = (req, res, payload, code = 200) => {
+  const origin = req.headers.origin || '';
+  if (!ALLOWED_APP_ORIGINS.has(origin) || !/^(?:127\.0\.0\.1|localhost):1236$/.test(req.headers.host || '')) return credentialJson(req, res, { error: 'forbidden' }, 403);
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600', Vary: 'Origin' });
+    return res.end();
+  }
+  return credentialJson(req, res, payload, code);
+};
+
+const geminiProxy = async (req, res, body) => {
+  const apiKey = await readKeychainCredential('gemini');
+  if (!apiKey) return proxyJson(req, res, { error: 'credential_not_found' }, 404);
+  const model = String(body.model || '').replace(/^models\//, '');
+  if (!model || !Array.isArray(body.contents)) return proxyJson(req, res, { error: 'invalid_gemini_request' }, 400);
+  // AI Studio API keys use the key query parameter. OAuth-style credentials
+  // (for example a ya29 token) must be sent as a bearer header instead. Both
+  // cases stay server-side; the browser never receives or transmits the secret.
+  const looksLikeApiKey = /^AIza[\w-]+$/i.test(apiKey);
+  const upstream = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent${looksLikeApiKey ? `?key=${encodeURIComponent(apiKey)}` : ''}`;
+  const upstreamResponse = await fetch(upstream, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(looksLikeApiKey ? {} : { Authorization: `Bearer ${apiKey}` }) },
+    body: JSON.stringify({ systemInstruction: body.systemInstruction, contents: body.contents, generationConfig: body.generationConfig }),
+  });
+  const responseBody = await upstreamResponse.text();
+  res.writeHead(upstreamResponse.status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': req.headers.origin || '', Vary: 'Origin' });
+  return res.end(responseBody);
+};
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `${REDIRECT_HOST}`);
 
   if (url.pathname === '/health') return json(res, { status: 'ok' });
+
+  if (url.pathname === '/credential-status/gemini') {
+    try { return proxyJson(req, res, { provider: 'gemini', available: Boolean(await readKeychainCredential('gemini')) }); }
+    catch { return proxyJson(req, res, { provider: 'gemini', available: false }); }
+  }
+
+  if (url.pathname === '/provider/gemini/generate') {
+    if (req.method === 'OPTIONS') return proxyJson(req, res, {});
+    if (req.method !== 'POST') return proxyJson(req, res, { error: 'method_not_allowed' }, 405);
+    try { return await geminiProxy(req, res, await readJsonBody(req)); }
+    catch (error) { return proxyJson(req, res, { error: 'gemini_proxy_error', message: error instanceof Error ? error.message : 'Gemini proxy failed.' }, 502); }
+  }
 
   if (url.pathname.startsWith('/credentials/')) {
     const origin = req.headers.origin || '';

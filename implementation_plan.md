@@ -6,6 +6,17 @@ Provide Dev Doctor AI with a runtime-selectable AI provider layer, defaulting to
 
 The application must build successfully, use one active AI service, avoid obsolete credentials and external AI endpoints, and document unsupported capabilities clearly.
 
+## Current handoff — 2026-08-17
+
+- The primary resume file is `TOMORROW_RESUME.md`.
+- The visible Duck Wars flow has been validated through GDD and MVP; MVP Feature Specs unlocks visibly.
+- The UI button order now matches the intended dependency sequence: GDD, MVP, MVP Feature Specs, Final TDD, Freelance Briefs, Assets, Pitch, Scope.
+- The visible runner records human-like cursor movement/clicks, screenshots, button-state JSON, visible page text, persisted package data, and video.
+- The progress modal exposes canonical workflow position and stage activity metadata.
+- Conservative Rollup manual chunks are enabled and the largest bundle is approximately 1,116.10 kB.
+- Remaining blocker: Gemini technical-spec output can be missing or non-object shaped during MVP Feature Specs generation. Final TDD and downstream full-flow validation remain pending until this contract issue is fixed.
+- Current validation passed: `node --check scripts/run-visible-duck-wars-manual.mjs`, `npm run lint`, `git diff --check`, and `npm run build`.
+
 ## Verified current state
 
 ### Current fix in progress: restore original conversation gating

@@ -329,6 +329,19 @@ Project: `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b`
 - Tested: Vite output log — `vite.log` was created.
 - Not tested: automated confirmation of the macOS browser window opening; the test environment cannot inspect GUI state, although the script invoked the macOS `open` command.
 
+## Current handoff update: visible Duck Wars recovery flow — 2026-08-17
+
+- Created and validated the visible Duck Wars manual runner at `scripts/run-visible-duck-wars-manual.mjs`.
+- The runner manages its own Vite/auth/browser lifecycle and records screenshots, button-state JSON, persisted project package, visible page text, and Playwright video.
+- Updated the runner to perform visible, human-like cursor movement and mouse down/up clicks while retaining semantic gate assertions.
+- Reordered `components/OutputPanel.tsx` to the dependency order: GDD, MVP, MVP Feature Specs, Final TDD, Freelance Briefs, Assets, Pitch, Scope.
+- Updated `GenerationProgressIndicator.tsx` to display canonical workflow position and expose `data-workflow-position`.
+- Added conservative Vite Rollup chunks for React, document-processing libraries, and pako. The largest generated chunk reduced from approximately 1,768.74 kB to 1,116.10 kB.
+- Validation passed: `node --check scripts/run-visible-duck-wars-manual.mjs`, `npm run lint`, `git diff --check`, and `npm run build`.
+- Visible Duck Wars completed through MVP in the recording-enabled run, but Gemini MVP Feature Specs failed strict validation because a technical specification was missing/non-object shaped.
+- Final TDD, Freelance Briefs, Assets, Pitch, and Scope still require a successful full visible run.
+- Primary resume file for the next session: `TOMORROW_RESUME.md`.
+
 ## Task update: remove obsolete active Gemini integration
 
 - Deleted `/Users/clayton/Projects/Games/Dev Dr/remix_-dev-doctor-ai---b/services/geminiService.ts` after confirming the active `App.tsx` had no live imports of it.

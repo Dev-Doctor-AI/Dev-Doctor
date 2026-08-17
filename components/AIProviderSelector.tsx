@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { AIProviderConfig, AIProviderId, getProviderOption, listAIProviderModels, PROVIDER_OPTIONS, testAIProviderConnection } from '../services/aiProvider';
+import { AIProviderConfig, AIProviderId, getProviderOption, listAIProviderModels, LOCAL_AUTH_BRIDGE, PROVIDER_OPTIONS, testAIProviderConnection } from '../services/aiProvider';
 
 interface AIProviderSelectorProps {
   config: AIProviderConfig;
@@ -74,11 +74,21 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
     }
   };
 
-  const keychainProviderFor = (provider: AIProviderId, endpoint: string): 'openai' | 'gemini' | null => {
+  const keychainProviderFor = (provider: AIProviderId, endpoint: string): 'openai' | null => {
     if (provider === 'openai' || (provider === 'openai-compatible' && /^https:\/\/api\.openai\.com\//i.test(endpoint))) return 'openai';
-    if (provider === 'gemini') return 'gemini';
     return null;
   };
+
+  useEffect(() => {
+    if (config.provider !== 'gemini' || !config.endpoint.includes('/provider/gemini')) return;
+    let cancelled = false;
+    setKeychainState('loading');
+    fetch(`${LOCAL_AUTH_BRIDGE}/credential-status/gemini`, { method: 'POST', cache: 'no-store' })
+      .then(response => response.json() as Promise<{ available?: boolean }>)
+      .then(status => { if (!cancelled) setKeychainState(status.available ? 'loaded' : 'unavailable'); })
+      .catch(() => { if (!cancelled) setKeychainState('unavailable'); });
+    return () => { cancelled = true; };
+  }, [config.provider, config.endpoint]);
 
   const loadKeychainCredential = async (provider: 'openai' | 'gemini'): Promise<string | null> => {
     const cached = keychainCredentials.current.get(provider);
@@ -260,7 +270,7 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
               )}
 
               {/* API Key field is always visible for Gemini, Claude, OpenAI-compatible, and OpenAI (when not using SDK login or as direct entry) */}
-              {(!config.useSdkLogin || config.provider !== 'openai') && (
+      {(!config.useSdkLogin || config.provider !== 'openai') && config.provider !== 'gemini' && (
                 <label className="mb-3 block text-xs text-brand-text-muted">{option.label} API key <span className="text-yellow-400">(browser session only)</span>
                   <input
                     type="password"
@@ -283,7 +293,7 @@ export const AIProviderSelector: React.FC<AIProviderSelectorProps> = ({ config, 
                 </div>
               )}
 
-              {(!config.useSdkLogin || config.provider !== 'openai') && !config.apiKey?.trim() && (
+              {config.provider !== 'gemini' && (!config.useSdkLogin || config.provider !== 'openai') && !config.apiKey?.trim() && (
                 <p className="mb-3 text-xs text-yellow-400">Enter your {option.label} API key to enable requests.</p>
               )}
             </>

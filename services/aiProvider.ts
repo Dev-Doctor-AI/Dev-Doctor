@@ -13,6 +13,8 @@ export interface AIProviderConfig {
   useSdkLogin?: boolean;
 }
 
+export const LOCAL_AUTH_BRIDGE = import.meta.env.VITE_AUTH_SERVER_URL || 'http://127.0.0.1:1236';
+
 export interface AIProviderOption {
   id: AIProviderId;
   label: string;
@@ -23,10 +25,14 @@ export interface AIProviderOption {
 }
 
 export type ProviderMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+export type ProviderGenerationStatus = 'complete' | 'truncated' | 'empty' | 'reasoning_exhausted' | 'error';
 export interface ProviderResponse {
   content: string;
   promptTokens?: number;
   completionTokens?: number;
+  status: ProviderGenerationStatus;
+  finishReason?: string;
+  reasoningCharacters?: number;
 }
 
 type RateLimitError = Error & { code: 'AI_RATE_LIMITED'; status: 429; retryAfterMs?: number };
@@ -119,7 +125,7 @@ export const PROVIDER_OPTIONS: AIProviderOption[] = [
   {
     id: 'gemini',
     label: 'Google Gemini',
-    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
+    endpoint: `${LOCAL_AUTH_BRIDGE}/provider/gemini`,
     models: ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-3.7-flash', 'gemini-3.7-pro'],
     requiresApiKey: true,
     description: 'Google Gemini generateContent API',
@@ -156,6 +162,16 @@ const buildOpenAIHeaders = (config: AIProviderConfig): Record<string, string> =>
   ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
 });
 
+const toGeminiResponseSchema = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(toGeminiResponseSchema);
+  if (!value || typeof value !== 'object') return value;
+  const source = value as Record<string, unknown>;
+  // Gemini responseSchema is not full JSON Schema. Remove OpenAI/JSON-Schema
+  // validation keywords while preserving the structural fields Gemini accepts.
+  const unsupported = new Set(['additionalProperties', 'minItems', 'maxItems', 'minLength', 'maxLength', 'strict', '$schema', '$id']);
+  return Object.fromEntries(Object.entries(source).filter(([key]) => !unsupported.has(key)).map(([key, nested]) => [key, toGeminiResponseSchema(nested)]));
+};
+
 const isTransientLocalProviderError = (error: unknown, provider: AIProviderId): boolean => {
   if (provider !== 'lmstudio') return false;
   if (error instanceof TypeError) return true;
@@ -165,10 +181,12 @@ const isTransientLocalProviderError = (error: unknown, provider: AIProviderId): 
 };
 
 const parseOpenAIResponse = async (response: Response, providerLabel: string): Promise<ProviderResponse> => {
-  const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+  const payload = await response.json() as { choices?: Array<{ message?: { content?: string; reasoning_content?: string }; finish_reason?: string }>; usage?: { prompt_tokens?: number; completion_tokens?: number } };
   const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', `${providerLabel} returned no assistant content.`);
-  return { content, promptTokens: payload.usage?.prompt_tokens, completionTokens: payload.usage?.completion_tokens };
+  const reasoningContent = payload.choices?.[0]?.message?.reasoning_content || '';
+  const finishReason = payload.choices?.[0]?.finish_reason;
+  if (!content) return { content: '', status: reasoningContent ? 'reasoning_exhausted' : finishReason === 'length' ? 'truncated' : 'empty', finishReason, reasoningCharacters: reasoningContent.length, promptTokens: payload.usage?.prompt_tokens, completionTokens: payload.usage?.completion_tokens };
+  return { content, status: finishReason === 'length' ? 'truncated' : 'complete', finishReason, reasoningCharacters: reasoningContent.length || undefined, promptTokens: payload.usage?.prompt_tokens, completionTokens: payload.usage?.completion_tokens };
 };
 
 const usesMaxCompletionTokens = (model: string): boolean => /^(?:o\d|gpt-5(?:\.|-|$))/i.test(model.trim());
@@ -222,16 +240,20 @@ const requestOpenAIResponses = async (messages: ProviderMessage[], config: AIPro
   const payload = await response.json() as { output_text?: string; output?: Array<{ content?: Array<{ type?: string; text?: string }> }>; usage?: { input_tokens?: number; output_tokens?: number } };
   const content = payload.output_text || payload.output?.flatMap(item => item.content || []).filter(part => part.type === 'output_text' || part.text).map(part => part.text || '').join('').trim();
   if (!content) throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', 'OpenAI returned no assistant content.');
-  return { content, promptTokens: payload.usage?.input_tokens, completionTokens: payload.usage?.output_tokens };
+  return { content, status: 'complete', promptTokens: payload.usage?.input_tokens, completionTokens: payload.usage?.output_tokens };
 };
 
-const requestGemini = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal): Promise<ProviderResponse> => {
+const requestGemini = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal, structuredOutput?: StructuredOutputSchema): Promise<ProviderResponse> => {
   const system = messages.find(message => message.role === 'system')?.content;
   const contents = messages.filter(message => message.role !== 'system').map(message => ({ role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: message.content }] }));
-  const response = await fetch(`${config.endpoint}/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.apiKey)}`, {
+  const isKeychainProxy = config.endpoint.includes('/provider/gemini');
+  const endpoint = isKeychainProxy
+    ? `${config.endpoint}/generate`
+    : `${config.endpoint}/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.apiKey)}`;
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ systemInstruction: system ? { parts: [{ text: system }] } : undefined, contents, generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens } }),
+    body: JSON.stringify({ model: config.model, systemInstruction: system ? { parts: [{ text: system }] } : undefined, contents, generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, ...(structuredOutput ? { responseMimeType: 'application/json', responseSchema: toGeminiResponseSchema(structuredOutput.schema) } : {}) } }),
     signal,
   });
   if (!response.ok) {
@@ -266,7 +288,7 @@ const requestGemini = async (messages: ProviderMessage[], config: AIProviderConf
     const reasonMsg = finishReason ? ` (finish reason: ${finishReason})` : blockReason ? ` (blocked: ${blockReason})` : '';
     throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', `Google Gemini returned no assistant content${reasonMsg}.`);
   }
-  return { content, promptTokens: payload.usageMetadata?.promptTokenCount, completionTokens: payload.usageMetadata?.candidatesTokenCount };
+  return { content, status: content ? (candidate?.finishReason === 'MAX_TOKENS' ? 'truncated' : 'complete') : 'empty', finishReason: candidate?.finishReason, promptTokens: payload.usageMetadata?.promptTokenCount, completionTokens: payload.usageMetadata?.candidatesTokenCount };
 };
 
 const requestAnthropic = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal): Promise<ProviderResponse> => {
@@ -281,7 +303,7 @@ const requestAnthropic = async (messages: ProviderMessage[], config: AIProviderC
   const payload = await response.json() as { content?: Array<{ type?: string; text?: string }>; usage?: { input_tokens?: number; output_tokens?: number } };
   const content = payload.content?.filter(part => part.type === 'text').map(part => part.text || '').join('').trim();
   if (!content) throw createServiceError('LM_STUDIO_EMPTY_RESPONSE', 'Anthropic Claude returned no assistant content.');
-  return { content, promptTokens: payload.usage?.input_tokens, completionTokens: payload.usage?.output_tokens };
+  return { content, status: 'complete', promptTokens: payload.usage?.input_tokens, completionTokens: payload.usage?.output_tokens };
 };
 
 export const requestWithProvider = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, operation: string, structuredOutput?: StructuredOutputSchema): Promise<ProviderResponse> => {
@@ -290,7 +312,8 @@ export const requestWithProvider = async (messages: ProviderMessage[], config: A
   const requestCharacters = messages.reduce((total, message) => total + message.content.length, 0);
   const option = getProviderOption(config.provider);
 
-  if (option.requiresApiKey && !config.apiKey?.trim()) {
+  const usesLocalCredentialProxy = config.provider === 'gemini' && config.endpoint.includes('/provider/gemini');
+  if (option.requiresApiKey && !config.apiKey?.trim() && !usesLocalCredentialProxy) {
     logger.error('ai_provider_missing_api_key', { requestId, operation, metadata: { requestedProvider: config.provider }, errorMessage: 'Provider requires API key but none provided.' });
     throw createServiceError('MISSING_PROVIDER_API_KEY', `${option.label} requires an API key. Do not use browser session/extension tokens as API keys.`);
   }
@@ -305,7 +328,7 @@ export const requestWithProvider = async (messages: ProviderMessage[], config: A
       return effectiveConfig.provider === 'openai'
         ? await requestOpenAIResponses(messages, effectiveConfig, maxTokens, controller.signal)
         : effectiveConfig.provider === 'gemini'
-        ? await requestGemini(messages, effectiveConfig, maxTokens, controller.signal)
+        ? await requestGemini(messages, effectiveConfig, maxTokens, controller.signal, structuredOutput)
         : effectiveConfig.provider === 'anthropic'
           ? await requestAnthropic(messages, effectiveConfig, maxTokens, controller.signal)
           : await requestOpenAICompatible(messages, effectiveConfig, maxTokens, controller.signal, structuredOutput);
@@ -352,7 +375,7 @@ export const requestWithProvider = async (messages: ProviderMessage[], config: A
 export const testAIProviderConnection = async (config: AIProviderConfig): Promise<string> => {
   const option = getProviderOption(config.provider);
   // Require an API key for providers that need it. Do not accept SDK/browser session tokens as bearer credentials for OpenAI Responses API.
-  if (option.requiresApiKey && !config.apiKey.trim()) throw new Error(`${option.label} requires an API key.`);
+  if (option.requiresApiKey && !config.apiKey.trim() && !(config.provider === 'gemini' && config.endpoint.includes('/provider/gemini'))) throw new Error(`${option.label} requires an API key.`);
   const result = await requestWithProvider([{ role: 'user', content: 'Reply with exactly: connection verified' }], config, 1024, 'provider_connection_test');
   return result.content;
 };
@@ -360,6 +383,13 @@ export const testAIProviderConnection = async (config: AIProviderConfig): Promis
 export const listAIProviderModels = async (config: AIProviderConfig): Promise<string[]> => {
   // Support model listing for lmstudio, openai-compatible, openai, and gemini providers.
   if (config.provider === 'gemini') {
+    const isKeychainProxy = config.endpoint.includes('/provider/gemini');
+    if (isKeychainProxy) {
+      const response = await fetch(`${LOCAL_AUTH_BRIDGE}/credential-status/gemini`, { method: 'POST', cache: 'no-store' });
+      const status = await response.json() as { available?: boolean };
+      if (!response.ok || !status.available) throw new Error('Google Gemini Keychain credential is unavailable.');
+      return PROVIDER_OPTIONS.find(option => option.id === 'gemini')?.models || [];
+    }
     if (!config.apiKey.trim()) throw new Error('Google Gemini requires an API key to list models.');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(config.apiKey)}`);
     if (!response.ok) {

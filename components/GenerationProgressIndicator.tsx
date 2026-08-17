@@ -1,6 +1,17 @@
 
 import React from 'react';
 
+const CORE_WORKFLOW = [
+    ['gdd', 'GDD / PRD'],
+    ['mvp', 'MVP'],
+    ['tdd_specs', 'MVP Feature Specs'],
+    ['tdd_doc', 'Final TDD'],
+    ['modular', 'Freelance Briefs'],
+    ['assets', 'Asset List'],
+    ['pitch', 'Pitch Deck'],
+    ['scope', 'Scope Critique'],
+] as const;
+
 interface GenerationProgressIndicatorProps {
     isActive: boolean;
     progress: number;
@@ -30,6 +41,9 @@ export const GenerationProgressIndicator: React.FC<GenerationProgressIndicatorPr
         return null;
     }
 
+    const stageIndex = CORE_WORKFLOW.findIndex(([key]) => key === stageKey);
+    const stageLabel = stageIndex >= 0 ? CORE_WORKFLOW[stageIndex][1] : title;
+
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 backdrop-blur-sm p-4"
@@ -41,9 +55,15 @@ export const GenerationProgressIndicator: React.FC<GenerationProgressIndicatorPr
             data-current-item={currentItem || ''}
             data-activity-sequence={activitySequence}
             data-progress={Math.round(progress)}
+            data-workflow-position={stageIndex >= 0 ? `${stageIndex + 1}/${CORE_WORKFLOW.length}` : ''}
         >
             <div className="w-full max-w-lg bg-brand-surface rounded-lg shadow-2xl border border-brand-border p-6 sm:p-8 text-center">
                 <h3 className="text-xl sm:text-2xl font-bold text-brand-secondary mb-4">{title}</h3>
+                {stageIndex >= 0 && (
+                    <p className="text-xs uppercase tracking-widest text-brand-text-muted mb-3">
+                        Core workflow {stageIndex + 1} of {CORE_WORKFLOW.length}: {stageLabel}
+                    </p>
+                )}
                 
                 {/* The dynamic message is now the prominent status text */}
                 <p className="text-lg font-bold text-brand-text h-12 flex items-center justify-center text-center px-2">
