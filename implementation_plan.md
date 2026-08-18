@@ -6,7 +6,7 @@ Provide Dev Doctor AI with a runtime-selectable AI provider layer, defaulting to
 
 The application must build successfully, use one active AI service, avoid obsolete credentials and external AI endpoints, and document unsupported capabilities clearly.
 
-## Current handoff — 2026-08-17
+## Current handoff — 2026-08-18
 
 - The primary resume file is `TOMORROW_RESUME.md`.
 - The visible Duck Wars flow has been validated through GDD and MVP; MVP Feature Specs unlocks visibly.
@@ -14,7 +14,14 @@ The application must build successfully, use one active AI service, avoid obsole
 - The visible runner records human-like cursor movement/clicks, screenshots, button-state JSON, visible page text, persisted package data, and video.
 - The progress modal exposes canonical workflow position and stage activity metadata.
 - Conservative Rollup manual chunks are enabled and the largest bundle is approximately 1,116.10 kB.
-- Remaining blocker: Gemini technical-spec output can be missing or non-object shaped during MVP Feature Specs generation. Final TDD and downstream full-flow validation remain pending until this contract issue is fixed.
+- The Gemini technical-spec response-shape issue has been addressed with structured response extraction and regression coverage; strict validation remains enabled.
+- The next visible validation uses only the local `mistralai/mistral-7b-instruct-v0.3` model.
+- The latest Mistral diagnostic run completed GDD and MVP but was stopped before MVP Feature Specs because the browser was idle at that transition; no final package was produced.
+- The next diagnostic run uses `gpt-5.6-luna` through the OpenAI provider/keychain bridge to identify remaining gate and pipeline issues faster.
+- `scripts/run-visible-duck-wars-manual.mjs` now supports typed-user conversation mode by default and seeded recovery mode with `DUCK_WARS_SEEDED=1`.
+- Provider fallback is deliberately out of scope: a failed run can be rerun manually through another provider.
+- Production streaming is deliberately deferred; any future stream capture is test/marketing-video infrastructure only.
+- Planned output-contract additions are pseudocode, dependency tree, node tree, contract outputs, and sign-off records.
 - Current validation passed: `node --check scripts/run-visible-duck-wars-manual.mjs`, `npm run lint`, `git diff --check`, and `npm run build`.
 
 ## Verified current state
@@ -39,13 +46,22 @@ The application must build successfully, use one active AI service, avoid obsole
  - The duplicate legacy project directory `../remix_-dev-doctor-ai---b 2` was deleted on 2026-08-13 by explicit user instruction.
 - The active LM Studio service syntax errors have been repaired; the production build now succeeds.
 - Repository type-checking is no longer blocked by the deleted active Gemini service.
-- Streaming behavior and an end-to-end request against a running LM Studio instance have not been verified.
+- Production streaming is not implemented by design; test-only stream capture remains optional for future marketing-video experiments.
 - Error classification and structured LM Studio request logging are implemented; performance validation and CI/CD remain incomplete.
-- Structured response validation and user-facing service-error mapping are implemented; forced failure-path testing remains incomplete.
+- Structured response validation and user-facing service-error mapping are implemented; malformed technical-spec responses receive two repair attempts and remain blocked if invalid.
 - A targeted performance pass removed disabled image-generation requests and unnecessary fixed completion delays from the active app; broader profiling remains incomplete.
 - The missing `index.css` build warning is resolved; application-level code splitting remains deferred because the attempted vendor split introduced circular chunks and belongs with the major refactor.
 
 ## Work plan
+
+### Active validation scope — 2026-08-18
+
+1. Run the progressive real-inference smoke tests with local Mistral only.
+2. Run the typed visible Duck Wars browser flow and review its screenshots, snapshots, transcript, and video.
+3. Verify partial exports after each completed gate and correct section-specific Markdown/Text filtering.
+4. Extend the technical output contract with pseudocode, dependency tree, node tree, contract outputs, and sign-off records.
+5. Add strict validators, renderers, export coverage, and persisted metadata for those outputs.
+6. Keep provider fallback and production streaming out of the active implementation scope.
 
 ### 1. Establish repository inventory
 

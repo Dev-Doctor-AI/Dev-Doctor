@@ -29,6 +29,12 @@ try {
   const parsedBriefs = contract.parseProductionBriefsResponse([brief]);
   assert.equal(parsedBriefs.briefs[0].id, 'brief-ui');
   assert.equal(parsedBriefs.validation.valid, true);
+  const parsedWithTitleReference = contract.parseProductionBriefsResponse([
+    { ...brief, relatedBriefs: ['Audio Production Brief'] },
+    { ...brief, id: 'brief-audio', title: 'Audio Production Brief', role: 'Audio Designer', category: 'audio', relatedBriefs: [] },
+  ]);
+  assert.equal(parsedWithTitleReference.validation.valid, true);
+  assert.deepEqual(parsedWithTitleReference.briefs[0].relatedBriefs, ['brief-audio']);
   assert.equal(contract.parseProductionBriefsResponse([{ title: 'Malformed' }]).validation.valid, false);
   assert.equal(contract.projectProductionBriefsToLegacy([brief])[0].title, 'UI Production Brief');
   assert(contract.projectProductionBriefsToLegacy([brief])[0].content.includes('Touch targets'));
@@ -37,6 +43,9 @@ try {
   assert.equal(contract.validateAssetMetadataCollection([asset, { ...asset }]).valid, false);
   const parsedAssets = contract.parseAssetMetadataResponse([asset]);
   assert.equal(parsedAssets.assets[0].id, 'hud-main');
+  const aliasedAssets = contract.parseAssetMetadataResponse({ assets: [{ assetId: 'alias-asset', assetCategory: 'UI', assetName: 'Alias Asset', description: 'Alias purpose', owner: 'UI Designer', acceptance: ['It is readable.'] }] });
+  assert.equal(aliasedAssets.validation.valid, true);
+  assert.equal(aliasedAssets.assets[0].id, 'alias-asset');
   assert.deepEqual(contract.projectAssetMetadataToLegacyList(parsedAssets.assets), { UI: ['Main HUD — Displays score and pause state. — SVG'] });
   const prompt = { assetId: 'hud-main', prompt: 'Accessible game HUD with high contrast controls.', aspectRatio: '16:9', sourceReferences: ['brief-ui'] };
   assert.equal(contract.validateVisualPrompts([prompt], ['hud-main']).valid, true);

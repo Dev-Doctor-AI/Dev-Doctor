@@ -1,5 +1,6 @@
 import { classifyServiceError, createRequestId, createServiceError, logger } from './logger';
 import { buildOpenAICompatibleRequestBody, StructuredOutputSchema } from './structuredOutputContract';
+import { extractGeminiResponseText } from './geminiResponseContract';
 export type { StructuredOutputSchema } from './structuredOutputContract';
 
 export type AIProviderId = 'lmstudio' | 'openai' | 'openai-compatible' | 'gemini' | 'anthropic';
@@ -94,6 +95,11 @@ const scheduleRateLimitedOpenAIModelRequest = async <T>(messages: ProviderMessag
 };
 
 const DEFAULT_LM_ENDPOINT = import.meta.env.VITE_LM_ENDPOINT || 'http://127.0.0.1:1235/v1/chat/completions';
+// LM Studio may reject OpenAI's transport-level json_schema response_format
+// depending on the loaded model/runtime configuration. Keep JSON prompting,
+// normalization, repair, and strict local validation model-agnostic instead of
+// coupling this compatibility rule to one model name.
+const isLocalLMStudioModel = (config: AIProviderConfig): boolean => config.provider === 'lmstudio';
 
 export const PROVIDER_OPTIONS: AIProviderOption[] = [
   {
@@ -169,7 +175,9 @@ const toGeminiResponseSchema = (value: unknown): unknown => {
   // Gemini responseSchema is not full JSON Schema. Remove OpenAI/JSON-Schema
   // validation keywords while preserving the structural fields Gemini accepts.
   const unsupported = new Set(['additionalProperties', 'minItems', 'maxItems', 'minLength', 'maxLength', 'strict', '$schema', '$id']);
-  return Object.fromEntries(Object.entries(source).filter(([key]) => !unsupported.has(key)).map(([key, nested]) => [key, toGeminiResponseSchema(nested)]));
+  return Object.fromEntries(Object.entries(source)
+    .filter(([key]) => !unsupported.has(key))
+    .map(([key, nested]) => [key, key === 'type' && typeof nested === 'string' ? nested.toUpperCase() : toGeminiResponseSchema(nested)]));
 };
 
 const isTransientLocalProviderError = (error: unknown, provider: AIProviderId): boolean => {
@@ -213,6 +221,10 @@ const providerHttpError = async (response: Response, providerLabel: string): Pro
 };
 
 const requestOpenAICompatible = async (messages: ProviderMessage[], config: AIProviderConfig, maxTokens: number, signal: AbortSignal, structuredOutput?: StructuredOutputSchema): Promise<ProviderResponse> => {
+  // LM Studio does not accept the OpenAI json_schema response_format contract
+  // reliably across loaded models. Keep the strict prompt/parser/validator path
+  // active, but omit only the transport-level schema hint for local models.
+  const transportStructuredOutput = isLocalLMStudioModel(config) ? undefined : structuredOutput;
   const response = await fetch(config.endpoint, {
     method: 'POST',
     headers: buildAuthHeaders(config),
@@ -220,7 +232,7 @@ const requestOpenAICompatible = async (messages: ProviderMessage[], config: AIPr
       model: config.model,
       messages,
       maxTokens,
-      structuredOutput,
+      structuredOutput: transportStructuredOutput,
       tokenParameter: config.provider === 'openai-compatible' && usesMaxCompletionTokens(config.model) ? 'max_completion_tokens' : 'max_tokens',
     })),
     signal,
@@ -278,9 +290,7 @@ const requestGemini = async (messages: ProviderMessage[], config: AIProviderConf
   const candidate = payload.candidates?.[0];
   const parts = candidate?.content?.parts || [];
   // Prefer non-thought text parts if available, otherwise any part text
-  const textParts = parts.filter(p => p.text && !p.thought).map(p => p.text || '');
-  const fallbackParts = parts.map(p => p.text || '').filter(Boolean);
-  const content = (textParts.length > 0 ? textParts.join('') : fallbackParts.join('')).trim();
+  const content = extractGeminiResponseText(parts, Boolean(structuredOutput));
 
   if (!content) {
     const finishReason = candidate?.finishReason;

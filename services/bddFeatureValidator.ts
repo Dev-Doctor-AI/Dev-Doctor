@@ -68,30 +68,41 @@ const hasNonEmptyClauses = (value: unknown): value is string[] =>
 const SCENARIO_TYPES: BDDScenarioType[] = ['happy-path', 'edge-case', 'failure', 'boundary', 'offline'];
 
 const normaliseStringArray = (value: unknown): string[] | undefined => {
-  if (!Array.isArray(value)) return undefined;
-  const values = value.filter(isNonEmptyString).map(value => value.trim());
+  const source = Array.isArray(value) ? value : isNonEmptyString(value) ? [value] : [];
+  const values = source.filter(isNonEmptyString).map(value => value.trim());
   return values.length ? values : undefined;
+};
+
+const readScenarioField = (scenario: Record<string, unknown>, ...keys: string[]): unknown => {
+  for (const key of keys) {
+    if (scenario[key] !== undefined) return scenario[key];
+    const match = Object.keys(scenario).find(candidate => candidate.toLowerCase() === key.toLowerCase());
+    if (match) return scenario[match];
+  }
+  return undefined;
 };
 
 const normaliseScenario = (value: unknown): BDDScenario | null => {
   if (!value || typeof value !== 'object') return null;
-  const scenario = value as Partial<BDDScenario>;
-  const given = normaliseStringArray(scenario.given);
-  const when = normaliseStringArray(scenario.when);
-  const then = normaliseStringArray(scenario.then);
+  const scenario = value as Record<string, unknown>;
+  const given = normaliseStringArray(readScenarioField(scenario, 'given', 'precondition', 'preconditions'));
+  const when = normaliseStringArray(readScenarioField(scenario, 'when', 'action', 'event'));
+  const then = normaliseStringArray(readScenarioField(scenario, 'then', 'expectedResult', 'expectedOutcome', 'outcome', 'result'));
   if (!given || !when || !then) return null;
 
-  const type = isNonEmptyString(scenario.type) && SCENARIO_TYPES.includes(scenario.type.trim() as BDDScenarioType)
-    ? scenario.type.trim() as BDDScenarioType
+  const rawType = readScenarioField(scenario, 'type', 'scenarioType', 'kind');
+  const normalizedType = isNonEmptyString(rawType) ? rawType.trim().toLowerCase().replace(/[_\s]+/g, '-') : '';
+  const type = SCENARIO_TYPES.includes(normalizedType as BDDScenarioType)
+    ? normalizedType as BDDScenarioType
     : undefined;
   return {
-    id: isNonEmptyString(scenario.id) ? scenario.id.trim() : undefined,
+    id: isNonEmptyString(readScenarioField(scenario, 'id', 'scenarioId')) ? String(readScenarioField(scenario, 'id', 'scenarioId')).trim() : undefined,
     type,
-    title: isNonEmptyString(scenario.title) ? scenario.title.trim() : undefined,
+    title: isNonEmptyString(readScenarioField(scenario, 'title', 'scenarioTitle', 'name')) ? String(readScenarioField(scenario, 'title', 'scenarioTitle', 'name')).trim() : undefined,
     given,
     when,
     then,
-    notes: isNonEmptyString(scenario.notes) ? scenario.notes.trim() : undefined,
+    notes: isNonEmptyString(readScenarioField(scenario, 'notes', 'note')) ? String(readScenarioField(scenario, 'notes', 'note')).trim() : undefined,
   };
 };
 
@@ -194,7 +205,7 @@ export const validateMVPFeatureSpec = (featureSpec: unknown, options: { requireS
     });
 
     if (options.requireStrongContract) {
-      if (spec.scenarios.length < 2) errors.push('Feature specification must contain at least two scenarios.');
+      if (spec.scenarios.length !== 2) errors.push('Feature specification must contain exactly two scenarios.');
       const scenarioTypes = spec.scenarios.map(scenario => scenario?.type);
       if (!scenarioTypes.includes('happy-path')) errors.push('Feature specification must contain a happy-path scenario.');
       if (!scenarioTypes.some(type => type === 'edge-case' || type === 'failure' || type === 'boundary' || type === 'offline')) {

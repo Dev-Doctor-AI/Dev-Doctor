@@ -5,12 +5,13 @@ export const mistralLocalProfile: ModelCapabilityProfile = {
   model: 'mistralai/mistral-7b-instruct-v0.3',
   structuredOutput: 'unknown',
   jsonSchema: 'unknown',
-  reasoning: 'unknown',
+  reasoning: 'unsupported',
+  recommendedOutputTokens: 512,
   strategy: {
     preferStructuredOutput: true,
     preferRawTextParsing: false,
     allowContinuation: false,
-    notes: ['Use local validation until controlled tests establish safer model-specific strategies.'],
+    notes: ['Use concise non-reasoning responses; no reasoning budget or hidden-thinking controls are requested.'],
   },
   evidence: [],
 };

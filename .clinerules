@@ -1,0 +1,27 @@
+# Dev Doctor project rules
+
+## Continuation
+
+- Read `TOMORROW_RESUME.md` first. It is the canonical, overwrite-in-place continuation file and is marked with the latest update date.
+- Inspect the current Git status and relevant implementation before editing.
+- Preserve the real adaptive Concierge flow; do not replace it with scripted answers or bypasses.
+
+## Local inference and E2E
+
+- Prefer the configured local LM Studio/OpenAI-compatible runtime and the model profile selected by the run.
+- The Number Quest adaptive conversation intentionally has no fixed turn cap. It must continue until the real completion gate is detected or an inference/browser failure occurs.
+- Keep `E2E_INFERENCE_TIMEOUT_MS` as the per-inference safety boundary. A timeout prevents a hung request; it does not limit the number of valid conversation turns.
+- Completion-gate confirmation must remain explicit and one-time before clicking `Generate GDD / PRD`.
+
+## Validation
+
+- Keep strict downstream contracts and validation enabled.
+- Optional enrichment failures may remain non-blocking, but core workflow failures must remain visible.
+- Run focused syntax/tests plus build and lint when practical.
+- Verify edited files after changes and report any unvalidated local-model run honestly.
+
+## Git and handoff
+
+- Include source, scripts, model profiles, tests, documentation, and this `.clinerules` file in the project commit when they are part of the requested work.
+- Do not commit secrets, local environment files, generated dependencies, or transient process logs.
+- Update `TOMORROW_RESUME.md` in place after a significant milestone. Mark it `LATEST VERSION` and use the current date.

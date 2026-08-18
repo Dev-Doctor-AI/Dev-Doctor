@@ -1,8 +1,15 @@
 # Dev Doctor — Resume Snapshot
 
-**Updated:** 2026-08-17 end of day
-**Primary resume file:** `TOMORROW_RESUME.md`
-**Tomorrow's first task:** Fix the Gemini technical-spec response contract so Duck Wars can pass MVP Feature Specs and continue into Final TDD.
+**Updated:** 2026-08-19
+**Primary resume file:** `TOMORROW_RESUME.md` (LATEST VERSION; overwrite in place)
+**Current next task:** Re-run the uncapped adaptive Number Quest flow with local Qwen, then validate all eight gates and package exports.
+
+## Latest stopped run — 2026-08-19
+
+- The final Qwen 3.5 9B Number Quest run completed 24 adaptive turns without browser or transport errors, but stopped at the former fixed conversation cap before the compile handoff.
+- The fixed cap has now been removed. The runner continues until the real completion gate, critique form, or a genuine browser/inference failure.
+- No final package was produced by that run.
+- Evidence: `Output Files/Number_Quest_E2E/number-quest-2026-08-18T14-04-15-145Z/`.
 
 ## Accepted today
 
@@ -15,27 +22,22 @@
 - Rollup vendor chunking reduced the largest bundle from approximately 1,768.74 kB to 1,116.10 kB.
 - `node --check`, `npm run lint`, `git diff --check`, and `npm run build` passed.
 
-## Exact blocker
+## Resolved previous blocker
 
-Gemini fails during MVP Feature Specs technical-spec generation with:
+The previous Gemini technical-spec response-shape failure was addressed in the provider adapter. Focused technical-spec, structured-output, and Gemini response regression tests pass.
 
-```text
-Generated technical specifications failed validation.
-Response did not contain a technical specification object.
-Technical specification must be an object.
-```
+Strict validation remains enabled. A malformed response is repaired twice and rejected if it remains invalid; it must not unlock downstream gates.
 
-The failure is in model response shape/normalization or prompt/schema alignment. Do not weaken the technical-spec validator until the provider response contract has been traced.
+## Current order
 
-## Tomorrow order
-
-1. Inspect the Gemini response and technical-spec prompt/normalizer in `services/lmStudioService.ts` and `services/technicalSpecContract.ts`.
-2. Add or update a focused regression for malformed/missing technical-spec objects.
-3. Rerun `npm run test:technical-spec`, `npm run test:structured-output`, and the relevant MVP/TDD smoke tests.
-4. Rerun `npm run run:visible-duck-wars` with human-like movement and confirm the video/snapshots use the new button order.
-5. Continue Duck Wars through Final TDD, Freelance Briefs, Assets, Pitch, and Scope.
-6. Verify the final Rich Package, progress modal, screenshots, video, persisted metadata, and cleanup.
-7. Run production preview/runtime checks and review the staged Git commit.
+1. Use local `qwen/qwen3.5-9b` for the current Number Quest validation run.
+2. Run the uncapped visible runner with `E2E_INFERENCE_TIMEOUT_MS=1800000`.
+3. Verify all eight gates, four exports, persisted package data, screenshots, and video.
+4. Run the focused validation suite after the package pass.
+5. Add pseudocode, dependency tree, node tree, contract outputs, and sign-off records to the output contract.
+6. Test exports at each completed gate and fix section-specific Markdown/Text filtering.
+7. Keep provider fallback out of scope; a failed run can be rerun manually with another provider.
+8. Keep production streaming deferred. Test-only streaming may be used later for marketing video experiments.
 
 ## Important evidence
 

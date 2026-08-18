@@ -133,6 +133,18 @@ try {
   assert.deepEqual(normalizedResult.featureSpec.performanceTargets, ['Deployment completes within 200 ms.']);
   assert.equal(normalizedResult.warnings.length, 1);
 
+  const aliasedScenarioResult = normalizeMVPFeatureSpec({
+    ...spaceMarinesFeature,
+    scenarios: [
+      { scenarioId: 'aliased-happy', scenarioType: 'happy path', scenarioTitle: 'Aliased happy path', Given: 'The relay is visible.', When: 'The leader confirms deployment.', Then: 'The squad enters Active state.' },
+      { id: 'aliased-failure', kind: 'edge case', title: 'Aliased edge case', precondition: ['The roster is full.'], action: ['The leader requests another unit.'], expectedOutcome: 'The request is rejected.' },
+    ],
+  });
+  assert.equal(aliasedScenarioResult.featureSpec.scenarios.length, 2);
+  assert.equal(aliasedScenarioResult.featureSpec.scenarios[0].type, 'happy-path');
+  assert.equal(aliasedScenarioResult.featureSpec.scenarios[1].type, 'edge-case');
+  assert.equal(validateMVPFeatureSpec(aliasedScenarioResult.featureSpec, { requireStrongContract: true }).valid, true);
+
   const strongResult = parseMVPFeatureSpecResponse(JSON.stringify(spaceMarinesFeature), true);
   assert.equal(strongResult.parseErrors.length, 0);
   assert.equal(strongResult.validation.valid, true);
@@ -142,7 +154,7 @@ try {
   assert.equal(legacyParsedResult.featureSpec.id, 'legacy-save');
   const weakGeneratedResult = parseMVPFeatureSpecResponse(JSON.stringify(legacyFeature), true);
   assert.equal(weakGeneratedResult.featureSpec, null);
-  assert(weakGeneratedResult.validation.errors.some(error => error.includes('at least two scenarios')));
+  assert(weakGeneratedResult.validation.errors.some(error => error.includes('exactly two scenarios')));
   assert(weakGeneratedResult.validation.errors.some(error => error.includes('happy-path')));
   const noScenarioResult = parseMVPFeatureSpecResponse(JSON.stringify({ ...legacyFeature, scenarios: [] }), true);
   assert.equal(noScenarioResult.featureSpec, null);
@@ -159,7 +171,7 @@ try {
 
   const weakCollectionResult = validateMVPFeatureSpecs([legacyFeature], { requireStrongContract: true });
   assert.equal(weakCollectionResult.valid, false);
-  assert(weakCollectionResult.errors.some(error => error.includes('at least two scenarios')));
+  assert(weakCollectionResult.errors.some(error => error.includes('exactly two scenarios')));
 
   const parseFailure = parseMVPFeatureSpecResponse('not JSON', true);
   assert.equal(parseFailure.featureSpec, null);

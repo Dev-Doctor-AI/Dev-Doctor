@@ -39,16 +39,16 @@ export const normalizeAssetMetadata = (value: unknown): AssetMetadata | null => 
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const source = value as any;
   return {
-    id: nonEmpty(source.id) ? source.id.trim() : '',
-    category: nonEmpty(source.category) ? source.category.trim() : '',
-    name: nonEmpty(source.name) ? source.name.trim() : '',
-    purpose: nonEmpty(source.purpose) ? source.purpose.trim() : '',
-    quantity: nonEmpty(source.quantity) ? source.quantity.trim() : undefined,
-    format: nonEmpty(source.format) ? source.format.trim() : undefined,
-    resolution: nonEmpty(source.resolution) ? source.resolution.trim() : undefined,
+    id: nonEmpty(source.id ?? source.assetId) ? String(source.id ?? source.assetId).trim() : '',
+    category: nonEmpty(source.category ?? source.assetCategory ?? source.type) ? String(source.category ?? source.assetCategory ?? source.type).trim() : '',
+    name: nonEmpty(source.name ?? source.assetName ?? source.title) ? String(source.name ?? source.assetName ?? source.title).trim() : '',
+    purpose: nonEmpty(source.purpose ?? source.description) ? String(source.purpose ?? source.description).trim() : '',
+    quantity: nonEmpty(source.quantity ?? source.count) ? String(source.quantity ?? source.count).trim() : undefined,
+    format: nonEmpty(source.format ?? source.fileFormat) ? String(source.format ?? source.fileFormat).trim() : undefined,
+    resolution: nonEmpty(source.resolution ?? source.dimensions) ? String(source.resolution ?? source.dimensions).trim() : undefined,
     dependencies: strings(source.dependencies),
-    ownerRole: nonEmpty(source.ownerRole) ? source.ownerRole.trim() : '',
-    acceptanceCriteria: strings(source.acceptanceCriteria),
+    ownerRole: nonEmpty(source.ownerRole ?? source.owner ?? source.role) ? String(source.ownerRole ?? source.owner ?? source.role).trim() : '',
+    acceptanceCriteria: strings(source.acceptanceCriteria ?? source.acceptance),
     sourceReferences: strings(source.sourceReferences),
   };
 };
@@ -136,12 +136,13 @@ export const parseProductionBriefsResponse = (value: unknown): {
     const brief = normalizeProductionBrief(item);
     return brief ? [brief] : [];
   });
-  const validation = validateProductionBriefs(briefs);
+  const normalizedBriefs = normalizeRelatedBriefReferences(briefs);
+  const validation = validateProductionBriefs(normalizedBriefs);
   if (briefs.length !== value.length) {
     validation.valid = false;
     validation.errors.push('Production brief response contained malformed entries.');
   }
-  return { briefs: validation.valid ? briefs : [], validation };
+  return { briefs: validation.valid ? normalizedBriefs : [], validation };
 };
 
 export const validateAssetMetadata = (value: unknown): ProductionHandoffValidationOutcome => {
@@ -198,13 +199,16 @@ export const parseAssetMetadataResponse = (value: unknown): {
   assets: AssetMetadata[];
   validation: ProductionHandoffValidationOutcome;
 } => {
-  if (!Array.isArray(value)) return { assets: [], validation: { valid: false, errors: ['Asset response must be an array.'], warnings: [] } };
-  const assets = value.flatMap(item => {
+  const source = Array.isArray(value) ? value : value && typeof value === 'object'
+    ? (['assets', 'assetMetadata', 'assetList', 'result', 'output'].map(key => (value as Record<string, unknown>)[key]).find(Array.isArray) || [])
+    : [];
+  if (!source.length) return { assets: [], validation: { valid: false, errors: ['Asset response must be a non-empty array.'], warnings: [] } };
+  const assets = source.flatMap(item => {
     const asset = normalizeAssetMetadata(item);
     return asset ? [asset] : [];
   });
   const validation = validateAssetMetadataCollection(assets);
-  if (assets.length !== value.length) {
+  if (assets.length !== source.length) {
     validation.valid = false;
     validation.errors.push('Asset response contained malformed entries.');
   }

@@ -582,7 +582,12 @@ const App: React.FC = () => {
     const handleGenerateTddSpecs = async (overrideGdd?: GDDSection[], overrideMvp?: MVPDefinition | null): Promise<TDDFeature[] | null> => {
         console.log("[App] handleGenerateTddSpecs called");
         const isRefactoring = generationStatus.key === 'refactor';
-        if ((generationStatus.isActive && !isRefactoring) || (tddSpecsGenerated && !overrideGdd) || (!mvpGenerated && !overrideMvp)) return null;
+        const guardState = { generationKey: generationStatus.key, generationActive: generationStatus.isActive, tddSpecsGenerated, mvpGenerated, hasOverrideGdd: Boolean(overrideGdd), hasOverrideMvp: Boolean(overrideMvp) };
+        console.log('[App] handleGenerateTddSpecs guard state', guardState);
+        if ((generationStatus.isActive && !isRefactoring) || (tddSpecsGenerated && !overrideGdd) || (!mvpGenerated && !overrideMvp)) {
+            console.warn('[App] handleGenerateTddSpecs returned by guard', guardState);
+            return null;
+        }
         let attemptValidationOutcomes: MVPFeatureSpecValidationOutcome[] = [];
         
         try {
@@ -591,6 +596,7 @@ const App: React.FC = () => {
             if (!isRefactoring) {
                 setGenerationStatus({ key: 'tdd_specs', isActive: true, progress: 0, message: 'Starting...', title: 'Generating MVP Feature Specs', substage: 'preparing', completed: 0, total: 0, activitySequence: 0 });
             }
+            console.log('[App] handleGenerateTddSpecs entered generation body');
             
             let mvp = overrideMvp || mvpDefinition;
             const contentToUse = overrideGdd || gddContent;
@@ -1092,7 +1098,11 @@ const App: React.FC = () => {
                 setRiskCritique(completedRiskCritique);
             } catch (error) {
                 console.error('Completed-critique persona specialist generation failed:', error);
-                setWorkflowError('User Proxy or Senior Technical Analyst review could not be generated. Core document generation will continue, but retry the critique workflow if those records are required.');
+                // Persona enrichment is optional. Keep the required GDD/MVP/TDD
+                // pipeline moving when User Proxy or Risk Critique validation
+                // fails; a workflow error here incorrectly locks every downstream
+                // gate even though core document generation can continue.
+                setWorkflowError(null);
             }
 
             setGenerationStatus({ key: 'gdd', isActive: true, progress: 10, message: 'Expanding conversation...', title: 'Generating Core Document' });

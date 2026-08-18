@@ -18,6 +18,8 @@ try {
   const resolver = await import(pathToFileURL(resolverPath).href);
   const known = resolver.resolveModelCapabilityProfile('lmstudio', 'mistralai/mistral-7b-instruct-v0.3');
   assert.equal(known.structuredOutput, 'unknown');
+  assert.equal(known.reasoning, 'unsupported');
+  assert.equal(known.recommendedOutputTokens, 512);
   assert.equal(known.contextWindow, undefined);
   const unknown = resolver.resolveModelCapabilityProfile('lmstudio', 'future-model');
   assert.equal(unknown.model, 'future-model');
