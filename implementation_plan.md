@@ -6,7 +6,7 @@ Provide Dev Doctor AI with a runtime-selectable AI provider layer, defaulting to
 
 The application must build successfully, use one active AI service, avoid obsolete credentials and external AI endpoints, and document unsupported capabilities clearly.
 
-## Current handoff — 2026-08-18
+## Current handoff — 2026-08-19
 
 - The primary resume file is `TOMORROW_RESUME.md`.
 - The visible Duck Wars flow has been validated through GDD and MVP; MVP Feature Specs unlocks visibly.
@@ -15,9 +15,10 @@ The application must build successfully, use one active AI service, avoid obsole
 - The progress modal exposes canonical workflow position and stage activity metadata.
 - Conservative Rollup manual chunks are enabled and the largest bundle is approximately 1,116.10 kB.
 - The Gemini technical-spec response-shape issue has been addressed with structured response extraction and regression coverage; strict validation remains enabled.
-- The next visible validation uses only the local `mistralai/mistral-7b-instruct-v0.3` model.
-- The latest Mistral diagnostic run completed GDD and MVP but was stopped before MVP Feature Specs because the browser was idle at that transition; no final package was produced.
-- The next diagnostic run uses `gpt-5.6-luna` through the OpenAI provider/keychain bridge to identify remaining gate and pipeline issues faster.
+- The Number Quest validation uses only Local LM Studio exact Qwen `qwen/qwen3.5-9b`; Mistral and cloud paths are not permitted for this runner.
+- Exact-Qwen diagnostic, MVP Feature Specs smoke, Final TDD smoke, and Freelance Briefs smoke passed after thinking was disabled in the user-managed LM Studio runtime.
+- The latest instrumented full run reached GDD, MVP, entered `tdd_specs`, completed all four feature specs, and advanced through technical specs before `net::ERR_NETWORK_IO_SUSPENDED` after machine/browser idle.
+- The next full run must be protected with `caffeinate -dimsu -- env` and must verify all eight gates, exports, persisted package data, screenshots, video, and cleanup.
 - `scripts/run-visible-duck-wars-manual.mjs` now supports typed-user conversation mode by default and seeded recovery mode with `DUCK_WARS_SEEDED=1`.
 - Provider fallback is deliberately out of scope: a failed run can be rerun manually through another provider.
 - Production streaming is deliberately deferred; any future stream capture is test/marketing-video infrastructure only.

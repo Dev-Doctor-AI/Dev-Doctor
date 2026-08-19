@@ -1124,8 +1124,6 @@ const App: React.FC = () => {
             
             const gdd = await AIService.generateFullGDDV2(text, toc, name);
             setGddContent(gdd);
-            const synthesized = await AIService.generateSynthesis(JSON.stringify({ gdd, memoryEntries, critique: completedCritique, risks: completedRiskCritique }), ['gdd', 'memory', 'critique', 'risks']);
-            setSynthesis(synthesized);
             setGddGenerated(true);
             setGenerationStatus(prev => ({ ...prev, progress: 100, message: 'Complete!' }));
             

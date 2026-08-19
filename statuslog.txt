@@ -1,3 +1,18 @@
+## Task update: exact-Qwen handoff and caffeinate-required next run — 2026-08-19
+
+- Replaced the repository `.clinerules` with an exact copy of the global `/Users/clayton/Projects/Games/Dev Dr/.clinerules` so the public GitHub repository contains the authoritative operating rules. Confirmed the file is tracked and not ignored.
+- Locked the Number Quest runner and TDD/Freelance/MVP smoke scripts to Local LM Studio and exact model `qwen/qwen3.5-9b`; removed Mistral/cloud fallback paths from Number Quest validation and stopped printing other model IDs.
+- Exact-Qwen direct diagnostic passed: concise instruction, parseable structured JSON, raw Markdown, and repeatability all completed with zero reasoning characters after the user disabled thinking.
+- Exact-Qwen MVP Feature Specs smoke passed with two validated feature specs and two technical specs.
+- Exact-Qwen Final TDD smoke passed with 6 persisted sections.
+- Exact-Qwen Freelance Briefs smoke passed with 6 structured briefs.
+- The instrumented full run reached GDD, MVP, actual `tdd_specs` entry, all four feature specs, and technical-spec generation before `net::ERR_NETWORK_IO_SUSPENDED` following prolonged machine/browser idle. Failure evidence: `Output Files/Number_Quest_E2E/number-quest-2026-08-19T10-47-26-466Z/run-failure.json`.
+- Added Feature Specs start/progress instrumentation so future runs distinguish handler entry, model activity, stage progress, and environmental suspension.
+- Fixed the browser-unsafe `process.env.MVP_FEATURE_SPEC_TIMEOUT_MS` access by using `import.meta.env.VITE_MVP_FEATURE_SPEC_TIMEOUT_MS`, passing the value through Vite, and declaring the Vite type.
+- Removed the redundant post-GDD synthesis request that caused the prior `repair_synthesis` failure; canonical synthesis remains validated and persisted.
+- Tested: syntax, lint, build, diff check, memory-persona, unified-pipeline, package-rendering, exact-Qwen smoke scans, MVP/TDD/Freelance live smoke stages.
+- Not tested: a complete eight-gate package after the sleep/network failure; next run must use caffeinate and verify cleanup, artifacts, exports, and final package.
+
 ## Architecture Review & Multi-Agent Execution Plan for Unified Compilation (2026-08-16)
 
 - Identified Root Cause of Incomplete Package Exports:

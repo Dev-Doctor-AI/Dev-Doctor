@@ -2,9 +2,20 @@
 
 **Updated:** 2026-08-19
 **Primary resume file:** `TOMORROW_RESUME.md` (LATEST VERSION; overwrite in place)
-**Current next task:** Re-run the uncapped adaptive Number Quest flow with local Qwen, then validate all eight gates and package exports.
+**Current next task:** Re-run the uncapped exact-Qwen Number Quest flow under `caffeinate`, then validate all eight gates and package exports.
+
+## Current model/runtime contract
+
+- LM Studio is user-managed and off limits to automation.
+- Number Quest is locked to Local LM Studio with exact model `qwen/qwen3.5-9b`.
+- Do not enumerate, select, unload, or switch other LM Studio models.
+- Thinking is disabled in the user-configured Qwen runtime.
 
 ## Latest stopped run — 2026-08-19
+
+- The instrumented full run reached GDD, MVP, entered `tdd_specs`, completed all four feature specs, and advanced through technical specs before `net::ERR_NETWORK_IO_SUSPENDED` after prolonged machine/browser idle.
+- This is a sleep/network suspension failure. Use `caffeinate -dimsu -- env ... npm run run:visible-number-quest` for the next full run.
+- Evidence: `Output Files/Number_Quest_E2E/number-quest-2026-08-19T10-47-26-466Z/`.
 
 - The final Qwen 3.5 9B Number Quest run completed 24 adaptive turns without browser or transport errors, but stopped at the former fixed conversation cap before the compile handoff.
 - The fixed cap has now been removed. The runner continues until the real completion gate, critique form, or a genuine browser/inference failure.

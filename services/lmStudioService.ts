@@ -892,7 +892,7 @@ const featureSpecGenerationResult = (
 });
 
 export const generateMVPFeatureSpec = async (feature: string, projectName: string, mvp: MVPDefinition, context = ''): Promise<MVPFeatureSpecGenerationResult> => {
-  const featureSpecTimeoutMs = Number(process.env.MVP_FEATURE_SPEC_TIMEOUT_MS || 300_000);
+  const featureSpecTimeoutMs = Number(import.meta.env.VITE_MVP_FEATURE_SPEC_TIMEOUT_MS || 300_000);
   const slug = feature.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'mvp-feature';
   const timeoutFallback = JSON.stringify({
     id: slug,

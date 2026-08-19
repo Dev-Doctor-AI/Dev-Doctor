@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -76,13 +77,13 @@ const historyValue = Buffer.from(compressed).toString('base64');
 
 const modelsResponse = await fetch(modelsUrl).catch(() => null);
 if (!modelsResponse?.ok) throw new Error(`LM Studio is unavailable at ${modelsUrl}. Start LM Studio before running this real-inference smoke test.`);
-const models = (await modelsResponse.json()).data?.map(model => model.id).filter(Boolean) || [];
-if (!models.length) throw new Error('LM Studio has no loaded models.');
-console.log(`Running bounded two-feature MVP smoke with available models: ${models.join(', ')}`);
+const exactQwenModel = (await modelsResponse.json()).data?.some(model => model.id === 'qwen/qwen3.5-9b');
+if (!exactQwenModel) throw new Error('The configured exact Qwen model qwen/qwen3.5-9b was not reported by LM Studio.');
+console.log('Running bounded two-feature MVP smoke with the configured Qwen model.');
 
 const port = await availablePort(Number(process.env.E2E_MVP_SMOKE_PORT || 3010));
 const appUrl = `http://127.0.0.1:${port}/`;
-const server = spawn('npm', ['run', 'dev', '--', '--port', String(port), '--host', '127.0.0.1', '--strictPort'], { cwd: root, shell: true, stdio: 'pipe' });
+const server = spawn('npm', ['run', 'dev', '--', '--port', String(port), '--host', '127.0.0.1', '--strictPort'], { cwd: root, env: { ...process.env, VITE_MVP_FEATURE_SPEC_TIMEOUT_MS: process.env.MVP_FEATURE_SPEC_TIMEOUT_MS || '300000' }, shell: true, stdio: 'pipe' });
 const proxy = spawn('node', ['scripts/lm-proxy.js'], { cwd: root, stdio: 'pipe' });
 server.stdout?.on('data', chunk => process.stdout.write(`[vite] ${chunk}`));
 server.stderr?.on('data', chunk => process.stderr.write(`[vite] ${chunk}`));
@@ -112,6 +113,15 @@ try {
   page.on('requestfailed', request => requestFailures.push(`${request.method()} ${request.url()}: ${request.failure()?.errorText || 'unknown failure'}`));
 
   await page.goto(appUrl, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.getByRole('button', { name: 'AI provider settings' }).click();
+  await page.locator('input[name="providerType"]').first().check();
+  const qwenOption = page.locator('option[value="qwen/qwen3.5-9b"]');
+  assert.equal(await qwenOption.count(), 1, 'The exact Qwen model option must be present in the local provider UI.');
+  await qwenOption.locator('..').selectOption('qwen/qwen3.5-9b');
+  assert.equal(await page.locator('input[name="providerType"]').first().isChecked(), true, 'MVP smoke must use Local (LM Studio).');
+  assert.equal(await page.locator('input[name="providerType"]').nth(1).isChecked(), false, 'MVP smoke must not use a cloud provider.');
+  assert.equal(await qwenOption.locator('..').inputValue(), 'qwen/qwen3.5-9b', 'MVP smoke must use qwen/qwen3.5-9b exactly.');
+  await page.getByRole('button', { name: 'Close provider settings' }).click();
   await page.locator('h2:has-text("Rich project package")').waitFor({ state: 'visible', timeout: 60_000 });
   const button = page.locator('button:has-text("Generate MVP Feature Specs")').first();
   await button.waitFor({ state: 'visible' });
@@ -124,7 +134,10 @@ try {
     inactivityTimeoutMs: Number(process.env.E2E_PROGRESS_INACTIVITY_MS || 420_000),
     hardTimeoutMs: Number(process.env.E2E_MVP_SMOKE_HARD_TIMEOUT_MS || 1_800_000),
     completed: async () => Boolean((await button.locator('h4').getAttribute('class').catch(() => ''))?.includes('text-green-400')),
-    getError: async () => browserErrors.find(message => /Failed to generate|returned an invalid|generation failed/i.test(message)) || null,
+    getError: async () => {
+      const workflowError = await page.locator('[data-testid="workflow-error"]').innerText().catch(() => '');
+      return workflowError.trim() || browserErrors.find(message => /Failed to generate|returned an invalid|generation failed|process is not defined/i.test(message)) || null;
+    },
   });
 
   if (requestFailures.length) throw new Error(`Browser request failures occurred: ${requestFailures.join(' | ')}`);

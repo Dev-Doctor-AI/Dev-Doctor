@@ -11,11 +11,15 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const runId = `number-quest-${new Date().toISOString().replace(/[:.]/g, '-')}`;
 const runDirectory = path.join(root, 'Output Files', 'Number_Quest_E2E', runId);
 const seededRun = process.env.NUMBER_QUEST_SEEDED === '1';
-const modelMode = process.env.NUMBER_QUEST_MODEL || 'mistral';
-const model = process.env.NUMBER_QUEST_MODEL_ID || (modelMode === 'mistral' ? 'mistralai/mistral-7b-instruct-v0.3' : 'gpt-5.6-luna');
-const isLuna = modelMode !== 'mistral';
+const smokeRun = process.env.NUMBER_QUEST_SMOKE === '1';
+const modelMode = process.env.NUMBER_QUEST_MODEL || 'qwen';
+const model = process.env.NUMBER_QUEST_MODEL_ID || 'qwen/qwen3.5-9b';
 const inferenceTimeout = Number(process.env.E2E_INFERENCE_TIMEOUT_MS || process.env.NUMBER_QUEST_TIMEOUT_MS || 1_800_000);
+const creatorContextCharacterLimit = Number(process.env.E2E_CREATOR_CONTEXT_CHARACTER_LIMIT || 12_000);
 const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+assert.equal(modelMode, 'qwen', `Unsupported NUMBER_QUEST_MODEL=${modelMode}. Number Quest is locked to the local Qwen runtime.`);
+assert.equal(model, 'qwen/qwen3.5-9b', `Unsupported NUMBER_QUEST_MODEL_ID=${model}. Number Quest is locked to qwen/qwen3.5-9b.`);
+assert(Number.isFinite(creatorContextCharacterLimit) && creatorContextCharacterLimit >= 2_000, 'E2E_CREATOR_CONTEXT_CHARACTER_LIMIT must be a finite number of at least 2000 characters.');
 const humanClick = async (page, locator) => {
   await locator.scrollIntoViewIfNeeded();
   const box = await locator.boundingBox();
@@ -43,6 +47,26 @@ async function availablePort(preferred) {
   }
   throw new Error('No available port for Number Quest E2E run.');
 }
+
+const waitForHealthyEndpoint = async (url, label, validate = async () => true) => {
+  let lastError = 'endpoint did not respond';
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        lastError = `${response.status} ${response.statusText}`;
+      } else if (await validate(response)) {
+        return;
+      } else {
+        lastError = 'response did not satisfy the expected contract';
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await sleep(500);
+  }
+  throw new Error(`${label} did not become healthy: ${lastError}`);
+};
 
 const questions = [
   'Which platforms, age range, and accessibility needs must the first release support?',
@@ -104,18 +128,45 @@ const waitForButtonGenerated = async (page, title, timeout = inferenceTimeout) =
   assert.equal(await button.isDisabled(), false, `${title} should be enabled by its gate.`);
   const beforeClick = await page.locator('[data-testid="generation-progress"]').evaluate(element => ({ stage: element.dataset.stage, progress: element.dataset.progress })).catch(() => null);
   await humanClick(page, button);
+  const workflowError = async () => page.locator('[data-testid="workflow-error"]').innerText().catch(() => '');
+  const progressState = async () => page.locator('[data-testid="generation-progress"]').evaluate(element => ({
+    stage: element.dataset.stage,
+    substage: element.dataset.substage,
+    progress: element.dataset.progress,
+    completed: element.dataset.completed,
+    total: element.dataset.total,
+    currentItem: element.dataset.currentItem,
+    activitySequence: element.dataset.activitySequence,
+  })).catch(() => null);
+  if (title === 'Generate MVP Feature Specs') {
+    await page.waitForFunction(() => {
+      const progress = document.querySelector('[data-testid="generation-progress"]');
+      return progress?.getAttribute('data-stage') === 'tdd_specs';
+    }, null, { timeout: 30_000 });
+    const startedProgress = await progressState();
+    assert.equal(startedProgress?.stage, 'tdd_specs', 'MVP Feature Specs progress modal must enter the tdd_specs stage before generation continues.');
+    await writeFile(path.join(runDirectory, 'feature-specs-started.json'), JSON.stringify({
+      title,
+      beforeClick,
+      startedAt: new Date().toISOString(),
+      progress: startedProgress,
+    }, null, 2));
+  }
   const clickRegistered = async () => {
+    const error = await workflowError();
+    if (error.trim()) throw new Error(`${title} failed in the application: ${error.trim()}`);
     const disabled = await button.isDisabled().catch(() => false);
     const progress = await page.locator('[data-testid="generation-progress"]').evaluate(element => ({ stage: element.dataset.stage, progress: element.dataset.progress })).catch(() => null);
-    return disabled || (progress && progress.stage !== beforeClick?.stage) || (progress && progress.progress !== beforeClick?.progress);
+    return Boolean(disabled || (progress && progress.stage !== beforeClick?.stage) || (progress && progress.progress !== beforeClick?.progress));
   };
   await page.waitForTimeout(1_000);
   if (!await clickRegistered()) {
     await button.click();
     await page.waitForTimeout(500);
   }
-  await writeFile(path.join(runDirectory, `${String(recordButtons.index).padStart(2, '0')}-${title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-click.json`), JSON.stringify({ title, beforeClick, registered: await clickRegistered(), timestamp: new Date().toISOString() }, null, 2));
-  assert.equal(await clickRegistered(), true, `${title} click did not register in the application.`);
+  const registered = await clickRegistered();
+  await writeFile(path.join(runDirectory, `${String(recordButtons.index).padStart(2, '0')}-${title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-click.json`), JSON.stringify({ title, beforeClick, registered, timestamp: new Date().toISOString() }, null, 2));
+  assert.equal(registered, true, `${title} click did not register in the application.`);
   await page.waitForFunction(expectedTitle => {
     const progress = document.querySelector('[data-testid="generation-progress"]');
     return progress?.getAttribute('data-stage') === (expectedTitle === 'Generate MVP Feature Specs' ? 'tdd_specs' : expectedTitle === 'Assemble Final TDD' ? 'tdd_doc' : null);
@@ -123,34 +174,80 @@ const waitForButtonGenerated = async (page, title, timeout = inferenceTimeout) =
     if (title === 'Generate MVP Feature Specs') throw new Error(`${title} click registered visually, but the application did not enter the tdd_specs progress stage.`);
   });
   const started = Date.now();
+  let lastProgressSnapshot = 0;
   while (Date.now() - started < timeout) {
     if (await page.locator('[data-testid="workflow-error"]').count()) throw new Error(await page.locator('[data-testid="workflow-error"]').innerText());
+    if (title === 'Generate MVP Feature Specs' && Date.now() - lastProgressSnapshot >= 15_000) {
+      const progress = await progressState();
+      await writeFile(path.join(runDirectory, `feature-specs-progress-${String(Math.floor((Date.now() - started) / 15_000)).padStart(3, '0')}.json`), JSON.stringify({ capturedAt: new Date().toISOString(), elapsedMs: Date.now() - started, progress }, null, 2));
+      lastProgressSnapshot = Date.now();
+    }
     if (await button.locator('h4').getAttribute('class').then(value => value?.includes('text-green-400')).catch(() => false)) return recordButtons(page, `${title}-complete`);
     await page.waitForTimeout(1_000);
   }
   throw new Error(`${title} did not complete within timeout.`);
 };
 
-const requestAdaptiveUserReply = async (transcript, latestConciergeMessage) => {
-  const response = await fetch('http://127.0.0.1:1235/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      temperature: 0,
-      max_tokens: 1024,
-      messages: [
-        { role: 'system', content: 'You are simulating the creator of a children\'s game in a realistic discovery interview. Answer the Concierge\'s latest question directly as the creator. Use only the supplied raw brief, make sensible bounded decisions when details are missing, and do not ask a new question. If the Concierge asks whether to compile or begin the formal critique, clearly confirm readiness.' },
-        { role: 'user', content: `Raw project brief:\n${rawBrief}\n\nConversation so far:\n${transcript}\n\nLatest Concierge message:\n${latestConciergeMessage}\n\nReturn only the creator's next answer.` },
-      ],
-    }),
+const normalizeReply = value => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const isInterviewerStyleReply = (reply, latestConciergeMessage, priorCreatorReplies) => {
+  const normalizedReply = normalizeReply(reply);
+  const normalizedQuestion = normalizeReply(latestConciergeMessage);
+  const interviewerLead = /^(?:that is|that sounds|to help|could you|can you|what (?:specific|happens)|how does)/i.test(reply.trim());
+  const echoesQuestion = normalizedReply.length > 30 && (normalizedQuestion.includes(normalizedReply) || normalizedReply.includes(normalizedQuestion));
+  const repeatsCreator = priorCreatorReplies.some(previous => {
+    const normalizedPrevious = normalizeReply(previous);
+    return normalizedReply.length > 40 && normalizedPrevious.length > 40 && (normalizedReply.includes(normalizedPrevious) || normalizedPrevious.includes(normalizedReply));
   });
-  if (!response.ok) throw new Error(`Adaptive creator reply failed (${response.status}).`);
-  const payload = await response.json();
-  const reply = payload.choices?.[0]?.message?.content?.trim();
-  if (!reply) throw new Error('Adaptive creator reply was empty.');
-  return reply;
+  return interviewerLead || echoesQuestion || repeatsCreator;
 };
+
+const requestAdaptiveUserReply = async (transcript, latestConciergeMessage, priorCreatorReplies) => {
+  let lastReply = '';
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), inferenceTimeout);
+    let response;
+    try {
+      response = await fetch('http://127.0.0.1:1235/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          temperature: 0,
+          max_tokens: 1024,
+          messages: [
+            { role: 'system', content: 'You are the human creator, not the Concierge interviewer. Reply directly to the Concierge question using first-person project decisions. Never praise, summarize, repeat, or ask a question back to the Concierge. Do not use interviewer phrases such as "That is wonderful", "That sounds", or "To help us". Use only the supplied raw brief and make a concrete bounded decision when details are missing. Return only the creator answer.' },
+            { role: 'user', content: `Raw project brief:\n${rawBrief}\n\nRecent role-labelled conversation:\n${transcript}\n\nConcierge question to answer (and only this question):\n${latestConciergeMessage}\n\n${attempt === 0 ? 'Write the creator answer now.' : 'Your prior draft sounded like the Concierge or repeated a prior creator answer. Correct the role error and write only a new concrete creator answer now.'}` },
+          ],
+        }),
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') throw new Error(`Adaptive creator reply timed out after ${inferenceTimeout}ms.`);
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!response.ok) throw new Error(`Adaptive creator reply failed (${response.status}).`);
+    const payload = await response.json();
+    const reply = payload.choices?.[0]?.message?.content?.trim();
+    if (!reply) {
+      const reasoningCharacters = payload.choices?.[0]?.message?.reasoning_content?.length || 0;
+      const finishReason = payload.choices?.[0]?.finish_reason || 'unknown';
+      throw new Error(`Adaptive creator reply had no visible content (finish_reason=${finishReason}, reasoning_characters=${reasoningCharacters}).`);
+    }
+    lastReply = reply;
+    if (!isInterviewerStyleReply(reply, latestConciergeMessage, priorCreatorReplies)) return reply;
+  }
+  throw new Error(`Adaptive creator reply remained interviewer-style after correction: ${lastReply.slice(0, 160)}`);
+};
+
+const readVisibleMessages = async page => page.locator('[aria-live="polite"] > div').evaluateAll(rows => rows.map(row => {
+  if (row.textContent?.trim() === 'Thinking...') return null;
+  const sender = row.classList.contains('justify-end') ? 'creator' : 'concierge';
+  const bubble = Array.from(row.querySelectorAll('div')).find(element => element.classList.contains('max-w-xl'));
+  return bubble?.textContent?.trim() ? { sender, text: bubble.textContent.trim() } : null;
+}).filter(Boolean));
 
 const typeConversation = async page => {
   const input = page.getByRole('textbox', { name: 'Your response' });
@@ -177,9 +274,30 @@ const typeConversation = async page => {
     await page.screenshot({ path: path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-complete.png`), fullPage: true });
     const critiqueFormVisible = await page.locator('textarea[id^="critique-q-"]').first().isVisible().catch(() => false);
     if (critiqueFormVisible) break;
-    const newTranscript = afterTranscript.startsWith(beforeTranscript)
-      ? afterTranscript.slice(beforeTranscript.length)
-      : afterTranscript;
+    const visibleMessages = await readVisibleMessages(page);
+    const latestConciergeMessage = [...visibleMessages].reverse().find(message => message.sender === 'concierge')?.text;
+    assert(latestConciergeMessage, `Conversation turn ${turn + 1} did not expose a latest Concierge message.`);
+    const roleLabelledTranscript = visibleMessages.map(message => `${message.sender}: ${message.text}`).join('\n\n');
+    const boundedTranscript = roleLabelledTranscript.length <= creatorContextCharacterLimit
+      ? roleLabelledTranscript
+      : `${roleLabelledTranscript.slice(0, 1_000)}\n\n[Earlier conversation omitted for the creator helper context]\n\n${roleLabelledTranscript.slice(-(creatorContextCharacterLimit - 1_080))}`;
+    const priorCreatorReplies = visibleMessages.filter(message => message.sender === 'creator').map(message => message.text);
+    if (smokeRun) {
+      const adaptiveReply = await requestAdaptiveUserReply(boundedTranscript, latestConciergeMessage, priorCreatorReplies);
+      await writeFile(path.join(runDirectory, 'smoke-summary.json'), JSON.stringify({
+        mode: 'real-first-turn-adaptive-smoke',
+        provider: 'lmstudio',
+        model,
+        typedCreatorMessage: message,
+        latestConciergeMessage,
+        adaptiveCreatorReply: adaptiveReply,
+        visibleMessageCount: visibleMessages.length,
+        creatorContextCharacters: boundedTranscript.length,
+        assertions: ['provider-selection', 'visible-concierge-response', 'adaptive-creator-reply', 'interviewer-loop-rejection'],
+      }, null, 2));
+      return true;
+    }
+    const newTranscript = latestConciergeMessage;
     const completionGateDetected = /(?:ready|shall|should|want|proceed)\b[^\n]{0,220}\b(?:compile|formal(?:\s+design)?\s+critique)|\b(?:compile|formal(?:\s+design)?\s+critique)\b[^\n]{0,220}\b(?:ready|proceed|begin|start)|formal(?:\s+design)?\s+critique/i.test(newTranscript);
     if (completionGateDetected) {
       const confirmation = 'Yes, please compile the project and begin the formal design critique.';
@@ -194,7 +312,7 @@ const typeConversation = async page => {
       const confirmationBefore = await conversationPane.innerText();
       await input.click();
       await input.pressSequentially(confirmation, { delay: 8 });
-      await writeFile(path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-typed.txt`), confirmation);
+      await writeFile(path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-completion-confirmation-typed.txt`), confirmation);
       await humanClick(page, send);
       await page.waitForFunction(() => {
         const field = document.querySelector('textarea[aria-label="Your response"]');
@@ -202,13 +320,19 @@ const typeConversation = async page => {
         return field instanceof HTMLTextAreaElement && !field.disabled && !thinking;
       }, null, { timeout: inferenceTimeout });
       const confirmationAfter = await conversationPane.innerText();
-      await writeFile(path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-visible.txt`), confirmationAfter);
+      await writeFile(path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-completion-confirmation-visible.txt`), confirmationAfter);
       assert.notEqual(confirmationAfter, confirmationBefore, 'Completion-gate confirmation did not produce a Concierge response.');
       assert(!confirmationAfter.includes("I'm sorry, I encountered an error."), 'Completion-gate confirmation returned an assistant error response.');
-      await page.screenshot({ path: path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-complete.png`), fullPage: true });
+      const confirmationMessages = await readVisibleMessages(page);
+      const confirmedConciergeMessage = [...confirmationMessages].reverse().find(message => message.sender === 'concierge')?.text;
+      assert(confirmedConciergeMessage, 'Completion-gate confirmation did not expose a Concierge response bubble.');
+      await writeFile(path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-completion-confirmation.json`), JSON.stringify({ confirmation, confirmedConciergeMessage }, null, 2));
+      await page.screenshot({ path: path.join(runDirectory, `conversation-${String(turn + 1).padStart(2, '0')}-completion-confirmation.png`), fullPage: true });
+      await writeFile(path.join(runDirectory, 'completion-handoff-released.json'), JSON.stringify({ releasedAt: new Date().toISOString(), turn: turn + 1, latestConciergeMessage: confirmedConciergeMessage, releaseRule: 'single explicit creator confirmation acknowledged by the Concierge; proceed to Generate GDD / PRD' }, null, 2));
       return true;
     }
-    message = await requestAdaptiveUserReply(afterTranscript, newTranscript);
+    message = await requestAdaptiveUserReply(boundedTranscript, latestConciergeMessage, priorCreatorReplies);
+    await writeFile(path.join(runDirectory, `conversation-${String(turn + 2).padStart(2, '0')}-adaptive-reply.json`), JSON.stringify({ latestConciergeMessage, creatorReply: message, creatorContextCharacters: boundedTranscript.length, priorCreatorReplyCount: priorCreatorReplies.length }, null, 2));
     turn += 1;
   }
 };
@@ -216,7 +340,7 @@ const typeConversation = async page => {
 await mkdir(runDirectory, { recursive: true });
 const historyValue = Buffer.from(pako.deflate(JSON.stringify(seededRun ? [project] : []))).toString('base64');
 const port = await availablePort(3000);
-const vite = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+const vite = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: root, env: { ...process.env, VITE_MVP_FEATURE_SPEC_TIMEOUT_MS: process.env.MVP_FEATURE_SPEC_TIMEOUT_MS || '300000' }, stdio: ['ignore', 'pipe', 'pipe'] });
 const auth = spawn('npm', ['run', 'start-auth'], { cwd: root, env: { ...process.env, AUTH_SERVER_PORT: '1236', DEV_DOCTOR_ALLOWED_ORIGINS: `http://127.0.0.1:${port},http://localhost:${port}` }, stdio: ['ignore', 'pipe', 'pipe'] });
 const lmProxy = spawn('node', ['scripts/lm-proxy.js'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
 lmProxy.stdout?.on('data', chunk => process.stdout.write(`[lm-proxy] ${chunk}`));
@@ -227,18 +351,12 @@ let recordedPage;
 const errors = []; const failures = [];
 
 try {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { if ((await fetch(`http://127.0.0.1:${port}/`)).ok) break; } catch {}
-    await sleep(500);
-  }
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { if ((await fetch('http://127.0.0.1:1236/health')).ok) break; } catch {}
-    await sleep(500);
-  }
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { if ((await fetch('http://127.0.0.1:1235/v1/models')).ok) break; } catch {}
-    await sleep(500);
-  }
+  await waitForHealthyEndpoint(`http://127.0.0.1:${port}/`, 'Vite');
+  await waitForHealthyEndpoint('http://127.0.0.1:1236/health', 'auth server');
+  await waitForHealthyEndpoint('http://127.0.0.1:1235/v1/models', 'LM Studio proxy', async response => {
+    const payload = await response.json();
+    return Array.isArray(payload.data) && payload.data.some(candidate => candidate.id === model);
+  });
   browser = await chromium.launch({ headless: false, slowMo: 35 });
   context = await browser.newContext({ viewport: { width: 1440, height: 950 }, recordVideo: { dir: runDirectory, size: { width: 1440, height: 950 } } });
   await context.addInitScript(({ value }) => localStorage.setItem('devDoctorAiProjectHistories', value), { value: historyValue });
@@ -250,12 +368,6 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await humanClick(page, page.getByRole('button', { name: 'AI provider settings' }));
   await page.locator('input[type="radio"]').first().check();
-  if (isLuna) {
-    await page.locator('input[type="radio"]').nth(1).check();
-    await page.locator('select').filter({ has: page.locator('option[value="openai"]') }).selectOption('openai');
-  } else {
-    await page.locator('input[type="radio"]').first().check();
-  }
   const modelOption = page.locator(`option[value="${model}"]`);
   if (await modelOption.count()) {
     await modelOption.locator('..').selectOption(model);
@@ -263,18 +375,27 @@ try {
     const modelInput = page.locator('input[placeholder="Enter any supported model ID"]');
     await modelInput.fill(model);
   }
-  if (isLuna) {
-    await page.waitForFunction(() => Array.from(document.querySelectorAll('input[type="password"]')).some(input => input.value.trim().length > 0), null, { timeout: 30_000 });
-  }
+  assert.equal(await page.locator('input[name="providerType"]').first().isChecked(), true, 'Qwen run must use Local (LM Studio).');
+  const localProviderRadio = page.locator('input[name="providerType"]').first();
+  const cloudProviderRadio = page.locator('input[name="providerType"]').nth(1);
+  const selectedModel = page.locator('select').filter({ has: page.locator(`option[value="${model}"]`) });
+  assert.equal(await localProviderRadio.isChecked(), true, 'Provider preflight expected Local (LM Studio).');
+  assert.equal(await cloudProviderRadio.isChecked(), false, 'Qwen run must not select a cloud provider.');
+  assert.equal(await selectedModel.inputValue(), model, `Provider preflight selected model did not match ${model}.`);
+  assert.equal(await page.locator('input[type="password"]').count(), 0, 'Local provider preflight must not expose a cloud API-key field.');
+  await writeFile(path.join(runDirectory, 'provider-selection.json'), JSON.stringify({ provider: 'lmstudio', model, localProviderSelected: await localProviderRadio.isChecked(), cloudProviderSelected: await cloudProviderRadio.isChecked(), cloudApiKeyFieldVisible: await page.locator('input[type="password"]').count() > 0 }, null, 2));
   await page.waitForTimeout(500);
   await humanClick(page, page.getByRole('button', { name: 'Close provider settings' }));
   if (!seededRun) {
     const completionGateConfirmed = await typeConversation(page);
     assert.equal(completionGateConfirmed, true, 'The runner must observe and confirm the Concierge completion gate before generating the GDD.');
-    await writeFile(path.join(runDirectory, 'conversation-mode.txt'), `typed-user-mode\nprovider=${isLuna ? 'openai' : 'lmstudio'}\nmodel=${model}\n`);
+    await writeFile(path.join(runDirectory, 'conversation-mode.txt'), `typed-user-mode\nprovider=lmstudio\nmodel=${model}\n`);
   } else {
-    await writeFile(path.join(runDirectory, 'conversation-mode.txt'), `seeded-recovery-mode\nprovider=${isLuna ? 'openai' : 'lmstudio'}\nmodel=${model}\n`);
+    await writeFile(path.join(runDirectory, 'conversation-mode.txt'), `seeded-recovery-mode\nprovider=lmstudio\nmodel=${model}\n`);
   }
+  if (smokeRun) {
+    console.log(`Number Quest local adaptive smoke passed using ${model}. Evidence is in ${runDirectory}`);
+  } else {
   await recordButtons(page, 'initial');
   await humanClick(page, page.getByRole('button', { name: /Generate GDD \/ PRD/i }));
   const critiqueFields = page.locator('textarea[id^="critique-q-"]');
@@ -316,6 +437,17 @@ try {
   const persisted = await page.evaluate(() => localStorage.getItem('devDoctorAiProjectHistories'));
   const persistedProject = persisted ? JSON.parse(pako.inflate(Buffer.from(persisted, 'base64'), { to: 'string' })).find(candidate => candidate.projectName === 'Number Quest') : null;
   assert(persistedProject, 'Number Quest project package must be persisted.');
+  const persistedGateFlags = {
+    gddGenerated: persistedProject.gddGenerated,
+    mvpGenerated: persistedProject.mvpGenerated,
+    tddSpecsGenerated: persistedProject.tddSpecsGenerated,
+    tddDocGenerated: persistedProject.tddDocGenerated,
+    modularBreakdownGenerated: persistedProject.modularBreakdownGenerated,
+    assetListGenerated: persistedProject.assetListGenerated,
+    pitchDeckGenerated: persistedProject.pitchDeckGenerated,
+    scopeReviewGenerated: persistedProject.scopeReviewGenerated,
+  };
+  assert.equal(Object.values(persistedGateFlags).every(Boolean), true, `Persisted project did not record all eight gates: ${JSON.stringify(persistedGateFlags)}`);
   await writeFile(path.join(runDirectory, 'number-quest-project-package.json'), JSON.stringify(persistedProject, null, 2));
   await writeFile(path.join(runDirectory, 'visible-page-text.txt'), await page.locator('body').innerText());
   const downloadMenu = page.getByRole('button', { name: /Download Full Project/i }).first();
@@ -331,9 +463,22 @@ try {
     assert(content.includes('Number Quest'), `${extension} export must contain the project title.`);
     exportedFiles.push(destination);
   }
-  await writeFile(path.join(runDirectory, 'run-summary.json'), JSON.stringify({ project: 'Number Quest', provider: isLuna ? 'openai' : 'lmstudio', model, errors, failures, completedGates: ['GDD', 'MVP', 'MVP Feature Specs', 'Final TDD', 'Freelance Briefs', 'Assets', 'Pitch Deck', 'Scope Critique'], outputs: ['number-quest-project-package.json', 'visible-page-text.txt', ...exportedFiles], note: `Full typed-user ${isLuna ? 'Luna' : 'Mistral'} run.` }, null, 2));
+  assert.equal(exportedFiles.length, downloadFormats.length, 'All four full-package export formats must be saved.');
+  await writeFile(path.join(runDirectory, 'run-summary.json'), JSON.stringify({ project: 'Number Quest', provider: 'lmstudio', model, errors, failures, completedGates: ['GDD', 'MVP', 'MVP Feature Specs', 'Final TDD', 'Freelance Briefs', 'Assets', 'Pitch Deck', 'Scope Critique'], persistedGateFlags, outputs: ['provider-selection.json', 'number-quest-project-package.json', 'visible-page-text.txt', ...exportedFiles], note: 'Full typed-user local Qwen run.' }, null, 2));
   console.log(`Number Quest visible ${seededRun ? 'seeded' : 'typed'} full run complete using ${model}. Package, exports, video, and snapshots are in ${runDirectory}`);
+  }
   await page.waitForTimeout(10_000);
+} catch (error) {
+  await writeFile(path.join(runDirectory, 'run-failure.json'), JSON.stringify({
+    project: 'Number Quest',
+    provider: 'lmstudio',
+    model,
+    message: error instanceof Error ? error.message : String(error),
+    errors,
+    failures,
+    failedAt: new Date().toISOString(),
+  }, null, 2));
+  throw error;
 } finally {
   await context?.close();
   if (recordedPage) {

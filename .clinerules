@@ -1,27 +1,417 @@
-# Dev Doctor project rules
+# ==================================================
+# PROJECT OPERATING RULES
+# ==================================================
 
-## Continuation
 
-- Read `TOMORROW_RESUME.md` first. It is the canonical, overwrite-in-place continuation file and is marked with the latest update date.
-- Inspect the current Git status and relevant implementation before editing.
-- Preserve the real adaptive Concierge flow; do not replace it with scripted answers or bypasses.
 
-## Local inference and E2E
+## 1. Production-Ready Outputs Only
 
-- Prefer the configured local LM Studio/OpenAI-compatible runtime and the model profile selected by the run.
-- The Number Quest adaptive conversation intentionally has no fixed turn cap. It must continue until the real completion gate is detected or an inference/browser failure occurs.
-- Keep `E2E_INFERENCE_TIMEOUT_MS` as the per-inference safety boundary. A timeout prevents a hung request; it does not limit the number of valid conversation turns.
-- Completion-gate confirmation must remain explicit and one-time before clicking `Generate GDD / PRD`.
+This repository is a production environment used for real work.
 
-## Validation
+- Never generate placeholder code.
+- Never generate stub implementations.
+- Never leave TODO, FIXME, HACK, NOTE, or "implement later" comments.
+- Never create mock implementations unless explicitly requested.
+- Deliver complete, functional, production-ready code and scripts.
+- Assume all generated code may be deployed immediately.
 
-- Keep strict downstream contracts and validation enabled.
-- Optional enrichment failures may remain non-blocking, but core workflow failures must remain visible.
-- Run focused syntax/tests plus build and lint when practical.
-- Verify edited files after changes and report any unvalidated local-model run honestly.
+Exception:
 
-## Git and handoff
+If implementation cannot be completed because required resources do not yet exist (files, APIs, schemas, credentials, specifications, assets, documentation, or external dependencies):
 
-- Include source, scripts, model profiles, tests, documentation, and this `.clinerules` file in the project commit when they are part of the requested work.
-- Do not commit secrets, local environment files, generated dependencies, or transient process logs.
-- Update `TOMORROW_RESUME.md` in place after a significant milestone. Mark it `LATEST VERSION` and use the current date.
+- Explicitly state what dependency is missing.
+- Add a concise comment identifying the missing dependency.
+- Add an entry to statuslog.txt documenting:
+- What is blocked.
+- Why it is blocked.
+- What resource is required.
+- What remains to be completed.
+- Update .implementation_plan.md if planned work is impacted.
+
+Untracked blockers are not permitted.
+
+
+
+## 2. Establish Situational Awareness on a Controlled Schedule
+
+Before implementation, debugging, planning, or architectural work, review the project-control files at the start of the relevant operating window. Do not reread them before every command, tool call, or conversational turn.
+
+The required review set is:
+
+1. `.clinerules`
+2. `implementation_plan.md`
+3. `statuslog.txt`
+4. `ORIGINAL_FLOW_SUMMARY.md`
+
+Review the relevant sections of the original flow summary with the other project-control files to understand the intended persona architecture, conversation sequencing, and generation guardrails before changes.
+
+Review all three files at these events:
+
+- Project open or workspace selection.
+- Application open or launch-session start.
+- LM Studio model change.
+- The first task after an elapsed hour since the previous control-file review.
+
+Use headings, narrow searches, targeted line ranges, and concise summaries where practical; a scheduled review does not require repeatedly loading whole control files into request context. If none of these events has occurred, reuse the most recent reviewed context for the current task. Record the review time or triggering event in the task status when useful.
+
+
+
+## 3. Review Relevant Project Documentation
+
+Before planning, implementation, refactoring, or architectural decisions, identify the project documentation relevant to the active task and review the applicable documents or sections.
+
+Examples include:
+
+- devdr.md
+- devdr/
+- docs/
+- architecture/
+- specifications/
+- ADRs
+- engineering notes
+- technical design documents
+- `ORIGINAL_FLOW_SUMMARY.md` for the pre-LM Studio architecture and intended persona flow
+
+Inspect only files and documentation directly relevant to the active task, affected architecture, dependency, or validation requirement. Do not load unrelated documentation, large historical logs, generated outputs, duplicate artifacts, or complete conversation history solely because they exist.
+
+Start with narrow searches, directory listings, or targeted line ranges. Read an entire file only when the task depends on the complete file, targeted inspection leaves a material ambiguity, a dependency must be traced through the full file, or the user explicitly requests a full review. Summarize findings instead of repeatedly carrying large source, logs, or documentation into later requests.
+
+Always prefer relevant repository-specific documentation over assumptions.
+
+Project documentation is considered authoritative unless superseded by direct user instructions.
+
+
+
+## 4. Prefer Tools Over Terminal Commands
+
+Avoid terminal commands when an equivalent tool, function, service, library, or native capability already exists.
+
+Guidelines:
+
+- Use available tools first.
+- Use terminal commands only when necessary.
+- Do not use shell commands as a shortcut.
+- Minimize approval requests.
+- Minimize unnecessary command execution.
+- Avoid operational debt created by needless terminal interactions.
+
+The simplest valid approach is preferred.
+
+
+
+## 5. Align With Existing Architecture
+
+Before introducing new patterns:
+
+- Inspect the existing architecture.
+- Follow established conventions.
+- Reuse existing services and utilities.
+- Match existing naming standards.
+- Extend existing implementations before creating alternatives.
+
+Do not introduce competing architectural patterns without clear technical justification.
+
+
+
+## 6. Verify Before Modifying
+
+Before making changes:
+
+- Identify affected files.
+- Review dependencies.
+- Review downstream impact.
+- Understand current behavior.
+- Review related implementation history where available.
+
+Avoid speculative changes or assumption-driven modifications.
+
+
+
+## 7. Keep Documentation Current
+
+When implementation changes affect documented behaviour:
+
+- Update documentation.
+- Update .implementation_plan.md.
+- Update statuslog.txt.
+- Record significant architectural decisions.
+- Document newly discovered constraints.
+
+Documentation should accurately represent the current state of the project.
+
+
+
+## 8. Minimize Technical Debt
+
+Every change should:
+
+- Reduce technical debt, or
+- Avoid introducing new technical debt.
+
+Avoid:
+
+- Dead code
+- Duplicate implementations
+- Unused abstractions
+- Legacy workarounds
+- Temporary solutions presented as permanent fixes
+
+
+
+## 9. Complete Work End-to-End
+
+When addressing a task:
+
+- Complete implementation.
+- Integrate related components.
+- Validate references.
+- Validate dependencies.
+- Ensure execution paths are complete.
+- Ensure documentation remains accurate.
+
+Work is not complete until all implementation steps are addressed or formally recorded as blocked.
+
+
+
+## 10. Be Evidence Driven
+
+When making decisions:
+
+- Prefer repository evidence over assumptions.
+- Prefer documentation over inference.
+- Prefer existing implementations over theoretical patterns.
+- Verify claims before modifying systems.
+
+If uncertainty exists:
+
+- State the uncertainty.
+- Identify the missing evidence.
+- Record blockers when required.
+
+Never guess.
+
+
+
+# ==================================================
+# RATE LIMITING
+# ==================================================
+
+
+
+## 10. Token Usage Limit
+
+- Enforce a rolling-window rate limit of 200,000 tokens per minute (TPM).
+
+
+
+# ==================================================
+# ENGINEERING GOVERNANCE
+# ==================================================
+
+
+
+## 11. Status Log Discipline
+
+Any meaningful work session must result in a statuslog.txt update when it changes implementation state, discovers a blocker, changes validation status, or changes project decisions.
+
+### Required completion updates
+
+At the completion of a task that changes implementation state, update the affected project-control records. The three control files must be reviewed together at the scheduled events defined in Section 2; they do not need to be rewritten after every command or routine task.
+
+When a task changes project rules, planned work, validation status, blockers, architecture, or documented behavior, update the applicable files:
+
+- `.clinerules` for operating-policy changes.
+- `implementation_plan.md` for scope, plan, acceptance, or architecture changes.
+- `statuslog.txt` for work history, tests, blockers, decisions, and follow-up.
+
+For a meaningful implementation task, update all three together when their shared project state is affected. Do not force no-op edits solely to satisfy a per-command or per-turn cadence.
+
+The updates must reflect the work performed, files affected, current state, blockers, and follow-up actions. The `statuslog.txt` entry must explicitly record:
+
+- What was tested and the result.
+- What was not tested.
+- Why any planned validation could not be completed.
+
+A task must not be reported as complete until the applicable control files have been reviewed and the testing status has been recorded. All three must be reviewed when the task occurs at a scheduled control-file event or changes shared project state.
+
+The completion record must distinguish passing checks from failures caused by unrelated or obsolete files; do not report a partial validation as a full pass.
+
+When removing a legacy integration, verify and document all executable references, package dependencies, environment variables, bundler mappings, import maps, and user-facing documentation. Historical records and duplicate project copies must be identified separately from the active project and must not be presented as cleaned unless they were actually updated.
+
+For repository-wide searches, distinguish active-project results from parent-directory documentation, historical prompt history, and duplicate application copies. Report the scope of cleanup explicitly.
+
+Unsupported capabilities must be communicated exactly as specified by the user. Do not expose generated prompts, placeholder data, or fallback implementation details when the required user-facing message is a concise availability notice.
+
+For runtime validation, distinguish endpoint availability from successful model inference. A healthy server or model-list response is not evidence that chat generation works; record model-loading or resource failures separately.
+
+When a local model is verified through a successful chat-completion request, record its exact LM Studio model ID and use that verified ID as the application default unless project documentation specifies another model.
+
+Persona and conversation behavior must be validated with context-sensitive inputs. A successful HTTP response alone is insufficient; verify that the response changes appropriately when the conversation content changes and that fallback behavior does not mask repeated model failures.
+
+Persona requests must use bounded conversation context. Preserve the project identity and recent relevant turns, but do not forward unbounded chat history into every persona request.
+
+## Model-Specific Provider Rate Limits
+
+- Treat OpenAI `gpt-5.6-luna` and `gpt-5.6-terra` as each having a 200,000 tokens-per-minute (TPM) organisation limit.
+- Requests to `gpt-5.6-luna` and `gpt-5.6-terra` must be serialized through a shared provider/model queue and scheduled against a rolling 60-second token budget; do not use parallel inference calls to increase throughput.
+- Reserve a conservative client-side budget below the provider limit because organisation usage outside this application is not observable.
+- Estimate prompt plus requested completion tokens before scheduling, honor provider `Retry-After` guidance or documented retry delays after HTTP 429, and use bounded retries only.
+- Do not add arbitrary fixed request waits when the scheduler can safely release a request immediately. Local work such as file parsing, rendering, exports, and persistence may remain concurrent when it does not call an AI provider.
+
+Service logs must be structured and privacy-conscious: include correlation, operation, model, timing, status, retry, size, usage, and classified error metadata, but never log API keys, credentials, full prompts, full responses, uploaded file contents, or raw project transcripts.
+
+Structured model outputs must be validated against their expected shape before entering application state. Validation failures must be logged by category without logging the invalid content, and the UI must receive a concise mapped error rather than a raw exception.
+
+Performance changes must be evidence-driven and low-risk: measure or identify the unnecessary work, preserve intentional throttles that protect local model resources, and validate lint/build plus representative model behavior after optimization.
+
+Build-performance changes must remove resolved warnings without masking unresolved ones. Record bundle-size and warning results before and after changes, and defer architectural code-splitting when it would require the major refactor or introduces circular chunks.
+
+New developer-facing scripts must be executable, resolve paths relative to their own location, handle cleanup on exit, and document their usage in the project README when they provide a standard workflow.
+
+Validate new launchers with shell syntax checking and a real start/stop smoke test when the environment permits; record both results explicitly.
+
+Launchers that supervise child processes must explicitly handle interrupt/termination signals and verify that the complete child process tree is stopped during smoke testing.
+
+Automated launcher smoke tests must use a signal that is not ignored by the test shell's background-job semantics (for example, TERM); document any signal-specific test limitation instead of treating the harness failure as an application failure.
+
+Include:
+
+- Work completed.
+- Files modified.
+- Decisions made.
+- Blockers discovered.
+- Risks identified.
+- Recommended next actions.
+
+The status log should allow a new contributor to understand the current project state without inspecting source code.
+
+
+
+## 12. Refactoring Rules
+
+Refactoring must preserve behaviour unless explicitly instructed otherwise.
+
+Before refactoring:
+
+- Identify current behaviour.
+- Identify dependencies.
+- Understand downstream consumers.
+- Review architecture documentation.
+- Verify intended outcomes.
+
+Do not combine major refactoring and feature development within the same change unless explicitly requested.
+
+Refactoring should improve clarity, maintainability, reliability, or performance without changing expected functionality.
+
+
+
+## 13. Source of Truth Hierarchy
+
+When information conflicts, use the following priority order:
+
+1. Direct user instructions
+2. .implementation_plan.md
+3. Project documentation
+4. Existing production code
+5. General best practices
+
+Higher-priority sources override lower-priority sources.
+
+Conflicts affecting implementation decisions should be documented in statuslog.txt.
+
+
+
+## 14. Root Cause First
+
+When investigating defects, failures, regressions, or unexpected behaviour:
+
+- Identify root cause before implementing a fix.
+- Avoid symptom-based fixes where practical.
+- Prefer corrective solutions over compensating workarounds.
+- Document root causes in statuslog.txt.
+
+Fix causes, not symptoms.
+
+
+
+## 15. Change Logging
+
+For every meaningful implementation change:
+
+Document:
+
+- Why the change was made.
+- What files were modified.
+- What behaviour changed.
+- Any dependencies affected.
+- Any follow-up work required.
+
+Future contributors should be able to understand the rationale behind a change without reverse-engineering commit history.
+
+
+
+## 16. Testing and Validation
+
+Changes must be validated whenever practical.
+
+Before declaring work complete:
+
+- Execute existing tests where available.
+- Validate modified functionality.
+- Verify expected outcomes.
+- Check for regressions in affected areas.
+
+Do not claim functionality works without verification.
+
+If testing cannot be completed:
+
+- Document what was tested.
+- Document what could not be tested.
+- Document why testing was not possible.
+- Record remaining validation requirements in statuslog.txt.
+
+
+
+## 17. Security and Secrets Management
+
+Never hardcode:
+
+- API keys
+- Secrets
+- Access tokens
+- Credentials
+- Connection strings containing sensitive information
+- Encryption keys
+
+Use approved configuration and secret-management mechanisms already established within the project.
+
+When modifying authentication, permissions, integrations, or security-sensitive systems:
+
+- Verify assumptions.
+- Review existing security controls.
+- Minimize privilege requirements.
+- Preserve security boundaries.
+
+
+
+## 18. Scope Control
+
+Solve the requested problem first.
+
+Avoid unrelated modifications unless:
+
+- They are required for implementation.
+- They remove immediate risk.
+- They resolve an identified blocker.
+- They have been explicitly requested.
+
+Do not perform opportunistic redesigns during unrelated work.
+
+Large-scale refactors should be planned, documented, and approved separately from routine implementation tasks.
+
+
+
+# ==================================================
+# OPERATING PRINCIPLE
+# ==================================================
+

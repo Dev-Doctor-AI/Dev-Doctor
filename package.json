@@ -22,6 +22,7 @@
     "test:e2e:gemini-full-pipeline": "node scripts/test-gemini-full-pipeline-real-inference.mjs",
     "test:e2e:manual-recovery": "node scripts/test-manual-recovery-e2e.mjs",
     "run:visible-duck-wars": "node scripts/run-visible-duck-wars-manual.mjs",
+    "run:visible-number-quest": "node scripts/run-visible-number-quest-e2e.mjs",
     "run:visible-gemini-pipeline": "node scripts/run-visible-gemini-pipeline.mjs",
     "test:model-profile": "node --experimental-specifier-resolution=node scripts/test-model-profile-contract.mjs",
     "probe:model-behaviour": "node scripts/probe-model-behaviour.mjs",

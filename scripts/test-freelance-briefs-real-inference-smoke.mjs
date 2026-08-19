@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -9,6 +10,7 @@ import pako from 'pako';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modelsUrl = 'http://127.0.0.1:1234/v1/models';
 const proxyUrl = 'http://127.0.0.1:1235/v1/models';
+const exactQwenModel = 'qwen/qwen3.5-9b';
 const fixture = JSON.parse(readFileSync(path.join(root, 'Output Files/Gemini3.7Flash/Space_Marines_Project_Package.json'), 'utf8'));
 const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -47,13 +49,13 @@ const project = {
 const historyValue = Buffer.from(pako.deflate(JSON.stringify([project]))).toString('base64');
 const modelsResponse = await fetch(modelsUrl).catch(() => null);
 if (!modelsResponse?.ok) throw new Error(`LM Studio is unavailable at ${modelsUrl}.`);
-const models = (await modelsResponse.json()).data?.map(model => model.id).filter(Boolean) || [];
-if (!models.length) throw new Error('LM Studio has no loaded models.');
-console.log(`Running isolated Freelance Briefs smoke with available models: ${models.join(', ')}`);
+const exactQwenLoaded = (await modelsResponse.json()).data?.some(model => model.id === exactQwenModel);
+if (!exactQwenLoaded) throw new Error(`The configured exact Qwen model ${exactQwenModel} was not reported by LM Studio.`);
+console.log(`Running isolated Freelance Briefs smoke with ${exactQwenModel}.`);
 
 const port = await availablePort(Number(process.env.E2E_FREELANCE_SMOKE_PORT || 3010));
 const appUrl = `http://127.0.0.1:${port}/`;
-const server = spawn('npm', ['run', 'dev', '--', '--port', String(port), '--host', '127.0.0.1', '--strictPort'], { cwd: root, shell: true, stdio: 'pipe' });
+const server = spawn('npm', ['run', 'dev', '--', '--port', String(port), '--host', '127.0.0.1', '--strictPort'], { cwd: root, env: { ...process.env, VITE_MVP_FEATURE_SPEC_TIMEOUT_MS: process.env.MVP_FEATURE_SPEC_TIMEOUT_MS || '300000' }, shell: true, stdio: 'pipe' });
 const proxy = spawn('node', ['scripts/lm-proxy.js'], { cwd: root, stdio: 'pipe' });
 server.stdout?.on('data', chunk => process.stdout.write(`[vite] ${chunk}`));
 server.stderr?.on('data', chunk => process.stderr.write(`[vite] ${chunk}`));
@@ -73,12 +75,22 @@ try {
   page.on('pageerror', error => browserErrors.push(error.message));
   page.on('requestfailed', request => requestFailures.push(`${request.method()} ${request.url()}: ${request.failure()?.errorText || 'unknown failure'}`));
   await page.goto(appUrl, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.getByRole('button', { name: 'AI provider settings' }).click();
+  await page.locator('input[name="providerType"]').first().check();
+  const qwenOption = page.locator(`option[value="${exactQwenModel}"]`);
+  assert.equal(await qwenOption.count(), 1, `The exact Qwen model ${exactQwenModel} must be present in the local provider UI.`);
+  await qwenOption.locator('..').selectOption(exactQwenModel);
+  assert.equal(await page.locator('input[name="providerType"]').first().isChecked(), true, 'Freelance Briefs smoke must use Local (LM Studio).');
+  assert.equal(await page.locator('input[name="providerType"]').nth(1).isChecked(), false, 'Freelance Briefs smoke must not use a cloud provider.');
+  assert.equal(await qwenOption.locator('..').inputValue(), exactQwenModel, `Freelance Briefs smoke must use ${exactQwenModel} exactly.`);
+  await page.getByRole('button', { name: 'Close provider settings' }).click();
   await page.locator('h2:has-text("Rich project package")').waitFor({ timeout: 60_000 });
   const button = page.locator('button:has-text("Generate Freelance Briefs")').first();
   await button.click();
   const deadline = Date.now() + Number(process.env.E2E_FREELANCE_TIMEOUT_MS || 600_000);
   while (Date.now() < deadline) {
-    const error = browserErrors.find(message => /Failed to generate Modular Breakdown|invalid production briefs/i.test(message));
+    const workflowError = await page.locator('[data-testid="workflow-error"]').innerText().catch(() => '');
+    const error = workflowError.trim() || browserErrors.find(message => /Failed to generate Modular Breakdown|invalid production briefs|process is not defined/i.test(message));
     if (error) throw new Error(`Freelance Briefs failed in the browser: ${error}`);
     if (Boolean((await button.locator('h4').getAttribute('class').catch(() => ''))?.includes('text-green-400'))) break;
     await sleep(500);
